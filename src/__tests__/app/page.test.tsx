@@ -42,8 +42,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 test('renders main heading with correct text', async () => {
-  const PageContent = await Page();
-  render(PageContent);
+  render(await Page());
   expect(
     screen.getByRole('heading', {
       level: 1,
