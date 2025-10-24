@@ -7,6 +7,14 @@ import { headers } from 'next/headers';
 export async function isEditorMode(): Promise<boolean> {
   const headersList = await headers();
   const editorModeHeader = headersList.get('x-editor-mode');
-  const isEditor = editorModeHeader === 'true';
-  return isEditor;
+  return editorModeHeader === 'true';
+}
+
+/**
+ * Retrieve the editor base path for the current request, if any.
+ * Returns an empty string when not using the /editor prefix.
+ */
+export async function getEditorBasePath(): Promise<string> {
+  const headersList = await headers();
+  return headersList.get('x-editor-base-path') ?? '';
 }

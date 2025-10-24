@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Popup from 'reactjs-popup';
 import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
@@ -18,6 +18,8 @@ const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => 
 
 export function AddWordModal({ availableUsers }: AddWordModalProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
 
   const [newWordRoot, setNewWordRoot] = useState('');
   const [newWordLemma, setNewWordLemma] = useState('');
@@ -83,7 +85,11 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
       close();
 
       // Navigate to word page
-      router.push(`/palabra/${encodeURIComponent(createdLemma)}`);
+      const destination = editorBasePath
+        ? `${editorBasePath}/palabra/${encodeURIComponent(createdLemma)}`
+        : `/palabra/${encodeURIComponent(createdLemma)}`;
+
+      router.push(destination);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Error al agregar la palabra');
     }

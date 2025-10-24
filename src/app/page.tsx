@@ -2,9 +2,21 @@ import React from 'react';
 import { ArrowRightIcon, InformationCircleIcon, CheckCircleIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import SearchBar from '@/components/search/search-bar';
-import WordOfTheDay from '@/components/word-of-the-day';
+import WordOfTheDay, { type WordOfTheDayData } from '@/components/word-of-the-day';
+import { getEditorBasePath, isEditorMode } from '@/lib/editor-mode-server';
+import { getWordOfTheDay } from '@/lib/dictionary';
 
-export default function Home() {
+export default async function Home() {
+  const editorMode = await isEditorMode();
+  const editorBasePath = editorMode ? await getEditorBasePath() : '';
+  let wordOfTheDayData: WordOfTheDayData | null = null;
+
+  try {
+    wordOfTheDayData = await getWordOfTheDay();
+  } catch {
+    wordOfTheDayData = null;
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="mb-16 text-center">
@@ -20,11 +32,15 @@ export default function Home() {
       </div>
 
       <div className="mx-auto mb-16 max-w-2xl">
-        <SearchBar placeholder="Buscar palabra en el diccionario..." className="shadow-xl" />
+        <SearchBar
+          placeholder="Buscar palabra en el diccionario..."
+          className="shadow-xl"
+          editorMode={editorMode}
+        />
       </div>
 
       <div className="mb-16 grid gap-10 md:grid-cols-2">
-        <WordOfTheDay />
+        <WordOfTheDay data={wordOfTheDayData} editorMode={editorMode} />
 
         <div className="border-duech-blue card-hover rounded-xl border-t-4 bg-white p-8 shadow-lg">
           <h2 className="text-duech-blue mb-6 flex items-center text-2xl font-bold">
@@ -61,7 +77,7 @@ export default function Home() {
         </p>
 
         <Button
-          href="/buscar"
+          href={`${editorBasePath || ''}/buscar`}
           className="bg-duech-blue px-8 py-4 font-semibold text-white hover:bg-blue-800"
         >
           Abrir buscador <ArrowRightIcon className="ml-3 h-6 w-6 text-gray-50" />

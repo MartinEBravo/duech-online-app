@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { MultiSelectDropdown } from '@/components/common/dropdown';
 import { getSearchMetadata } from '@/lib/dictionary-client';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
@@ -20,6 +20,7 @@ interface SearchBarProps {
   onStateChange?: (state: { query: string; filters: InternalFilters }) => void;
   onClearAll?: () => void;
   additionalFilters?: AdditionalFiltersConfig;
+  editorMode?: boolean;
 }
 
 type InternalFilters = Required<Omit<SearchFilters, 'query'>>;
@@ -73,8 +74,11 @@ export default function SearchBar({
   onStateChange,
   onClearAll,
   additionalFilters,
+  editorMode = false,
 }: SearchBarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const editorBasePath = editorMode && pathname.startsWith('/editor') ? '/editor' : '';
   const isInitialMountRef = useRef(true);
   const isSyncingFromPropsRef = useRef(false);
 
@@ -91,7 +95,7 @@ export default function SearchBar({
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(initialAdvancedOpen);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
 
-  const defaultSearchPath = '/buscar';
+  const defaultSearchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchPath = customSearchPath ?? defaultSearchPath;
 
   const initialCategories = initialFilters?.categories ?? EMPTY_FILTERS.categories;

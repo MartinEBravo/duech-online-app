@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/common/button';
 
@@ -23,9 +24,24 @@ interface HeaderProps {
 }
 
 export default function Header({ editorMode }: HeaderProps) {
+  const pathname = usePathname();
+  const editorBasePath = editorMode && pathname.startsWith('/editor') ? '/editor' : '';
+
+  const buildHref = (path: string) => {
+    if (!editorMode || !editorBasePath) {
+      return path;
+    }
+
+    if (path === '/') {
+      return editorBasePath;
+    }
+
+    return `${editorBasePath}${path}`;
+  };
+
   const [user, setUser] = useState<{ name?: string; email: string } | null>(null);
 
-  const homeLink = '/';
+  const homeLink = buildHref('/');
   const title = editorMode ? 'DUECh Editor' : 'DUECh';
   const subtitle = editorMode
     ? 'Editor del Diccionario del uso del español de Chile'
@@ -106,10 +122,10 @@ export default function Header({ editorMode }: HeaderProps) {
           </div>
 
           <div className="flex items-center space-x-8">
-            <NavLink href="/">Inicio</NavLink>
-            <NavLink href="/buscar">Buscar</NavLink>
-            <NavLink href="/recursos">Recursos</NavLink>
-            <NavLink href="/acerca">Acerca</NavLink>
+            <NavLink href={buildHref('/')}>Inicio</NavLink>
+            <NavLink href={buildHref('/buscar')}>Buscar</NavLink>
+            <NavLink href={buildHref('/recursos')}>Recursos</NavLink>
+            <NavLink href={buildHref('/acerca')}>Acerca</NavLink>
             {editorMode && (
               <a
                 href="http://localhost:3000/"
