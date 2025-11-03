@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowRightCircleIcon, EyeIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
@@ -29,8 +30,13 @@ export function WordCard({
   definitionsCount,
   className = '',
 }: WordCardProps) {
+  const pathname = usePathname();
+  const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
   const isPublished = status === 'published';
-  const viewUrl = `/palabra/${encodeURIComponent(lemma)}`;
+  const viewUrl =
+    editorMode && editorBasePath
+      ? `${editorBasePath}/palabra/${encodeURIComponent(lemma)}`
+      : `/palabra/${encodeURIComponent(lemma)}`;
   // In editor mode, we need the public domain URL for preview
   const publicPreviewUrl = editorMode
     ? `http://localhost:3000/palabra/${encodeURIComponent(lemma)}`

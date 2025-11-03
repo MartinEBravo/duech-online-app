@@ -6,8 +6,8 @@ import Footer from '@/components/footer';
 import { isEditorMode } from '@/lib/editor-mode-server';
 
 export const metadata: Metadata = {
-  title: 'Diccionario del uso español de Chile',
-  description: 'Diccionario del uso del español de Chile - DUECh Online',
+  title: 'Diccionario de uso español de Chile',
+  description: 'Diccionario de uso del español de Chile - DUECh Online',
 };
 
 export default async function RootLayout({

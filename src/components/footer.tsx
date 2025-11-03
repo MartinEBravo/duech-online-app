@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-duech-gold mb-2 text-lg font-semibold">
-            Diccionario de Uso del Español de Chile
+            Diccionario de uso del Español de Chile
           </p>
           <p className="text-sm text-gray-300">
             Proyecto de digitalización del patrimonio lingüístico chileno

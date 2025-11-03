@@ -7,8 +7,8 @@ export default function RecursosPage() {
         <div className="mb-6 rounded-lg bg-white p-8 shadow-md">
           <h2 className="mb-4 text-2xl font-semibold text-gray-900">Sobre el Diccionario</h2>
           <p className="mb-4 text-gray-700">
-            El Diccionario del uso del español de Chile (DUECh) es una obra lexicográfica
-            fundamental para comprender la riqueza y diversidad del español hablado en Chile.
+            El Diccionario de uso del español de Chile (DUECh) es una obra lexicográfica fundamental
+            para comprender la riqueza y diversidad del español hablado en Chile.
           </p>
           <p className="text-gray-700">
             Este proyecto de digitalización busca hacer accesible esta invaluable herramienta

@@ -109,26 +109,81 @@ export interface SearchResponse {
 
 // Categories mapping for advanced search
 export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
-  m: 'Masculino',
-  f: 'Femenino',
+  // Adjetivo
   adj: 'Adjetivo',
-  adv: 'Adverbio',
-  'adj/sust': 'Adjetivo/Sustantivo',
+
+  // Adjetivo/Adverbio
   'adj/adv': 'Adjetivo/Adverbio',
-  sust: 'Sustantivo',
-  tr: 'Transitivo',
-  intr: 'Intransitivo',
-  interj: 'Interjección',
-  loc: 'Locución',
-  'loc sust': 'Locución sustantiva',
-  'loc adv': 'Locución adverbial',
-  'loc adj': 'Locución adjetiva',
+
+  // Adjetivo/Sustantivo
+  'adj/sust': 'Adjetivo/Sustantivo',
+
+  // Adverbio
+  adv: 'Adverbio',
+
+  // Fórmula
   fórm: 'Fórmula',
-  marc: 'Marcador',
-  disc: 'Discursivo',
-  'm-f': 'Masculino-Femenino',
-  pron: 'Pronombre',
-  'm o f': 'Masculino o Femenino',
+
+  // Interjección
+  interj: 'Interjección',
+
+  // Locución
+  loc: 'Locución',
+
+  // Locución sustantiva/adjetiva
+  'loc sust/adj': 'Locución sustantiva/adjetiva',
+
+  // Locución adjetiva
+  'loc adj': 'Locución adjetiva',
+
+  // Locución adjetiva/adverbial
+  'loc adj/adv': 'Locución adjetiva/adverbial',
+
+  // Locución adjetiva/sustantiva
+  'loc adj/sust': 'Locución adjetiva/sustantiva',
+
+  // Locución adverbial
+  'loc adv': 'Locución adverbial',
+
+  // Locución interjectiva
+  'loc interj': 'Locución interjectiva',
+
+  // Locución sustantiva
+  'loc sust': 'Locución sustantiva',
+
+  // Marcador discursivo
+  marc: 'Marcador discursivo',
+  disc: 'Marcador discursivo',
+
+  // Sustantivo/Adjetivo
+  sust: 'Sustantivo/Adjetivo',
+
+  // Sustantivo femenino
+  f: 'Sustantivo femenino',
+
+  // Sustantivo masculino
+  m: 'Sustantivo masculino',
+
+  // Sustantivo masculino o femenino
+  'm o f': 'Sustantivo masculino o femenino',
+
+  // Sustantivo masculino-femenino
+  'm-f': 'Sustantivo masculino-femenino',
+
+  // Sustantivo masculino y femenino
+  'm y f': 'Sustantivo masculino y femenino',
+
+  // Sustantivo masculino plural
+  'm pl': 'Sustantivo masculino plural',
+
+  // Sustantivo femenino plural
+  'f pl': 'Sustantivo femenino plural',
+
+  // Verbo intransitivo
+  intr: 'Verbo intransitivo',
+
+  // Verbo transitivo
+  tr: 'Verbo transitivo',
 };
 
 // Style mappings

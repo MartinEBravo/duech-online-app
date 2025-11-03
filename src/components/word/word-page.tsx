@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { MultiSelector } from '@/components/word/multi-selector-modal';
 import { Button } from '@/components/common/button';
 import { DefinitionSection } from '@/components/word/word-definition';
@@ -47,6 +47,8 @@ export function WordDisplay({
   initialComments,
   editorMode,
 }: WordDisplayProps) {
+  const pathname = usePathname();
+  const editorBasePath = pathname?.startsWith('/editor') ? '/editor' : '';
   const [word, setWord] = useState<Word>(initialWord);
   const [letter, setLetter] = useState(initialLetter);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -366,7 +368,7 @@ export function WordDisplay({
   };
 
   const hasDefinitions = word.values.length > 0;
-  const searchPath = '/buscar';
+  const searchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchLabel = editorMode ? 'Buscar' : 'Buscar';
 
   return (
@@ -437,15 +439,16 @@ export function WordDisplay({
       </div>
 
       {/* Comments Section */}
-
-      <div className="mt-12 lg:mt-16">
-        <WordCommentSection
-          key={wordId}
-          editorMode={editorMode}
-          initial={initialComments}
-          lemma={lastSavedLemma}
-        />
-      </div>
+      {editorMode && (
+        <div className="mt-12 lg:mt-16">
+          <WordCommentSection
+            key={wordId}
+            editorMode={editorMode}
+            initial={initialComments}
+            lemma={lastSavedLemma}
+          />
+        </div>
+      )}
 
       {/* Multi-select modals (editor mode only) */}
       {editorMode && editingCategories !== null && (

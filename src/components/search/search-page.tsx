@@ -418,6 +418,7 @@ export function SearchPage({
               searchState.filters.letters.length > 0 ||
               hasEditorFilters)
           }
+          editorMode={editorMode}
         />
       </div>
 

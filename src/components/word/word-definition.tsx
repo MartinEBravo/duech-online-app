@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import InlineEditable from '@/components/word/inline-editable';
 import { ChipList } from '@/components/common/chip';
@@ -45,6 +46,8 @@ export function DefinitionSection({
   onDeleteDefinition,
   renderExample,
 }: DefinitionSectionProps) {
+  const pathname = usePathname();
+  const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
   const isEditing = (k: string) => editingKey === k;
 
   return (
@@ -112,7 +115,11 @@ export function DefinitionSection({
                 <p className="text-lg text-gray-800">
                   Ver:{' '}
                   <Link
-                    href={`/palabra/${encodeURIComponent(value)}`}
+                    href={
+                      editorMode && editorBasePath
+                        ? `${editorBasePath}/palabra/${encodeURIComponent(value)}`
+                        : `/palabra/${encodeURIComponent(value)}`
+                    }
                     className="text-duech-blue hover:text-duech-gold font-bold transition-colors"
                   >
                     {value}
