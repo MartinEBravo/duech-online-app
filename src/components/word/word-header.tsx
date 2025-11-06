@@ -9,7 +9,7 @@ import { InformationCircleIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
 import type { WordDefinition } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
-import { getLexicographerByRole} from '@/lib/search-utils';
+import { getLexicographerByRole } from '@/lib/search-utils';
 import { getStatusByRole } from '@/lib/search-utils';
 interface WordHeaderProps {
   lemma: string;
@@ -65,16 +65,15 @@ export function WordHeader({
   definitions,
 }: WordHeaderProps) {
   const { isAdmin, isCoordinator, isLexicographer, username } = useUserRole(true);
-  
+
   const userOptions = useMemo(
-      () => getLexicographerByRole(users, username, isAdmin, isCoordinator, isLexicographer),
-      [users, username, isAdmin, isCoordinator, isLexicographer] // ← Todas las dependencias
-    );
-    const statusFilters = useMemo(
+    () => getLexicographerByRole(users, username, isAdmin, isCoordinator, isLexicographer),
+    [users, username, isAdmin, isCoordinator, isLexicographer] // ← Todas las dependencias
+  );
+  const statusFilters = useMemo(
     () => getStatusByRole(statusOptions, isAdmin, isCoordinator, isLexicographer),
     [isAdmin, isCoordinator, isLexicographer]
   );
-
 
   return (
     <>

@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-
-
 export function useUserRole(editorMode: boolean) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isCoordinator, setIsCoordinator] = useState(false);
@@ -19,7 +17,6 @@ export function useUserRole(editorMode: boolean) {
     try {
       const res = await fetch('/api/auth/me', { cache: 'no-store' });
       if (res.ok) {
-
         const data = await res.json();
         console.log('🔍 API Response completa:', data);
         console.log('🔍 data.user:', data.user);
@@ -37,7 +34,6 @@ export function useUserRole(editorMode: boolean) {
         setIsLexicographer(false);
       }
     } catch {
-
       setIsAdmin(false);
       setIsCoordinator(false);
       setIsLexicographer(false);

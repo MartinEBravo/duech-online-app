@@ -1,5 +1,3 @@
-
-
 /**
  * Utility functions for search functionality
  */
@@ -79,12 +77,11 @@ export interface User {
  */
 export function getLexicographerOptions(users: User[]) {
   return users
-    .filter((user) => user.role === 'lexicographer'  || user.role === 'coordinator')
+    .filter((user) => user.role === 'lexicographer' || user.role === 'coordinator')
     .map((user) => ({
       value: user.id.toString(),
       label: user.username,
-    }
-  ));
+    }));
 }
 
 export function getLexicographerByRole(
@@ -94,7 +91,6 @@ export function getLexicographerByRole(
   isCoordinator: boolean,
   isLexicographer: boolean
 ) {
- 
   if (isAdmin || isCoordinator) {
     return users
       .filter((user) => user.role === 'lexicographer' || user.role === 'coordinator')
@@ -104,7 +100,6 @@ export function getLexicographerByRole(
       }));
   }
 
- 
   if (isLexicographer) {
     return users
       .filter((user) => user.username === currentUsername)
@@ -114,7 +109,6 @@ export function getLexicographerByRole(
       }));
   }
 
- 
   return [];
 }
 export function getStatusByRole(
@@ -123,25 +117,21 @@ export function getStatusByRole(
   isCoordinator: boolean,
   isLexicographer: boolean
 ) {
-
   if (isAdmin) {
-    return statusOptions.filter((status) => status.value !== 'imported'); 
+    return statusOptions.filter((status) => status.value !== 'imported');
   }
 
- 
   if (isCoordinator) {
     return statusOptions.filter(
       (status) => status.value === 'reviewed' || status.value === 'preredacted'
     );
   }
 
-  
   if (isLexicographer) {
     return statusOptions.filter(
       (status) => status.value === 'redacted' || status.value === 'preredacted'
     );
   }
-
 
   return [];
 }
