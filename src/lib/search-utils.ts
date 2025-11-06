@@ -1,3 +1,5 @@
+
+
 /**
  * Utility functions for search functionality
  */
@@ -77,9 +79,69 @@ export interface User {
  */
 export function getLexicographerOptions(users: User[]) {
   return users
-    .filter((user) => user.role === 'lexicographer')
+    .filter((user) => user.role === 'lexicographer'  || user.role === 'coordinator')
     .map((user) => ({
       value: user.id.toString(),
       label: user.username,
-    }));
+    }
+  ));
+}
+
+export function getLexicographerByRole(
+  users: User[],
+  currentUsername: string,
+  isAdmin: boolean,
+  isCoordinator: boolean,
+  isLexicographer: boolean
+) {
+ 
+  if (isAdmin || isCoordinator) {
+    return users
+      .filter((user) => user.role === 'lexicographer' || user.role === 'coordinator')
+      .map((user) => ({
+        value: user.id.toString(),
+        label: user.username,
+      }));
+  }
+
+ 
+  if (isLexicographer) {
+    return users
+      .filter((user) => user.username === currentUsername)
+      .map((user) => ({
+        value: user.id.toString(),
+        label: user.username,
+      }));
+  }
+
+ 
+  return [];
+}
+export function getStatusByRole(
+  statusOptions: { value: string; label: string }[],
+  isAdmin: boolean,
+  isCoordinator: boolean,
+  isLexicographer: boolean
+) {
+
+  if (isAdmin) {
+    return statusOptions.filter((status) => status.value !== 'imported'); 
+  }
+
+ 
+  if (isCoordinator) {
+    return statusOptions.filter(
+      (status) => status.value === 'reviewed' || status.value === 'preredacted'
+    );
+  }
+
+  
+  if (isLexicographer) {
+    return statusOptions.filter(
+      (status) => status.value === 'redacted' || status.value === 'preredacted'
+    );
+  }
+
+
+  return [];
 }

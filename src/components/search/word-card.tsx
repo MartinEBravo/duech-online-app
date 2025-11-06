@@ -6,6 +6,7 @@ import { ArrowRightCircleIcon, EyeIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
+
 interface WordCardProps {
   lemma: string;
   letter: string;
@@ -30,8 +31,12 @@ export function WordCard({
   definitionsCount,
   className = '',
 }: WordCardProps) {
+
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
+
+  
+
   const isPublished = status === 'published';
   const viewUrl =
     editorMode && editorBasePath
@@ -127,6 +132,8 @@ export function WordCard({
               <EyeIcon className="h-4 w-4" />
             </Button>
           )}
+                    {/* ← Botón solo visible para admins */}
+
         </div>
       </div>
     </div>

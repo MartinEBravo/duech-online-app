@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Popup from 'reactjs-popup';
 import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
@@ -18,8 +18,6 @@ const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => 
 
 export function AddWordModal({ availableUsers }: AddWordModalProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
 
   const [newWordRoot, setNewWordRoot] = useState('');
   const [newWordLemma, setNewWordLemma] = useState('');
@@ -32,7 +30,14 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
     () => getLexicographerByRole(availableUsers, username, isAdmin, isCoordinator, isLexicographer),
     [availableUsers, username, isAdmin, isCoordinator, isLexicographer] // ← Todas las dependencias
   );
-
+  // Debug con useEffect
+  useEffect(() => {
+    console.log('👤 Username actual:', username);
+    console.log('👥 Usuarios disponibles:', availableUsers);
+    console.log('📋 Opciones filtradas:', userOptions);
+    console.log('🔐 Roles:', { isAdmin, isCoordinator, isLexicographer });
+  }, [userOptions, username, availableUsers, isAdmin, isCoordinator, isLexicographer]); 
+  
   const autoLetterForLemma = newWordLemma.trim().charAt(0).toLowerCase();
   const selectedLetter = newWordLetter || autoLetterForLemma;
 
@@ -90,11 +95,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
       close();
 
       // Navigate to word page
-      const destination = editorBasePath
-        ? `${editorBasePath}/palabra/${encodeURIComponent(createdLemma)}`
-        : `/palabra/${encodeURIComponent(createdLemma)}`;
-
-      router.push(destination);
+      router.push(`/palabra/${encodeURIComponent(createdLemma)}`);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Error al agregar la palabra');
     }
