@@ -92,7 +92,7 @@ export function WordHeader({
             />
           </h1>
           <div className="flex items-center gap-2">
-            <span className="text-lg text-gray-700">Raíz:</span>
+            <span className="text-lg text-gray-700">Palabra fuerte:</span>
             <span className="text-duech-blue font-semibold">
               <InlineEditable
                 value={root}
@@ -102,8 +102,8 @@ export function WordHeader({
                 onStart={onStartEditRoot}
                 onCancel={onCancelEditRoot}
                 saveStrategy="manual"
-                placeholder="Raíz de la palabra"
-                addLabel="+ Añadir raíz"
+                placeholder="Palabra fuerte"
+                addLabel="+ Añadir palabra fuerte"
               />
             </span>
           </div>

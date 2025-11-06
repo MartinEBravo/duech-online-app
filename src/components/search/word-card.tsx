@@ -87,7 +87,7 @@ export function WordCard({
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
             {root && root !== lemma && (
               <div className="flex items-center gap-1">
-                <span className="font-medium">Raíz:</span>
+                <span className="font-medium">Palabra fuerte:</span>
                 <span className="text-gray-900">{root}</span>
               </div>
             )}
