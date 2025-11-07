@@ -126,7 +126,7 @@ export default function Header({ editorMode }: HeaderProps) {
             )}
             {editorMode && (
               <a
-                href="http://localhost:3000/"
+                href={process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3000/'}
                 className="text-lg font-medium transition-colors"
                 style={{ color: '#ffffff' }}
               >

@@ -39,7 +39,7 @@ export function WordCard({
       : `/palabra/${encodeURIComponent(lemma)}`;
   // In editor mode, we need the public domain URL for preview
   const publicPreviewUrl = editorMode
-    ? `http://localhost:3000/palabra/${encodeURIComponent(lemma)}`
+    ? `${process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3000'}/palabra/${encodeURIComponent(lemma)}`
     : undefined;
 
   // Get status label and color for editor mode
