@@ -330,35 +330,36 @@ export async function deleteUserAction(userId: number): Promise<DeleteUserResult
   }
 }
 
-interface ResetPasswordResult {
-  success: boolean;
-  newPassword?: string;
-  error?: string;
-}
+// Uncomment when password reset functionality is needed in the UI
+// interface ResetPasswordResult {
+//   success: boolean;
+//   newPassword?: string;
+//   error?: string;
+// }
 
-/**
- * Reset a user's password (admin/superadmin only)
- */
-export async function resetUserPasswordAction(userId: number): Promise<ResetPasswordResult> {
-  try {
-    // Validate authorization
-    await requireAdminRole();
+// /**
+//  * Reset a user's password (admin/superadmin only)
+//  */
+// export async function resetUserPasswordAction(userId: number): Promise<ResetPasswordResult> {
+//   try {
+//     // Validate authorization
+//     await requireAdminRole();
 
-    // Generate new secure password
-    const newPassword = generateSecurePassword(12);
-    const passwordHash = await hashPassword(newPassword);
+//     // Generate new secure password
+//     const newPassword = generateSecurePassword(12);
+//     const passwordHash = await hashPassword(newPassword);
 
-    // Update user's password
-    await updateUser(userId, { passwordHash });
+//     // Update user's password
+//     await updateUser(userId, { passwordHash });
 
-    return {
-      success: true,
-      newPassword,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to reset password',
-    };
-  }
-}
+//     return {
+//       success: true,
+//       newPassword,
+//     };
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: error instanceof Error ? error.message : 'Failed to reset password',
+//     };
+//   }
+// }
