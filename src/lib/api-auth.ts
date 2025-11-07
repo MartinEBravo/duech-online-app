@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, type SessionUser } from '@/lib/auth';
-export { getAllowedRoles, validateRoleAssignment } from '@/lib/role-utils';
+export { validateRoleAssignment } from '@/lib/role-utils';
 
 /**
  * Verify user is authenticated and has admin/superadmin role for API routes
@@ -23,7 +23,7 @@ export async function requireAdminForApi(): Promise<SessionUser> {
 /**
  * Parse and validate user ID from params
  */
-export async function parseUserIdFromParams(params: Promise<{ id: string }>): Promise<{
+async function parseUserIdFromParams(params: Promise<{ id: string }>): Promise<{
   userId?: number;
   error?: NextResponse;
 }> {
