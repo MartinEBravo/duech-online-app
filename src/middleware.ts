@@ -57,13 +57,18 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Redirect to login if accessing editor host without token
-  if (isEditorMode && !token) {
+  // Helper function to create login redirect
+  const createLoginRedirect = () => {
     const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
     const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set('redirectTo', redirectTarget);
     return NextResponse.redirect(loginUrl);
+  };
+
+  // Redirect to login if accessing editor host without token
+  if (isEditorMode && !token) {
+    return createLoginRedirect();
   }
 
   // Admin-only routes: must be authenticated and have admin role
@@ -72,11 +77,7 @@ export function middleware(request: NextRequest) {
 
   if (isAdminRoute && !token) {
     // Redirect to login if not authenticated
-    const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
-    const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
-    const loginUrl = new URL(loginPath, request.url);
-    loginUrl.searchParams.set('redirectTo', redirectTarget);
-    return NextResponse.redirect(loginUrl);
+    return createLoginRedirect();
   }
 
   const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();

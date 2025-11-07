@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth';
+import { requireAdminForApi } from '@/lib/api-auth';
 import { getUsers } from '@/lib/queries';
 
 export async function GET() {
   try {
     // Verify user is authenticated and has admin role
-    const currentUser = await getSessionUser();
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
-    }
+    await requireAdminForApi();
 
     // Get all users
     const allUsers = await getUsers();

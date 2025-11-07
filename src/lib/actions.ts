@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { setSessionCookie, type SessionUser, getSessionUser } from '@/lib/auth';
+import { validateRoleAssignment } from '@/lib/role-utils';
 import {
   getUserByEmail,
   getUserByUsername,
@@ -112,22 +113,12 @@ export async function createUserAction(
     // Validate authorization and get current user
     const currentUser = await requireAdminRole();
 
-    // Role-based validation: Check what roles the current user can create
-    const allowedRoles: string[] = [];
-
-    if (currentUser.role === 'superadmin') {
-      // Superadmins can create all types of users
-      allowedRoles.push('lexicographer', 'editor', 'admin', 'superadmin');
-    } else if (currentUser.role === 'admin') {
-      // Admins can only create lexicographers and other admins
-      allowedRoles.push('lexicographer', 'admin');
-    }
-
-    // Validate that the requested role is allowed
-    if (!allowedRoles.includes(role)) {
+    // Validate role assignment
+    const validation = validateRoleAssignment(currentUser.role!, role);
+    if (!validation.valid) {
       return {
         success: false,
-        error: `You are not authorized to create users with role '${role}'. Allowed roles: ${allowedRoles.join(', ')}`,
+        error: validation.error,
       };
     }
 
@@ -222,22 +213,11 @@ export async function updateUserAction(
 
     // Validate role if provided
     if (data.role) {
-      // Role-based validation: Check what roles the current user can assign
-      const allowedRoles: string[] = [];
-
-      if (currentUser.role === 'superadmin') {
-        // Superadmins can assign all types of roles
-        allowedRoles.push('lexicographer', 'editor', 'admin', 'superadmin');
-      } else if (currentUser.role === 'admin') {
-        // Admins can only assign lexicographer and admin roles
-        allowedRoles.push('lexicographer', 'admin');
-      }
-
-      // Validate that the requested role is allowed
-      if (!allowedRoles.includes(data.role)) {
+      const validation = validateRoleAssignment(currentUser.role!, data.role);
+      if (!validation.valid) {
         return {
           success: false,
-          error: `You are not authorized to assign role '${data.role}'. Allowed roles: ${allowedRoles.join(', ')}`,
+          error: validation.error,
         };
       }
     }

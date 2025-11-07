@@ -1,26 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth';
+import { validateRoleAssignment, setupUserApiRoute } from '@/lib/api-auth';
 import { updateUser, deleteUser, getUserById } from '@/lib/queries';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Verify user is authenticated and has admin role
-    const currentUser = await getSessionUser();
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const userId = parseInt(id, 10);
-
-    if (isNaN(userId)) {
-      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
-    }
+    const { currentUser, userId, error } = await setupUserApiRoute(params);
+    if (error) return error;
 
     // Parse request body
     const body = await request.json();
@@ -50,31 +35,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.email = email.trim().toLowerCase();
     }
 
-    if (role !== undefined) {
-      // Role-based validation: Check what roles the current user can assign
-      const allowedRoles: string[] = [];
-
-      if (currentUser.role === 'superadmin') {
-        // Superadmins can assign all types of roles
-        allowedRoles.push('lexicographer', 'editor', 'admin', 'superadmin');
-      } else if (currentUser.role === 'admin') {
-        // Admins can only assign lexicographer and admin roles
-        allowedRoles.push('lexicographer', 'admin');
-      }
-
-      if (!allowedRoles.includes(role)) {
-        return NextResponse.json(
-          {
-            error: `You are not authorized to assign role '${role}'. Allowed roles: ${allowedRoles.join(', ')}`,
-          },
-          { status: 403 }
-        );
+    if (role !== undefined && currentUser) {
+      // Validate role assignment
+      const validation = validateRoleAssignment(currentUser.role!, role);
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: 403 });
       }
       updateData.role = role;
     }
 
     // Update user
-    const updatedUser = await updateUser(userId, updateData);
+    const updatedUser = await updateUser(userId!, updateData);
 
     return NextResponse.json({
       success: true,
@@ -94,31 +65,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verify user is authenticated and has admin role
-    const currentUser = await getSessionUser();
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const userId = parseInt(id, 10);
-
-    if (isNaN(userId)) {
-      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
-    }
+    const { currentUser, userId, error } = await setupUserApiRoute(params);
+    if (error) return error;
 
     // Prevent self-deletion
-    if (String(currentUser.id) === String(userId)) {
+    if (currentUser && String(currentUser.id) === String(userId)) {
       return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
     // Delete user
-    const deletedUser = await deleteUser(userId);
+    const deletedUser = await deleteUser(userId!);
 
     return NextResponse.json({
       success: true,
@@ -135,26 +91,11 @@ export async function DELETE(
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Verify user is authenticated and has admin role
-    const currentUser = await getSessionUser();
-
-    if (!currentUser) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Forbidden: Admin role required' }, { status: 403 });
-    }
-
-    const { id } = await params;
-    const userId = parseInt(id, 10);
-
-    if (isNaN(userId)) {
-      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
-    }
+    const { userId, error } = await setupUserApiRoute(params);
+    if (error) return error;
 
     // Get user
-    const user = await getUserById(userId);
+    const user = await getUserById(userId!);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

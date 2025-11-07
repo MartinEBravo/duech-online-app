@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createUserAction, updateUserAction } from '@/lib/actions';
+import { getAllowedRoles } from '@/lib/role-utils';
 import { Button } from '@/components/common/button';
 import { Modal } from '@/components/common/modal';
 import { Alert } from '@/components/common/alert';
@@ -39,28 +40,18 @@ export default function UserFormModal({
   const [createdUser, setCreatedUser] = useState<User | null>(null);
 
   // Determine available role options based on current user's role
-  const getRoleOptions = () => {
-    if (currentUserRole === 'superadmin') {
-      // Superadmins can create all types of users
-      return [
-        { value: 'lexicographer', label: 'Lexicógrafo' },
-        { value: 'editor', label: 'Editor' },
-        { value: 'admin', label: 'Administrador' },
-        { value: 'superadmin', label: 'Super Administrador' },
-      ];
-    } else if (currentUserRole === 'admin') {
-      // Admins can only create admins and lexicographers
-      return [
-        { value: 'lexicographer', label: 'Lexicógrafo' },
-        { value: 'admin', label: 'Administrador' },
-      ];
-    } else {
-      // Default fallback (shouldn't happen as only admins/superadmins can access this)
-      return [{ value: 'lexicographer', label: 'Lexicógrafo' }];
-    }
+  const roleLabels: Record<string, string> = {
+    lexicographer: 'Lexicógrafo',
+    editor: 'Editor',
+    admin: 'Administrador',
+    superadmin: 'Super Administrador',
   };
 
-  const roleOptions = getRoleOptions();
+  const allowedRoles = getAllowedRoles(currentUserRole || 'admin');
+  const roleOptions = allowedRoles.map(role => ({
+    value: role,
+    label: roleLabels[role] || role
+  }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
