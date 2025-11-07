@@ -18,9 +18,16 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const baseClasses =
-    'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 disabled:opacity-60 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-duech-blue hover:scale-105';
+    'inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-all duration-200 disabled:opacity-60 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-duech-blue hover:scale-105';
 
-  const combined = `${baseClasses} ${className}`;
+  // Default button styling if no className overrides it
+  const defaultClasses = 'bg-duech-blue text-white hover:bg-blue-700';
+
+  // Only apply default classes if className doesn't include bg- or text- classes
+  const hasCustomBg = className.includes('bg-');
+  const hasCustomText = className.includes('text-');
+
+  const combined = `${baseClasses} ${!hasCustomBg && !hasCustomText ? defaultClasses : ''} ${className}`;
 
   if (href) {
     return (

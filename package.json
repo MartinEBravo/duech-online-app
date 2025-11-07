@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "docs": "pnpm typedoc --out docs src --entryPointStrategy expand && pnpm opener docs/index.html",
     "lint": "eslint src",

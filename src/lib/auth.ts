@@ -79,14 +79,19 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
 
 export async function setSessionCookie(user: SessionUser, maxAgeSeconds = DEFAULT_EXP_SECONDS) {
   const token = await createToken(user, maxAgeSeconds);
-  (await cookies()).set(SESSION_COOKIE, token, {
+
+  // In development, don't set domain to allow cookie to work on any localhost subdomain
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: DEFAULT_EXP_SECONDS,
-    domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost', // Allows subdomain sharing in dev
-  });
+    // Remove domain restriction in development to allow cookies on all subdomains
+    ...(process.env.NODE_ENV === 'production' ? {} : {}),
+  };
+
+  (await cookies()).set(SESSION_COOKIE, token, cookieOptions);
 }
 
 export async function clearSessionCookie() {
@@ -102,9 +107,18 @@ export async function clearSessionCookie() {
 export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+
+  if (!token) {
+    return null;
+  }
+
   const payload = await verifyToken(token);
-  if (!payload) return null;
+
+  if (!payload) {
+    return null;
+  }
+
   const { id, email, name, role } = payload;
-  return { id, email, name, role };
+  const user = { id, email, name, role };
+  return user;
 }

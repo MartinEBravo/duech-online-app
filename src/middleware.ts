@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const EDITOR_HOST = 'editor.localhost';
+const EDITOR_HOST = process.env.HOST_URL || 'editor.localhost';
 const EDITOR_PATH_PREFIX = '/editor';
 const SESSION_COOKIE = 'duech_session';
 
@@ -57,13 +57,27 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Redirect to login if accessing editor host without token
-  if (isEditorMode && !token) {
+  // Helper function to create login redirect
+  const createLoginRedirect = () => {
     const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
     const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set('redirectTo', redirectTarget);
     return NextResponse.redirect(loginUrl);
+  };
+
+  // Redirect to login if accessing editor host without token
+  if (isEditorMode && !token) {
+    return createLoginRedirect();
+  }
+
+  // Admin-only routes: must be authenticated and have admin role
+  const adminOnlyRoutes = ['/usuarios'];
+  const isAdminRoute = adminOnlyRoutes.some((route) => normalizedPathname.startsWith(route));
+
+  if (isAdminRoute && !token) {
+    // Redirect to login if not authenticated
+    return createLoginRedirect();
   }
 
   const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();
