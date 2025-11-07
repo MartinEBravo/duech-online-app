@@ -39,7 +39,7 @@ export default function Header({ editorMode }: HeaderProps) {
     return `${editorBasePath}${path}`;
   };
 
-  const [user, setUser] = useState<{ name?: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name?: string; email: string; role?: string } | null>(null);
 
   const homeLink = buildHref('/');
   const title = editorMode ? 'DUECh Editor' : 'DUECh';
@@ -48,11 +48,6 @@ export default function Header({ editorMode }: HeaderProps) {
     : 'Diccionario de uso del español de Chile';
 
   const fetchUser = useCallback(async () => {
-    if (!editorMode) {
-      setUser(null);
-      return;
-    }
-
     try {
       const res = await fetch('/api/auth/me', { cache: 'no-store' });
       if (res.ok) {
@@ -64,7 +59,7 @@ export default function Header({ editorMode }: HeaderProps) {
     } catch {
       setUser(null);
     }
-  }, [editorMode]);
+  }, []);
 
   useEffect(() => {
     fetchUser();
@@ -126,6 +121,9 @@ export default function Header({ editorMode }: HeaderProps) {
             <NavLink href={buildHref('/buscar')}>Buscar</NavLink>
             <NavLink href={buildHref('/recursos')}>Recursos</NavLink>
             <NavLink href={buildHref('/acerca')}>Acerca</NavLink>
+            {user && (user.role === 'admin' || user.role === 'superadmin') && (
+              <NavLink href={buildHref('/usuarios')}>Gestión de Usuarios</NavLink>
+            )}
             {editorMode && (
               <a
                 href="http://localhost:3000/"

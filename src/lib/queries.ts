@@ -237,6 +237,103 @@ export async function getUsers() {
       username: users.username,
       email: users.email,
       role: users.role,
+      createdAt: users.createdAt,
     })
     .from(users);
+}
+
+/**
+ * Hash a password using bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 10);
+}
+
+/**
+ * Create a new user
+ */
+export async function createUser(data: {
+  username: string;
+  email: string;
+  passwordHash: string;
+  role: string;
+}) {
+  const result = await db
+    .insert(users)
+    .values({
+      username: data.username,
+      email: data.email,
+      passwordHash: data.passwordHash,
+      role: data.role,
+    })
+    .returning({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Update an existing user
+ */
+export async function updateUser(
+  userId: number,
+  data: {
+    username?: string;
+    email?: string;
+    role?: string;
+    passwordHash?: string;
+  }
+) {
+  const result = await db
+    .update(users)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      updatedAt: users.updatedAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Delete a user
+ */
+export async function deleteUser(userId: number) {
+  const result = await db.delete(users).where(eq(users.id, userId)).returning({
+    id: users.id,
+    username: users.username,
+  });
+
+  return result[0];
+}
+
+/**
+ * Get user by ID
+ */
+export async function getUserById(userId: number) {
+  const result = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
 }

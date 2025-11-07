@@ -66,6 +66,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Admin-only routes: must be authenticated and have admin role
+  const adminOnlyRoutes = ['/usuarios'];
+  const isAdminRoute = adminOnlyRoutes.some((route) => normalizedPathname.startsWith(route));
+
+  if (isAdminRoute && !token) {
+    // Redirect to login if not authenticated
+    const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
+    const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
+    const loginUrl = new URL(loginPath, request.url);
+    loginUrl.searchParams.set('redirectTo', redirectTarget);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();
   response.headers.set('x-editor-mode', isEditorMode ? 'true' : 'false');
   response.headers.set('x-editor-base-path', editorBasePathHeader);
