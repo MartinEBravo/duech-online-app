@@ -19,16 +19,19 @@ export function getAllowedRoles(userRole: string): string[] {
 /**
  * Validate if a role can be assigned by the current user
  */
-export function validateRoleAssignment(currentUserRole: string, targetRole: string): {
+export function validateRoleAssignment(
+  currentUserRole: string,
+  targetRole: string
+): {
   valid: boolean;
-  error?: string
+  error?: string;
 } {
   const allowedRoles = getAllowedRoles(currentUserRole);
 
   if (!allowedRoles.includes(targetRole)) {
     return {
       valid: false,
-      error: `You are not authorized to assign role '${targetRole}'. Allowed roles: ${allowedRoles.join(', ')}`
+      error: `You are not authorized to assign role '${targetRole}'. Allowed roles: ${allowedRoles.join(', ')}`,
     };
   }
 

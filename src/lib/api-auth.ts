@@ -25,14 +25,14 @@ export async function requireAdminForApi(): Promise<SessionUser> {
  */
 export async function parseUserIdFromParams(params: Promise<{ id: string }>): Promise<{
   userId?: number;
-  error?: NextResponse
+  error?: NextResponse;
 }> {
   const { id } = await params;
   const userId = parseInt(id, 10);
 
   if (isNaN(userId)) {
     return {
-      error: NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+      error: NextResponse.json({ error: 'Invalid user ID' }, { status: 400 }),
     };
   }
 
@@ -45,7 +45,7 @@ export async function parseUserIdFromParams(params: Promise<{ id: string }>): Pr
 export async function setupUserApiRoute(params: Promise<{ id: string }>): Promise<{
   currentUser?: SessionUser;
   userId?: number;
-  error?: NextResponse
+  error?: NextResponse;
 }> {
   try {
     const currentUser = await requireAdminForApi();

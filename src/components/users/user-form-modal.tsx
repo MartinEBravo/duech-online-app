@@ -48,9 +48,9 @@ export default function UserFormModal({
   };
 
   const allowedRoles = getAllowedRoles(currentUserRole || 'admin');
-  const roleOptions = allowedRoles.map(role => ({
+  const roleOptions = allowedRoles.map((role) => ({
     value: role,
-    label: roleLabels[role] || role
+    label: roleLabels[role] || role,
   }));
 
   const handleSubmit = async (e: React.FormEvent) => {
