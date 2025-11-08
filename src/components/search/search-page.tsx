@@ -17,6 +17,7 @@ import {
   NoResultsState,
   SearchResultsCount,
 } from '@/components/search/search-results-components';
+import { Pagination } from '@/components/search/pagination';
 import {
   arraysEqual,
   filtersChanged,
@@ -140,6 +141,14 @@ export function SearchPage({
   const [isLoading, setIsLoading] = useState(!editorMode);
   const [hasSearched, setHasSearched] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
+
+  const RESULTS_PER_PAGE = 50;
 
   // Editor mode: Use users passed from server
   const availableUsers = initialUsers;
@@ -200,18 +209,25 @@ export function SearchPage({
             letters: initialFilters.letters,
           },
           1,
-          1000
+          RESULTS_PER_PAGE
         );
 
         if (!cancelled) {
           setSearchResults(data.results);
           setTotalResults(data.pagination.total);
+          setPagination({
+            totalPages: data.pagination.totalPages,
+            hasNext: data.pagination.hasNext,
+            hasPrev: data.pagination.hasPrev,
+          });
+          setCurrentPage(1);
           setHasSearched(true);
         }
       } catch {
         if (!cancelled) {
           setSearchResults([]);
           setTotalResults(0);
+          setPagination({ totalPages: 0, hasNext: false, hasPrev: false });
         }
       } finally {
         if (!cancelled) {
@@ -263,7 +279,15 @@ export function SearchPage({
   }, [updateState]);
 
   const executeSearch = useCallback(
-    async ({ query, filters }: { query: string; filters: LocalSearchFilters }) => {
+    async ({
+      query,
+      filters,
+      page = 1,
+    }: {
+      query: string;
+      filters: LocalSearchFilters;
+      page?: number;
+    }) => {
       setIsLoading(true);
       setHasSearched(true);
 
@@ -276,14 +300,20 @@ export function SearchPage({
             origins: filters.origins,
             letters: filters.letters,
           },
-          1,
-          1000,
+          page,
+          RESULTS_PER_PAGE,
           editorMode ? searchState.status : undefined,
           editorMode ? searchState.assignedTo : undefined
         );
 
         setSearchResults(searchData.results);
         setTotalResults(searchData.pagination.total);
+        setPagination({
+          totalPages: searchData.pagination.totalPages,
+          hasNext: searchData.pagination.hasNext,
+          hasPrev: searchData.pagination.hasPrev,
+        });
+        setCurrentPage(page);
 
         updateState((prev) => updateStateIfChanged(prev, query, filters));
 
@@ -293,11 +323,19 @@ export function SearchPage({
       } catch {
         setSearchResults([]);
         setTotalResults(0);
+        setPagination({ totalPages: 0, hasNext: false, hasPrev: false });
       } finally {
         setIsLoading(false);
       }
     },
-    [editorMode, saveFilters, searchState.assignedTo, searchState.status, updateState]
+    [
+      editorMode,
+      saveFilters,
+      searchState.assignedTo,
+      searchState.status,
+      updateState,
+      RESULTS_PER_PAGE,
+    ]
   );
 
   const handleClearAll = useCallback(() => {
@@ -305,7 +343,25 @@ export function SearchPage({
     setSearchResults([]);
     setHasSearched(false);
     setTotalResults(0);
+    setCurrentPage(1);
+    setPagination({ totalPages: 0, hasNext: false, hasPrev: false });
   }, [clearAll]);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1 || page > pagination.totalPages) return;
+
+      // Scroll to top of results
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      executeSearch({
+        query: searchState.query,
+        filters: searchState.filters,
+        page,
+      });
+    },
+    [pagination.totalPages, executeSearch, searchState.query, searchState.filters]
+  );
 
   // Trigger search when URL params match current state in editor mode
   useEffect(() => {
@@ -431,9 +487,10 @@ export function SearchPage({
             <>
               <SearchResultsCount
                 editorMode={editorMode}
-                resultsCount={searchResults.length}
                 totalResults={totalResults}
                 query={searchState.query}
+                currentPage={currentPage}
+                pageSize={RESULTS_PER_PAGE}
               />
               {/* Results list */}
               <div className="space-y-4">
@@ -449,6 +506,15 @@ export function SearchPage({
                   />
                 ))}
               </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                hasNext={pagination.hasNext}
+                hasPrev={pagination.hasPrev}
+                onPageChange={handlePageChange}
+              />
             </>
           ) : (
             <NoResultsState editorMode={editorMode} />
