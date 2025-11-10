@@ -11,8 +11,10 @@ interface User {
 interface UserTableProps {
   users: User[];
   currentUserId: string;
+  currentUserRole?: string;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  onResetPassword: (user: User) => void;
 }
 
 const roleLabels: Record<string, string> = {
@@ -29,7 +31,14 @@ const roleColors: Record<string, string> = {
   editor: 'bg-yellow-100 text-yellow-800',
 };
 
-export default function UserTable({ users, currentUserId, onEdit, onDelete }: UserTableProps) {
+export default function UserTable({
+  users,
+  currentUserId,
+  currentUserRole,
+  onEdit,
+  onDelete,
+  onResetPassword,
+}: UserTableProps) {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('es-CL', {
       year: 'numeric',
@@ -71,6 +80,10 @@ export default function UserTable({ users, currentUserId, onEdit, onDelete }: Us
             ) : (
               users.map((user) => {
                 const isCurrentUser = String(user.id) === currentUserId;
+                const canResetOwnPassword =
+                  isCurrentUser &&
+                  (currentUserRole === 'superadmin' || currentUserRole === 'admin');
+                const disableResetPassword = isCurrentUser && !canResetOwnPassword;
 
                 return (
                   <tr key={user.id} className={isCurrentUser ? 'bg-blue-50' : 'hover:bg-gray-50'}>
@@ -105,6 +118,22 @@ export default function UserTable({ users, currentUserId, onEdit, onDelete }: Us
                         className="mr-2 inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                       >
                         Editar
+                      </button>
+                      <button
+                        onClick={() => onResetPassword(user)}
+                        disabled={disableResetPassword}
+                        className={`mr-2 inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                          disableResetPassword
+                            ? 'cursor-not-allowed bg-gray-300 text-gray-500 opacity-60'
+                            : 'bg-orange-600 text-white hover:scale-105 hover:bg-orange-700 focus-visible:outline-orange-600'
+                        }`}
+                        title={
+                          disableResetPassword
+                            ? 'No puedes restablecer tu propia contraseña desde aquí'
+                            : 'Enviar correo para restablecer contraseña'
+                        }
+                      >
+                        Restablecer
                       </button>
                       <button
                         onClick={() => onDelete(user)}

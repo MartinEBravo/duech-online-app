@@ -1,9 +1,20 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { getSessionUser } from '@/lib/auth';
 import { getUsers } from '@/lib/queries';
 import UserManagementClient from '@/components/users/user-management-client';
 
 export default async function UsersPage() {
+  // Check if in editor mode
+  const headersList = await headers();
+  const isEditorMode = headersList.get('x-editor-mode') === 'true';
+
+  if (!isEditorMode) {
+    // Redirect to editor domain login
+    const editorHost = process.env.HOST_URL || 'editor.localhost:3000';
+    redirect(`http://${editorHost}/login?redirectTo=/usuarios`);
+  }
+
   // Check authentication and authorization
   const user = await getSessionUser();
 

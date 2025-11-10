@@ -4,6 +4,7 @@ import { dictionary } from '@/components/fonts';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { isEditorMode } from '@/lib/editor-mode-server';
+import { getSessionUser } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'Diccionario de uso español de Chile',
@@ -16,6 +17,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const editorMode = await isEditorMode();
+  const user = await getSessionUser();
 
   return (
     <html lang="es">
@@ -24,7 +26,7 @@ export default async function RootLayout({
         style={{ backgroundColor: 'var(--background)' }}
         suppressHydrationWarning
       >
-        <Header editorMode={editorMode} />
+        <Header editorMode={editorMode} initialUser={user} />
         <main className="min-h-screen bg-gray-50">{children}</main>
         <Footer />
       </body>

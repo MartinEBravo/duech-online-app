@@ -71,13 +71,24 @@ export function middleware(request: NextRequest) {
     return createLoginRedirect();
   }
 
-  // Admin-only routes: must be authenticated and have admin role
+  // Admin-only routes: must be authenticated, in editor mode, and have admin role
   const adminOnlyRoutes = ['/usuarios'];
   const isAdminRoute = adminOnlyRoutes.some((route) => normalizedPathname.startsWith(route));
 
-  if (isAdminRoute && !token) {
+  if (isAdminRoute) {
+    // Redirect to editor login if not in editor mode
+    if (!isEditorMode) {
+      const editorUrl = new URL(request.url);
+      editorUrl.hostname = EDITOR_HOST;
+      editorUrl.pathname = '/login';
+      editorUrl.searchParams.set('redirectTo', '/usuarios');
+      return NextResponse.redirect(editorUrl);
+    }
+
     // Redirect to login if not authenticated
-    return createLoginRedirect();
+    if (!token) {
+      return createLoginRedirect();
+    }
   }
 
   const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();

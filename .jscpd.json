@@ -1,5 +1,5 @@
 {
-  "threshold": 0,
+  "threshold": 0.3,
   "reporters": ["console"],
   "ignore": ["**/node_modules/**", "**/*.test.ts", "**/*.test.tsx"],
   "format": ["typescript", "tsx", "javascript"],

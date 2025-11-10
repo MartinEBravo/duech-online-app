@@ -5,6 +5,7 @@ import { SessionUser } from '@/lib/auth';
 import UserTable from '@/components/users/user-table';
 import UserFormModal from '@/components/users/user-form-modal';
 import DeleteUserModal from '@/components/users/delete-user-modal';
+import ResetPasswordModal from '@/components/users/reset-password-modal';
 import { Button } from '@/components/common/button';
 
 interface User {
@@ -28,6 +29,7 @@ export default function UserManagementClient({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [resettingPasswordUser, setResettingPasswordUser] = useState<User | null>(null);
 
   const handleUserCreated = (newUser: User) => {
     setUsers([...users, newUser]);
@@ -53,8 +55,10 @@ export default function UserManagementClient({
       <UserTable
         users={users}
         currentUserId={currentUser.id}
+        currentUserRole={currentUser.role}
         onEdit={setEditingUser}
         onDelete={setDeletingUser}
+        onResetPassword={setResettingPasswordUser}
       />
 
       {isCreateModalOpen && (
@@ -81,6 +85,13 @@ export default function UserManagementClient({
           user={deletingUser}
           onClose={() => setDeletingUser(null)}
           onSuccess={() => handleUserDeleted(deletingUser.id)}
+        />
+      )}
+
+      {resettingPasswordUser && (
+        <ResetPasswordModal
+          user={resettingPasswordUser}
+          onClose={() => setResettingPasswordUser(null)}
         />
       )}
     </div>

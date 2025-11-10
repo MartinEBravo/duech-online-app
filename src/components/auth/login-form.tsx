@@ -2,10 +2,10 @@
 
 import { dictionary } from '@/components/fonts';
 import { Button } from '@/components/common/button';
+import { FormError } from '@/components/common/form-error';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { authenticate } from '@/lib/actions';
-import { AtSymbolIcon, KeyIcon, ExclamationCircleIcon, ArrowRightIcon } from '@/components/icons';
+import { AtSymbolIcon, KeyIcon, ArrowRightIcon } from '@/components/icons';
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -19,15 +19,38 @@ export default function LoginForm() {
     setIsPending(true);
     setErrorMessage('');
 
-    const formData = new FormData(e.currentTarget);
-    const result = await authenticate(undefined, formData);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email');
+      const password = formData.get('password');
 
-    if (result) {
-      // result is an error message string
-      setErrorMessage(result);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          redirectTo,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.redirectTo) {
+        // Force a full page reload to ensure server components are fresh
+        window.location.href = result.redirectTo;
+      } else {
+        // Show error message
+        setErrorMessage(result.error || 'An error occurred during login');
+        setIsPending(false);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrorMessage('An error occurred during login');
       setIsPending(false);
     }
-    // If result is undefined, authenticate() will redirect automatically
   };
 
   return (
@@ -77,14 +100,7 @@ export default function LoginForm() {
         >
           Entrar <ArrowRightIcon className="ml-2 h-5 w-5 text-gray-50" />
         </Button>
-        <div className="flex h-8 items-end space-x-1" aria-live="polite" aria-atomic="true">
-          {errorMessage && (
-            <>
-              <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-              <p className="text-sm text-red-500">{errorMessage}</p>
-            </>
-          )}
-        </div>
+        <FormError message={errorMessage} />
       </div>
     </form>
   );
