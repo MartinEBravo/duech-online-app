@@ -10,6 +10,7 @@ function shouldBypass(pathname: string): boolean {
     pathname.startsWith('/_next/') || // Next.js internals
     pathname.startsWith('/api/') || // API routes
     pathname === '/login' || // Login page
+    pathname === '/cambiar-contrasena' || // Password change page (needs token in URL, not session)
     /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2|ttf|eot)$/i.test(pathname) // Static files
   );
 }
