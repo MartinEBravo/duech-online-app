@@ -4,9 +4,19 @@ import WelcomeEmail from '@/emails/welcome-email';
 import PasswordChangedEmail from '@/emails/password-changed-email';
 import PasswordResetEmail from '@/emails/password-reset-email';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL = 'soporte@duech.cl';
+
+/**
+ * Lazily initialize Resend to avoid build-time errors when env vars aren't available
+ */
+let resendInstance: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+}
 
 /**
  * Generic email sending function to reduce duplication
@@ -18,6 +28,7 @@ async function sendEmail(
   logPrefix: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const resend = getResend();
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
