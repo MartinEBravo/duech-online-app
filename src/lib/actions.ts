@@ -1,60 +1,19 @@
 'use server';
 
-import { redirect } from 'next/navigation';
-import { setSessionCookie, type SessionUser, getSessionUser } from '@/lib/auth';
+import { getSessionUser, SessionUser } from '@/lib/auth';
 import { validateRoleAssignment } from '@/lib/role-utils';
 import {
-  getUserByEmail,
-  getUserByUsername,
-  verifyUserPassword,
   createUser,
   updateUser,
   deleteUser,
   hashPassword,
+  createPasswordResetToken,
+  getUserByEmail,
+  getUserByUsername,
+  getUserById,
 } from '@/lib/queries';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
-
-// Demo user for backwards compatibility - checks against DB first
-const DEMO_USER: SessionUser = {
-  id: '1',
-  email: process.env.DEMO_USER_EMAIL || 'admin@example.com',
-  name: 'Admin',
-  role: 'admin',
-};
-const DEMO_PASSWORD = process.env.DEMO_USER_PASSWORD || 'admin123';
-
-export async function authenticate(_: unknown, formData: FormData): Promise<string | undefined> {
-  const emailOrUsername = String(formData.get('email') || '')
-    .trim()
-    .toLowerCase();
-  const password = String(formData.get('password') || '');
-  const redirectTo = String(formData.get('redirectTo') || '/');
-
-  // Try database users first - check both email and username
-  let dbUser = await getUserByEmail(emailOrUsername);
-  if (!dbUser) {
-    dbUser = await getUserByUsername(emailOrUsername);
-  }
-
-  if (dbUser && (await verifyUserPassword(dbUser.passwordHash, password))) {
-    await setSessionCookie({
-      id: String(dbUser.id),
-      email: dbUser.email || dbUser.username,
-      name: dbUser.username,
-      role: dbUser.role,
-    });
-
-    redirect(redirectTo);
-  }
-
-  // Fallback demo user (for backwards compatibility)
-  if (emailOrUsername === DEMO_USER.email.toLowerCase() && password === DEMO_PASSWORD) {
-    await setSessionCookie(DEMO_USER);
-    redirect(redirectTo);
-  }
-
-  return 'Invalid email or password';
-}
 
 /**
  * Generate a secure random password
@@ -70,6 +29,13 @@ function generateSecurePassword(length = 12): string {
   }
 
   return password;
+}
+
+/**
+ * Generate a secure random token for password reset
+ */
+function generatePasswordResetToken(): string {
+  return randomBytes(32).toString('hex');
 }
 
 /**
@@ -166,6 +132,19 @@ export async function createUserAction(
       passwordHash,
       role,
     });
+
+    // Generate password reset token and send welcome email
+    try {
+      const resetToken = generatePasswordResetToken();
+      await createPasswordResetToken(newUser.id, resetToken);
+
+      await sendWelcomeEmail(newUser.email || '', newUser.username, resetToken);
+
+      console.log(`Welcome email sent to ${newUser.email}`);
+    } catch (emailError) {
+      // Log email error but don't fail user creation
+      console.error('Failed to send welcome email:', emailError);
+    }
 
     return {
       success: true,
@@ -310,36 +289,80 @@ export async function deleteUserAction(userId: number): Promise<DeleteUserResult
   }
 }
 
-// Uncomment when password reset functionality is needed in the UI
-// interface ResetPasswordResult {
-//   success: boolean;
-//   newPassword?: string;
-//   error?: string;
-// }
+interface ResetPasswordResult {
+  success: boolean;
+  error?: string;
+}
 
-// /**
-//  * Reset a user's password (admin/superadmin only)
-//  */
-// export async function resetUserPasswordAction(userId: number): Promise<ResetPasswordResult> {
-//   try {
-//     // Validate authorization
-//     await requireAdminRole();
+/**
+ * Reset a user's password by sending them a password reset email (admin/superadmin only)
+ */
+export async function resetUserPasswordAction(userId: number): Promise<ResetPasswordResult> {
+  try {
+    // Validate authorization and get current user
+    const currentUser = await requireAdminRole();
 
-//     // Generate new secure password
-//     const newPassword = generateSecurePassword(12);
-//     const passwordHash = await hashPassword(newPassword);
+    // Get the target user
+    const targetUser = await getUserById(userId);
+    if (!targetUser) {
+      return {
+        success: false,
+        error: 'User not found',
+      };
+    }
 
-//     // Update user's password
-//     await updateUser(userId, { passwordHash });
+    // Validate role hierarchy - admins can only reset passwords for users below them
+    if (targetUser.role) {
+      const validation = validateRoleAssignment(currentUser.role!, targetUser.role);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: 'No tienes permisos para restablecer la contraseña de este usuario',
+        };
+      }
+    }
 
-//     return {
-//       success: true,
-//       newPassword,
-//     };
-//   } catch (error) {
-//     return {
-//       success: false,
-//       error: error instanceof Error ? error.message : 'Failed to reset password',
-//     };
-//   }
-// }
+    // Prevent self-password-reset (except for superadmins)
+    if (
+      String(currentUser.id) === String(userId) &&
+      !(currentUser.role === 'superadmin' || currentUser.role === 'admin')
+    ) {
+      return {
+        success: false,
+        error: 'No puedes restablecer tu propia contraseña desde aquí',
+      };
+    }
+
+    // Generate password reset token
+    const resetToken = generatePasswordResetToken();
+    await createPasswordResetToken(userId, resetToken);
+
+    // Send password reset email
+    try {
+      if (!targetUser.email) {
+        return {
+          success: false,
+          error: 'El usuario no tiene un correo electrónico configurado',
+        };
+      }
+
+      await sendPasswordResetEmail(targetUser.email, targetUser.username, resetToken);
+      console.log(`Password reset email sent to ${targetUser.email}`);
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      return {
+        success: false,
+        error: 'Error al enviar el correo de restablecimiento',
+      };
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to reset password',
+    };
+  }
+}

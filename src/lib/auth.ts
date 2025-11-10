@@ -1,10 +1,12 @@
 import { cookies } from 'next/headers';
+import { getUserById } from '@/lib/queries';
 
 export type SessionUser = {
   id: string;
   email: string;
   name?: string;
   role?: string;
+  sessionId?: string;
 };
 
 const SESSION_COOKIE = 'duech_session';
@@ -43,7 +45,7 @@ async function sign(data: string, secret: string): Promise<string> {
   return base64url(new Uint8Array(signature));
 }
 
-type TokenPayload = SessionUser & { iat: number; exp: number; role?: string };
+type TokenPayload = SessionUser & { iat: number; exp: number; role?: string; sessionId?: string };
 
 async function createToken(user: SessionUser, maxAgeSeconds = DEFAULT_EXP_SECONDS) {
   const header = { alg: 'HS256', typ: 'JWT' };
@@ -53,6 +55,7 @@ async function createToken(user: SessionUser, maxAgeSeconds = DEFAULT_EXP_SECOND
     email: user.email,
     name: user.name,
     role: user.role,
+    sessionId: user.sessionId,
     iat: now,
     exp: now + maxAgeSeconds,
   };
@@ -95,12 +98,19 @@ export async function setSessionCookie(user: SessionUser, maxAgeSeconds = DEFAUL
 }
 
 export async function clearSessionCookie() {
-  (await cookies()).set(SESSION_COOKIE, '', {
+  const cookieStore = await cookies();
+
+  // Delete the cookie completely
+  cookieStore.delete(SESSION_COOKIE);
+
+  // Also set it to expire immediately as a fallback
+  cookieStore.set(SESSION_COOKIE, '', {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 0,
+    expires: new Date(0),
   });
 }
 
@@ -118,7 +128,25 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     return null;
   }
 
-  const { id, email, name, role } = payload;
-  const user = { id, email, name, role };
+  const { id, email, name, role, sessionId } = payload;
+
+  // If session ID exists in token, validate it against database
+  if (sessionId) {
+    try {
+      const dbUser = await getUserById(Number(id));
+
+      // If user not found or session IDs don't match, invalidate session
+      if (!dbUser || dbUser.currentSessionId !== sessionId) {
+        // Clear the invalid session cookie
+        await clearSessionCookie();
+        return null;
+      }
+    } catch (error) {
+      console.error('Error validating session:', error);
+      return null;
+    }
+  }
+
+  const user = { id, email, name, role, sessionId };
   return user;
 }

@@ -5,7 +5,7 @@
 import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
-import { words, meanings, users } from '@/lib/schema';
+import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
 import { Word, SearchResult, WordNote } from '@/lib/definitions';
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
@@ -321,6 +321,7 @@ export async function updateUser(
     email?: string;
     role?: string;
     passwordHash?: string;
+    currentSessionId?: string | null;
   }
 ) {
   const result = await db
@@ -339,6 +340,19 @@ export async function updateUser(
     });
 
   return result[0];
+}
+
+/**
+ * Update user's current session ID
+ */
+export async function updateUserSessionId(userId: number, sessionId: string) {
+  await db
+    .update(users)
+    .set({
+      currentSessionId: sessionId,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
 }
 
 /**
@@ -363,6 +377,7 @@ export async function getUserById(userId: number) {
       username: users.username,
       email: users.email,
       role: users.role,
+      currentSessionId: users.currentSessionId,
       createdAt: users.createdAt,
     })
     .from(users)
@@ -370,4 +385,45 @@ export async function getUserById(userId: number) {
     .limit(1);
 
   return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Create a password reset token for a user
+ */
+export async function createPasswordResetToken(userId: number, token: string) {
+  const result = await db
+    .insert(passwordResetTokens)
+    .values({
+      userId,
+      token,
+    })
+    .returning({
+      id: passwordResetTokens.id,
+      userId: passwordResetTokens.userId,
+      token: passwordResetTokens.token,
+      createdAt: passwordResetTokens.createdAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Get password reset token and associated user
+ */
+export async function getPasswordResetToken(token: string) {
+  const result = await db.query.passwordResetTokens.findFirst({
+    where: eq(passwordResetTokens.token, token),
+    with: {
+      user: true,
+    },
+  });
+
+  return result;
+}
+
+/**
+ * Delete a password reset token
+ */
+export async function deletePasswordResetToken(token: string) {
+  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
 }

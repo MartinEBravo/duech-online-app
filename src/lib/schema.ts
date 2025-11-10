@@ -12,8 +12,19 @@ export const users = pgTable('users', {
   email: text('email').unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role').notNull().default('lexicographer'), // lexicographer, editor, admin, superadmin
+  currentSessionId: text('current_session_id'), // Track active session to prevent concurrent logins
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Password Reset Tokens table
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 // Words table
@@ -104,4 +115,12 @@ export const notesRelations = relations(notes, ({ one }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   createdWords: many(words),
   notes: many(notes),
+  passwordResetTokens: many(passwordResetTokens),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
 }));
