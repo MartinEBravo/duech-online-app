@@ -132,7 +132,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
             <div className="mb-4 flex flex-col gap-3">
               <div>
                 <label htmlFor="raiz" className="mb-1 block text-sm font-medium text-gray-900">
-                  Raíz
+                  Palabra base
                 </label>
                 <input
                   type="text"

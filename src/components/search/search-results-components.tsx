@@ -74,9 +74,10 @@ export function NoResultsState({ editorMode }: NoResultsStateProps) {
 
 interface SearchResultsCountProps {
   editorMode: boolean;
-  resultsCount: number;
   totalResults: number;
   query: string;
+  currentPage?: number;
+  pageSize?: number;
 }
 
 /**
@@ -84,25 +85,29 @@ interface SearchResultsCountProps {
  */
 export function SearchResultsCount({
   editorMode,
-  resultsCount,
   totalResults,
   query,
+  currentPage = 1,
+  pageSize = 25,
 }: SearchResultsCountProps) {
   const trimmedQuery = query.trim();
 
   const getMessage = () => {
+    if (totalResults === 0) {
+      return 'No se encontraron resultados con los criterios seleccionados';
+    }
+
+    // Calculate range for current page
+    const start = (currentPage - 1) * pageSize + 1;
+    const end = Math.min(currentPage * pageSize, totalResults);
+    const rangeText = totalResults > pageSize ? `Mostrando ${start}-${end} de ` : '';
+
     if (editorMode) {
-      return `Se encontraron ${resultsCount} palabra${resultsCount !== 1 ? 's' : ''}`;
+      return `${rangeText}${totalResults} palabra${totalResults !== 1 ? 's' : ''}`;
     }
 
-    if (totalResults > 0) {
-      const baseMessage = `Se encontraron ${totalResults} resultado${totalResults !== 1 ? 's' : ''}`;
-      return trimmedQuery && totalResults > 0
-        ? `${baseMessage} para "${trimmedQuery}"`
-        : baseMessage;
-    }
-
-    return 'No se encontraron resultados con los criterios seleccionados';
+    const baseMessage = `${rangeText}${totalResults} resultado${totalResults !== 1 ? 's' : ''}`;
+    return trimmedQuery && totalResults > 0 ? `${baseMessage} para "${trimmedQuery}"` : baseMessage;
   };
 
   return (

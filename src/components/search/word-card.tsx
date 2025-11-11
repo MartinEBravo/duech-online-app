@@ -40,7 +40,7 @@ export function WordCard({
       : `/palabra/${encodeURIComponent(lemma)}`;
   // In editor mode, we need the public domain URL for preview
   const publicPreviewUrl = editorMode
-    ? `http://localhost:3000/palabra/${encodeURIComponent(lemma)}`
+    ? `${process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3000'}/palabra/${encodeURIComponent(lemma)}`
     : undefined;
 
   // Get status label and color for editor mode
@@ -88,7 +88,7 @@ export function WordCard({
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
             {root && root !== lemma && (
               <div className="flex items-center gap-1">
-                <span className="font-medium">Raíz:</span>
+                <span className="font-medium">Palabra base:</span>
                 <span className="text-gray-900">{root}</span>
               </div>
             )}

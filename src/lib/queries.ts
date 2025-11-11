@@ -5,7 +5,7 @@
 import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
-import { words, meanings, users } from '@/lib/schema';
+import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
 import { Word, SearchResult, WordNote } from '@/lib/definitions';
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
@@ -81,12 +81,23 @@ export async function searchWords(params: {
   categories?: string[];
   styles?: string[];
   origins?: string[];
-  letter?: string;
+  letters?: string[];
   status?: string;
   assignedTo?: string[];
-  limit?: number;
-}): Promise<SearchResult[]> {
-  const { query, categories, styles, origins, letter, status, assignedTo, limit = 50 } = params;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ results: SearchResult[]; total: number }> {
+  const {
+    query,
+    categories,
+    styles,
+    origins,
+    letters,
+    status,
+    assignedTo,
+    page = 1,
+    pageSize = 25,
+  } = params;
 
   const conditions: SQL[] = [];
 
@@ -115,9 +126,10 @@ export async function searchWords(params: {
     conditions.push(or(ilike(words.lemma, searchPattern), ilike(meanings.meaning, searchPattern))!);
   }
 
-  // Filter by letter (OR within letters - if multiple letters provided)
-  if (letter) {
-    conditions.push(eq(words.letter, letter.toLowerCase()));
+  // Filter by letters (OR within letters - if multiple letters provided)
+  if (letters && letters.length > 0) {
+    const letterConditions = letters.map((letter) => eq(words.letter, letter.toLowerCase()));
+    conditions.push(or(...letterConditions)!);
   }
 
   // Filter by origins (OR within origins - any selected origin matches)
@@ -143,7 +155,17 @@ export async function searchWords(params: {
   // This means: (cat1 OR cat2) AND (style1 OR style2) AND letter AND query
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  // Execute query
+  // Get total count of matching results
+  const countResult = await db
+    .select({ count: sql<number>`count(distinct ${words.id})` })
+    .from(words)
+    .leftJoin(meanings, eq(words.id, meanings.wordId))
+    .where(whereClause);
+
+  const total = Number(countResult[0]?.count || 0);
+
+  // Execute query - get unique word IDs with pagination
+  const offset = (page - 1) * pageSize;
   const results = await db
     .selectDistinctOn([words.id], {
       id: words.id,
@@ -160,39 +182,51 @@ export async function searchWords(params: {
     .from(words)
     .leftJoin(meanings, eq(words.id, meanings.wordId))
     .where(whereClause)
-    .limit(limit);
+    .limit(pageSize)
+    .offset(offset);
 
-  // Get full word data with meanings and determine match type
-  const wordsWithMeanings = await Promise.all(
-    results.map(async (w) => {
-      const fullWord = await db.query.words.findFirst({
-        where: eq(words.id, w.id),
-        with: {
-          meanings: {
-            orderBy: (meanings, { asc }) => [asc(meanings.number)],
-          },
-        },
-      });
+  // Batch fetch full word data with meanings in a single optimized query
+  const wordIds = results.map((w) => w.id);
 
-      // Determine match type
-      let matchType: 'exact' | 'partial' | 'filter' = 'filter';
-      if (query && fullWord) {
-        const normalizedQuery = query.toLowerCase();
-        const lemma = fullWord.lemma.toLowerCase();
-        if (lemma === normalizedQuery) {
-          matchType = 'exact';
-        } else if (lemma.includes(normalizedQuery)) {
-          matchType = 'partial';
-        }
+  const fullWords = await db.query.words.findMany({
+    where: (words, { inArray }) => inArray(words.id, wordIds),
+    with: {
+      meanings: {
+        orderBy: (meanings, { asc }) => [asc(meanings.number)],
+      },
+    },
+  });
+
+  // Create a map for O(1) lookup performance
+  const wordMap = new Map(fullWords.map((w) => [w.id, w]));
+
+  // Determine match type for each word
+  const wordsWithMeanings = results.map((w) => {
+    const fullWord = wordMap.get(w.id);
+
+    // Determine match type
+    let matchType: 'exact' | 'partial' | 'filter' = 'filter';
+    if (query && fullWord) {
+      const normalizedQuery = query.toLowerCase();
+      const lemma = fullWord.lemma.toLowerCase();
+      if (lemma === normalizedQuery) {
+        matchType = 'exact';
+      } else if (lemma.includes(normalizedQuery)) {
+        matchType = 'partial';
       }
+    }
 
-      return { fullWord, matchType };
-    })
-  );
+    return { fullWord, matchType };
+  });
 
-  return wordsWithMeanings
+  const finalResults = wordsWithMeanings
     .filter((w) => w.fullWord !== undefined)
     .map((w) => dbWordToSearchResult(w.fullWord!, w.matchType));
+
+  return {
+    results: finalResults,
+    total: total,
+  };
 }
 
 /**
@@ -237,6 +271,159 @@ export async function getUsers() {
       username: users.username,
       email: users.email,
       role: users.role,
+      createdAt: users.createdAt,
     })
     .from(users);
+}
+
+/**
+ * Hash a password using bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 10);
+}
+
+/**
+ * Create a new user
+ */
+export async function createUser(data: {
+  username: string;
+  email: string;
+  passwordHash: string;
+  role: string;
+}) {
+  const result = await db
+    .insert(users)
+    .values({
+      username: data.username,
+      email: data.email,
+      passwordHash: data.passwordHash,
+      role: data.role,
+    })
+    .returning({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Update an existing user
+ */
+export async function updateUser(
+  userId: number,
+  data: {
+    username?: string;
+    email?: string;
+    role?: string;
+    passwordHash?: string;
+    currentSessionId?: string | null;
+  }
+) {
+  const result = await db
+    .update(users)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      updatedAt: users.updatedAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Update user's current session ID
+ */
+export async function updateUserSessionId(userId: number, sessionId: string) {
+  await db
+    .update(users)
+    .set({
+      currentSessionId: sessionId,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId));
+}
+
+/**
+ * Delete a user
+ */
+export async function deleteUser(userId: number) {
+  const result = await db.delete(users).where(eq(users.id, userId)).returning({
+    id: users.id,
+    username: users.username,
+  });
+
+  return result[0];
+}
+
+/**
+ * Get user by ID
+ */
+export async function getUserById(userId: number) {
+  const result = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      role: users.role,
+      currentSessionId: users.currentSessionId,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
+/**
+ * Create a password reset token for a user
+ */
+export async function createPasswordResetToken(userId: number, token: string) {
+  const result = await db
+    .insert(passwordResetTokens)
+    .values({
+      userId,
+      token,
+    })
+    .returning({
+      id: passwordResetTokens.id,
+      userId: passwordResetTokens.userId,
+      token: passwordResetTokens.token,
+      createdAt: passwordResetTokens.createdAt,
+    });
+
+  return result[0];
+}
+
+/**
+ * Get password reset token and associated user
+ */
+export async function getPasswordResetToken(token: string) {
+  const result = await db.query.passwordResetTokens.findFirst({
+    where: eq(passwordResetTokens.token, token),
+    with: {
+      user: true,
+    },
+  });
+
+  return result;
+}
+
+/**
+ * Delete a password reset token
+ */
+export async function deletePasswordResetToken(token: string) {
+  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
 }

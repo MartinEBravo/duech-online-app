@@ -82,8 +82,7 @@ export function WordHeader({
         <ol className="flex items-center space-x-2 text-sm">
           <li>
             <Link href={searchPath} className="text-blue-600 hover:text-blue-800">
-              {searchLabel}
-            </Link>
+              {searchLabel}                                   </Link>
           </li>
           <li className="text-gray-400">/</li>
           <li className="text-gray-600">{lemma}</li>
@@ -106,7 +105,7 @@ export function WordHeader({
             />
           </h1>
           <div className="flex items-center gap-2">
-            <span className="text-lg text-gray-700">Raíz:</span>
+            <span className="text-lg text-gray-700">Palabra base:</span>
             <span className="text-duech-blue font-semibold">
               <InlineEditable
                 value={root}
@@ -116,8 +115,8 @@ export function WordHeader({
                 onStart={onStartEditRoot}
                 onCancel={onCancelEditRoot}
                 saveStrategy="manual"
-                placeholder="Raíz de la palabra"
-                addLabel="+ Añadir raíz"
+                placeholder="Palabra base"
+                addLabel="+ Añadir palabra base"
               />
             </span>
           </div>

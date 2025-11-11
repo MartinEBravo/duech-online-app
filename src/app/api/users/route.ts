@@ -1,23 +1,21 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { users } from '@/lib/schema';
+import { requireAdminForApi } from '@/lib/api-auth';
+import { getUsers } from '@/lib/queries';
 
 export async function GET() {
   try {
-    const allUsers = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        role: users.role,
-      })
-      .from(users);
+    // Verify user is authenticated and has admin role
+    await requireAdminForApi();
+
+    // Get all users
+    const allUsers = await getUsers();
 
     return NextResponse.json({
       success: true,
       data: allUsers,
     });
-  } catch {
+  } catch (error) {
+    console.error('Error fetching users:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

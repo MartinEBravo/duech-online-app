@@ -27,21 +27,25 @@ export async function getWordOfTheDay(
     const initialLetter = LETTERS[idx];
 
     // Search for published words only (status undefined = published)
-    searchResults = await searchWords({
-      letter: initialLetter,
+    const initialSearch = await searchWords({
+      letters: [initialLetter],
       status: undefined, // undefined means published only
-      limit: 1000,
+      page: 1,
+      pageSize: 1000,
     });
+    searchResults = initialSearch.results;
 
     if (searchResults.length > 0) {
       selectedLetter = initialLetter;
     } else {
       selectedLetter = 'o';
-      searchResults = await searchWords({
-        letter: selectedLetter,
+      const fallbackSearch = await searchWords({
+        letters: [selectedLetter],
         status: undefined, // undefined means published only
-        limit: 1000,
+        page: 1,
+        pageSize: 1000,
       });
+      searchResults = fallbackSearch.results;
     }
 
     const pool = [...searchResults].sort((a, b) => a.word.lemma.localeCompare(b.word.lemma, 'es'));
