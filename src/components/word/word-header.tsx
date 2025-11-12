@@ -72,7 +72,7 @@ export function WordHeader({
   );
   const statusFilters = useMemo(
     () => getStatusByRole(statusOptions, isAdmin, isCoordinator, isLexicographer),
-    [isAdmin, isCoordinator, isLexicographer]
+    [statusOptions, isAdmin, isCoordinator, isLexicographer]
   );
 
   return (
@@ -82,7 +82,7 @@ export function WordHeader({
         <ol className="flex items-center space-x-2 text-sm">
           <li>
             <Link href={searchPath} className="text-blue-600 hover:text-blue-800">
-              {searchLabel}{' '}
+              {searchLabel}
             </Link>
           </li>
           <li className="text-gray-400">/</li>

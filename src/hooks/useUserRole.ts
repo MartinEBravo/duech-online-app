@@ -5,12 +5,14 @@ export function useUserRole(editorMode: boolean) {
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [isLexicographer, setIsLexicographer] = useState(false);
   const [username, setUsername] = useState<string>('');
+  const [createdBy, setCreatedBy] = useState<number | null>(null);
   const fetchUser = useCallback(async () => {
     if (!editorMode) {
       setIsAdmin(false);
       setIsCoordinator(false);
       setIsLexicographer(false);
       setUsername('');
+      setCreatedBy(null);
       return;
     }
 
@@ -18,12 +20,10 @@ export function useUserRole(editorMode: boolean) {
       const res = await fetch('/api/auth/me', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        console.log('🔍 API Response completa:', data);
-        console.log('🔍 data.user:', data.user);
         const role = data.user?.role;
         const username = data.user?.name;
-        console.log('🔍 Role extraído:', role);
-        console.log('🔍 Username extraído:', username);
+        const createdBy = data.user?.id ? parseInt(data.user.id, 10) : null;
+        setCreatedBy(createdBy);
         setIsAdmin(role === 'admin');
         setIsCoordinator(role === 'coordinator');
         setIsLexicographer(role === 'lexicographer');
@@ -38,6 +38,7 @@ export function useUserRole(editorMode: boolean) {
       setIsCoordinator(false);
       setIsLexicographer(false);
       setUsername('');
+      setCreatedBy(null);
     }
   }, [editorMode]);
 
@@ -50,5 +51,6 @@ export function useUserRole(editorMode: boolean) {
     isCoordinator,
     isLexicographer,
     username,
+    currentId: createdBy,
   };
 }
