@@ -71,17 +71,22 @@ export interface User {
   email?: string | null;
   role: string;
 }
+function mapUsersToOptions(users: User[]) {
+  return users.map((user) => ({
+    value: user.id.toString(),
+    label: user.username,
+  }));
+}
+
+function filterLexicographersAndCoordinators(users: User[]) {
+  return users.filter((user) => user.role === 'lexicographer' || user.role === 'coordinator');
+}
 
 /**
  * Get lexicographer options for dropdowns
  */
 export function getLexicographerOptions(users: User[]) {
-  return users
-    .filter((user) => user.role === 'lexicographer' || user.role === 'coordinator')
-    .map((user) => ({
-      value: user.id.toString(),
-      label: user.username,
-    }));
+  return mapUsersToOptions(filterLexicographersAndCoordinators(users));
 }
 
 export function getLexicographerByRole(
@@ -92,21 +97,12 @@ export function getLexicographerByRole(
   isLexicographer: boolean
 ) {
   if (isAdmin || isCoordinator) {
-    return users
-      .filter((user) => user.role === 'lexicographer' || user.role === 'coordinator')
-      .map((user) => ({
-        value: user.id.toString(),
-        label: user.username,
-      }));
+    return mapUsersToOptions(filterLexicographersAndCoordinators(users));
   }
 
   if (isLexicographer) {
-    return users
-      .filter((user) => user.username === currentUsername)
-      .map((user) => ({
-        value: user.id.toString(),
-        label: user.username,
-      }));
+    const filteredUsers = users.filter((user) => user.username === currentUsername);
+    return mapUsersToOptions(filteredUsers);
   }
 
   return [];

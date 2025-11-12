@@ -82,7 +82,8 @@ export function WordHeader({
         <ol className="flex items-center space-x-2 text-sm">
           <li>
             <Link href={searchPath} className="text-blue-600 hover:text-blue-800">
-              {searchLabel}                                   </Link>
+              {searchLabel}{' '}
+            </Link>
           </li>
           <li className="text-gray-400">/</li>
           <li className="text-gray-600">{lemma}</li>
