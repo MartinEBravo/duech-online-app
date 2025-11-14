@@ -98,19 +98,40 @@ export async function searchWords(params: {
   letter?: string;
   status?: string;
   assignedTo?: string[];
+  editorMode?: boolean;
   limit?: number;
 }): Promise<SearchResult[]> {
-  const { query, categories, styles, origins, letter, status, assignedTo, limit = 50 } = params;
+  const {
+    query,
+    categories,
+    styles,
+    origins,
+    letter,
+    status,
+    assignedTo,
+    editorMode,
+    limit = 50,
+  } = params;
 
   const conditions: SQL[] = [];
 
-  // Filter by status
-  if (status !== undefined && status !== '') {
-    // Specific status value provided - filter by it
-    conditions.push(eq(words.status, status));
-  } else if (status === undefined) {
-    // No status provided - default to published only (public search)
+  console.log('🔍 searchWords backend flags:', {
+    query,
+    status,
+    editorMode,
+  });
+
+  // STATUS logic:
+  if (!editorMode) {
+    // Public mode: ALWAYS show only published words
     conditions.push(eq(words.status, 'published'));
+  } else {
+    // Editor mode:
+    if (status && status !== '') {
+      // If editor selected a specific filter → apply it
+      conditions.push(eq(words.status, status));
+    }
+    // If status === '' → editor wants all words → do NOT push conditions
   }
   // If status is '', don't add any status filter (show all statuses - editor mode)
 

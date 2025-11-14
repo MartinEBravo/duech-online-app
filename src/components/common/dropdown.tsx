@@ -29,12 +29,11 @@ function DropdownButton({
       type="button"
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`
-        w-full rounded-lg border px-3 py-2 text-left transition-colors
-        ${disabled
-          ? 'bg-gray-100 cursor-not-allowed opacity-60 border-gray-200'
-          : 'bg-white cursor-pointer hover:bg-gray-50 border-gray-300 focus:border-duech-blue focus:outline-none'}
-      `}
+      className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+        disabled
+          ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-60'
+          : 'focus:border-duech-blue cursor-pointer border-gray-300 bg-white hover:bg-gray-50 focus:outline-none'
+      } `}
     >
       <div className="flex items-center justify-between">
         <span className={`truncate ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
@@ -98,7 +97,7 @@ export function SelectDropdown({
   };
 
   return (
-    <div className={`relative ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`} ref={ref}>
+    <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
       <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
       <DropdownButton
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -181,7 +180,7 @@ export function MultiSelectDropdown({
   };
 
   return (
-    <div className={`relative ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`} ref={ref}>
+    <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
       <DropdownButton
         onClick={() => setIsOpen((prev) => !prev)}
@@ -192,7 +191,7 @@ export function MultiSelectDropdown({
         badge={selectedValues.length > 0 ? selectedValues.length : undefined}
       />
 
-      {isOpen && !disabled &&(
+      {isOpen && !disabled && (
         <div className="absolute z-10 mt-1 max-h-64 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
           <div className="border-b border-gray-200 p-2">
             <input

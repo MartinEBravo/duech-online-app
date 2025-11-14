@@ -7,7 +7,6 @@ import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 import { useUserRole } from '@/hooks/useUserRole';
 
-
 interface WordCardProps {
   lemma: string;
   letter: string;
@@ -38,10 +37,9 @@ export function WordCard({
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-  const { isAdmin, username } = useUserRole(editorMode);
+  const { isAdmin } = useUserRole(editorMode);
 
   const canEdit = isAdmin || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
-  
 
   const isPublished = status === 'published';
   const viewUrl =
@@ -61,6 +59,7 @@ export function WordCard({
     draft: 'bg-gray-100 text-gray-800',
     in_review: 'bg-yellow-100 text-yellow-800',
     reviewed: 'bg-blue-100 text-blue-800',
+    preredacted: 'bg-purple-100 text-purple-800',
     rejected: 'bg-red-100 text-red-800',
     published: 'bg-green-100 text-green-800',
   };
@@ -151,8 +150,7 @@ export function WordCard({
               <EyeIcon className="h-4 w-4" />
             </Button>
           )}
-                    {/* ← Botón solo visible para admins */}
-
+          {/* ← Botón solo visible para admins */}
         </div>
       </div>
     </div>

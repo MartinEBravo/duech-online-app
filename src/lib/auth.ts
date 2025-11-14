@@ -110,4 +110,3 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const { id, email, name, role } = payload;
   return { id, email, name, role };
 }
-

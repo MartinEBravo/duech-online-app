@@ -48,7 +48,6 @@ export function WordDisplay({
   initialAssignedTo,
   wordId,
   initialComments,
-  currentUserId,
   craetedBy,
   editorMode,
 }: WordDisplayProps) {
@@ -71,12 +70,13 @@ export function WordDisplay({
   const [activeExample, setActiveExample] = useState<ActiveExample | null>(null);
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
 
-  const { isAdmin, username } = useUserRole(editorMode);
-  const { isCoordinator } = useUserRole(editorMode);
+  const { isAdmin, isCoordinator, currentId } = useUserRole(editorMode);
+  console.log({ '💡 status: ': status });
 
-  const canEdit = isAdmin || (craetedBy == currentUserId) || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
-  const canAsigned = isAdmin || isCoordinator || (craetedBy == currentUserId);
-  const canActuallyEdit = editorMode && canEdit;
+  const canEdit =
+    isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
+  const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
+  const canActuallyEdit = editorMode && canEdit && status === 'preredacted';
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
@@ -411,9 +411,10 @@ export function WordDisplay({
         statusOptions={STATUS_OPTIONS}
         searchPath={searchPath}
         searchLabel={searchLabel}
-        definitions={word.values} 
-        canActuallyEdit={canActuallyEdit} 
-        canAsigned={canAsigned}      />
+        definitions={word.values}
+        canActuallyEdit={canActuallyEdit}
+        canAsigned={canAsigned}
+      />
 
       <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">
         {/* Definitions */}

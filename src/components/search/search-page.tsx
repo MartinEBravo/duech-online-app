@@ -123,7 +123,6 @@ export function SearchPage({
   initialUsers = [],
   editorMode = false,
   currentUserId,
-  currentUserRole,
 }: SearchPageProps) {
   // Parse URL search params
   const searchParams = useSearchParams();
@@ -145,7 +144,6 @@ export function SearchPage({
   const [hasSearched, setHasSearched] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
 
-
   // Editor mode: Use users passed from server
   const availableUsers = initialUsers;
 
@@ -161,7 +159,6 @@ export function SearchPage({
 
   // Reset URL search trigger when URL params change
   useEffect(() => {
-    
     if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
       return;
     }
@@ -284,11 +281,10 @@ export function SearchPage({
           },
           1,
           1000,
-          editorMode ? searchState.status : undefined,
-          editorMode ? searchState.assignedTo : undefined
+          editorMode && searchState.status !== '' ? searchState.status : undefined,
+          editorMode ? searchState.assignedTo : undefined,
+          editorMode
         );
-        
-
 
         setSearchResults(searchData.results);
         setTotalResults(searchData.pagination.total);
@@ -319,7 +315,6 @@ export function SearchPage({
   useEffect(() => {
     if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
       return;
-      
     }
 
     if (!matchesUrlState(searchState, urlParams)) {
@@ -456,10 +451,11 @@ export function SearchPage({
                       root={editorMode ? result.word.root : undefined}
                       status={editorMode ? result.status : undefined}
                       definitionsCount={editorMode ? result.word.values.length : undefined}
-                      assignedTo={editorMode ? result.assignedTo: undefined}
+                      assignedTo={editorMode ? result.assignedTo : undefined}
                       currentUserId={currentUserId}
                     />
-                );})}
+                  );
+                })}
               </div>
             </>
           ) : (
