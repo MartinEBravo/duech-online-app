@@ -15,6 +15,10 @@ interface WordHeaderProps {
   lemma: string;
   onLemmaChange: (value: string | null) => void;
   editorMode: boolean;
+  canActuallyEdit: boolean;
+  canAsigned: boolean;
+
+  // Lemma field
   editingLemma: boolean;
   onStartEditLemma: () => void;
   onCancelEditLemma: () => void;
@@ -43,6 +47,8 @@ export function WordHeader({
   lemma,
   onLemmaChange,
   editorMode,
+  canActuallyEdit,
+  canAsigned,
   editingLemma,
   onStartEditLemma,
   onCancelEditLemma,
@@ -98,7 +104,7 @@ export function WordHeader({
             <InlineEditable
               value={lemma}
               onChange={onLemmaChange}
-              editorMode={editorMode}
+              editorMode={canActuallyEdit} 
               editing={editingLemma}
               onStart={onStartEditLemma}
               onCancel={onCancelEditLemma}
@@ -112,7 +118,7 @@ export function WordHeader({
               <InlineEditable
                 value={root}
                 onChange={onRootChange}
-                editorMode={editorMode}
+                editorMode={canActuallyEdit}
                 editing={editingRoot}
                 onStart={onStartEditRoot}
                 onCancel={onCancelEditRoot}
@@ -134,6 +140,7 @@ export function WordHeader({
                 selectedValue={letter}
                 onChange={(value) => onLetterChange(value.toLowerCase())}
                 placeholder="Letra"
+                disabled={!canActuallyEdit}
               />
             </div>
 
@@ -144,6 +151,7 @@ export function WordHeader({
                 selectedValue={assignedTo?.toString() ?? ''}
                 onChange={(value) => onAssignedToChange(value ? Number(value) : null)}
                 placeholder="Sin asignar"
+                disabled={!(canAsigned || canActuallyEdit)}
               />
             </div>
 
@@ -154,12 +162,13 @@ export function WordHeader({
                 selectedValue={status}
                 onChange={onStatusChange}
                 placeholder="Seleccionar estado"
+                disabled={!canActuallyEdit}
               />
             </div>
           </div>
         )}
       </div>
-      {editorMode && (
+      {editorMode && canActuallyEdit && (
         <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
           <div className="flex items-center gap-3">
             <InformationCircleIcon className="h-20 w-20 flex-shrink-0 text-blue-600" />
@@ -191,7 +200,7 @@ export function WordHeader({
       )}
 
       {/* Warnings summary below the info box */}
-      {editorMode && definitions && definitions.length > 0 && (
+      {editorMode && canActuallyEdit && definitions && definitions.length > 0 && (
         <WordWarning definitions={definitions} className="mb-6" />
       )}
     </>

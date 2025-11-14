@@ -21,12 +21,8 @@ export function useUserRole(editorMode: boolean) {
       if (res.ok) {
 
         const data = await res.json();
-        console.log('🔍 API Response completa:', data);
-        console.log('🔍 data.user:', data.user);
         const role = data.user?.role;
         const username = data.user?.name;
-        console.log('🔍 Role extraído:', role);
-        console.log('🔍 Username extraído:', username);
         setIsAdmin(role === 'admin');
         setIsCoordinator(role === 'coordinator');
         setIsLexicographer(role === 'lexicographer');

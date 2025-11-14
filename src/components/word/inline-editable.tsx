@@ -39,7 +39,7 @@ export default function InlineEditable({
   onCancel,
   onStart,
   saveStrategy = 'manual',
-  editorMode = true,
+  editorMode,
   addLabel,
   renderDisplay,
   renderWrapper,
@@ -51,6 +51,8 @@ export default function InlineEditable({
   const isEditing = isControlled ? (editing as boolean) : internalEditing;
 
   const begin = () => {
+    if (!editorMode) return;
+
     if (isControlled) onStart?.();
     else setInternalEditing(true);
   };

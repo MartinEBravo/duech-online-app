@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRightCircleIcon, EyeIcon } from '@/components/icons';
+import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
+import { useUserRole } from '@/hooks/useUserRole';
 
 
 interface WordCardProps {
@@ -20,6 +21,8 @@ interface WordCardProps {
   definitionsCount?: number;
   /** Optional class name for styling */
   className?: string;
+  assignedTo?: number | null;
+  currentUserId?: number | null;
 }
 
 export function WordCard({
@@ -30,11 +33,14 @@ export function WordCard({
   status,
   definitionsCount,
   className = '',
+  assignedTo,
+  currentUserId,
 }: WordCardProps) {
-
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
+  const { isAdmin, username } = useUserRole(editorMode);
 
+  const canEdit = isAdmin || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
   
 
   const isPublished = status === 'published';
@@ -117,10 +123,23 @@ export function WordCard({
         <div className="flex flex-col gap-2">
           <Button
             href={viewUrl}
-            className="bg-duech-blue inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800"
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              canEdit
+                ? 'bg-duech-blue text-white hover:bg-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
-            Editar
-            <ArrowRightCircleIcon className="h-4 w-4" />
+            {canEdit ? (
+              <>
+                Editar
+                <ArrowRightCircleIcon className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Comentar
+                <PencilIcon className="h-4 w-4" /> {/* usa el icono que prefieras */}
+              </>
+            )}
           </Button>
           {isPublished && (
             <Button

@@ -7,6 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   loading?: boolean;
   href?: string;
+  disabled?: boolean;
 }
 
 export function Button({

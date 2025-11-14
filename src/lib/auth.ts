@@ -103,8 +103,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
+
   const payload = await verifyToken(token);
+
   if (!payload) return null;
   const { id, email, name, role } = payload;
   return { id, email, name, role };
 }
+

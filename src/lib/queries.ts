@@ -25,6 +25,7 @@ export async function getWordByLemma(
   letter: string;
   status: string;
   assignedTo: number | null;
+  createdBy: number | null;
   wordId: number;
   comments: WordNote[];
 } | null> {
@@ -36,6 +37,18 @@ export async function getWordByLemma(
 
   const result = await db.query.words.findFirst({
     where: whereCondition,
+    columns: {
+      id: true,
+      lemma: true,
+      root: true,
+      letter: true,
+      variant: true,
+      status: true,
+      createdBy: true,
+      assignedTo: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     with: {
       meanings: {
         orderBy: (meanings, { asc }) => [asc(meanings.number)],
@@ -56,6 +69,7 @@ export async function getWordByLemma(
     letter: result.letter,
     status: result.status,
     assignedTo: result.assignedTo ?? null,
+    createdBy: result.createdBy ?? null,
     wordId: result.id,
     comments:
       result.notes?.map((note) => ({

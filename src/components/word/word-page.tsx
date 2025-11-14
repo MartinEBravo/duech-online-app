@@ -8,6 +8,7 @@ import { DefinitionSection } from '@/components/word/word-definition';
 import { WordHeader } from '@/components/word/word-header';
 import { ExampleDisplay } from '@/components/word/word-example';
 import { SpinnerIcon, CheckCircleIcon, ExclamationCircleIcon } from '@/components/icons';
+import { useUserRole } from '@/hooks/useUserRole';
 import {
   GRAMMATICAL_CATEGORIES,
   USAGE_STYLES,
@@ -28,6 +29,8 @@ interface WordDisplayProps {
   wordId: number;
   initialComments: WordComment[];
   editorMode: boolean;
+  craetedBy?: number;
+  currentUserId: number | null;
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -45,6 +48,8 @@ export function WordDisplay({
   initialAssignedTo,
   wordId,
   initialComments,
+  currentUserId,
+  craetedBy,
   editorMode,
 }: WordDisplayProps) {
   const pathname = usePathname();
@@ -65,6 +70,14 @@ export function WordDisplay({
   const [editingStyles, setEditingStyles] = useState<number | null>(null);
   const [activeExample, setActiveExample] = useState<ActiveExample | null>(null);
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
+
+  const { isAdmin, username } = useUserRole(editorMode);
+  const { isCoordinator } = useUserRole(editorMode);
+
+  const canEdit = isAdmin || (craetedBy == currentUserId) || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+  const canAsigned = isAdmin || isCoordinator || (craetedBy == currentUserId);
+  const canActuallyEdit = editorMode && canEdit;
+  const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
   useEffect(() => {
@@ -398,8 +411,9 @@ export function WordDisplay({
         statusOptions={STATUS_OPTIONS}
         searchPath={searchPath}
         searchLabel={searchLabel}
-        definitions={word.values}
-      />
+        definitions={word.values} 
+        canActuallyEdit={canActuallyEdit} 
+        canAsigned={canAsigned}      />
 
       <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">
         {/* Definitions */}
@@ -410,7 +424,7 @@ export function WordDisplay({
                 key={defIndex}
                 definition={def}
                 defIndex={defIndex}
-                editorMode={editorMode}
+                editorMode={canActuallyEdit}
                 editingKey={editingKey}
                 onToggleEdit={toggle}
                 onPatchDefinition={(patch) => patchDefLocal(defIndex, patch)}
@@ -424,7 +438,7 @@ export function WordDisplay({
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/40 px-6 py-10 text-center text-gray-600">
               <p>Esta palabra aún no tiene definiciones.</p>
-              {editorMode && (
+              {canActuallyEdit && (
                 <Button
                   type="button"
                   onClick={() => handleAddDefinition()}
@@ -439,7 +453,7 @@ export function WordDisplay({
       </div>
 
       {/* Comments Section */}
-      {editorMode && (
+      {allowEditor && (
         <div className="mt-12 lg:mt-16">
           <WordCommentSection
             key={wordId}

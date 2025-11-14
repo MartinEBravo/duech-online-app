@@ -162,6 +162,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                   options={[{ value: '', label: 'Seleccionar letra' }, ...LETTER_OPTIONS]}
                   selectedValue={selectedLetter}
                   onChange={(value) => setNewWordLetter(value.toLowerCase())}
+                  disabled={false}
                   placeholder="Seleccionar letra"
                 />
               </div>
@@ -170,6 +171,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
               label="Asignado a"
               options={userOptions}
               selectedValues={newWordAssignedTo}
+              disabled={false}
               onChange={setNewWordAssignedTo}
             />
 

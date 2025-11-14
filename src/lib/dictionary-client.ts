@@ -73,7 +73,6 @@ async function fetchSearchResults(params: URLSearchParams, page: number, limit: 
   try {
     const queryString = params.toString();
     const response = await fetch(`/api/search${queryString ? `?${queryString}` : ''}`);
-
     if (!response.ok) {
       throw new Error('Search failed');
     }

@@ -113,6 +113,8 @@ interface SearchPageProps {
   placeholder: string;
   initialUsers?: User[];
   editorMode?: boolean;
+  currentUserId?: number | null;
+  currentUserRole?: string | null;
 }
 
 export function SearchPage({
@@ -120,6 +122,8 @@ export function SearchPage({
   placeholder,
   initialUsers = [],
   editorMode = false,
+  currentUserId,
+  currentUserRole,
 }: SearchPageProps) {
   // Parse URL search params
   const searchParams = useSearchParams();
@@ -141,6 +145,7 @@ export function SearchPage({
   const [hasSearched, setHasSearched] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
 
+
   // Editor mode: Use users passed from server
   const availableUsers = initialUsers;
 
@@ -156,6 +161,7 @@ export function SearchPage({
 
   // Reset URL search trigger when URL params change
   useEffect(() => {
+    
     if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
       return;
     }
@@ -281,6 +287,8 @@ export function SearchPage({
           editorMode ? searchState.status : undefined,
           editorMode ? searchState.assignedTo : undefined
         );
+        
+
 
         setSearchResults(searchData.results);
         setTotalResults(searchData.pagination.total);
@@ -311,6 +319,7 @@ export function SearchPage({
   useEffect(() => {
     if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
       return;
+      
     }
 
     if (!matchesUrlState(searchState, urlParams)) {
@@ -437,17 +446,20 @@ export function SearchPage({
               />
               {/* Results list */}
               <div className="space-y-4">
-                {searchResults.map((result, index) => (
-                  <WordCard
-                    key={`${result.word.lemma}-${index}`}
-                    lemma={result.word.lemma}
-                    letter={result.letter}
-                    editorMode={editorMode}
-                    root={editorMode ? result.word.root : undefined}
-                    status={editorMode ? result.status : undefined}
-                    definitionsCount={editorMode ? result.word.values.length : undefined}
-                  />
-                ))}
+                {searchResults.map((result, index) => {
+                  return (
+                    <WordCard
+                      key={`${result.word.lemma}-${index}`}
+                      lemma={result.word.lemma}
+                      letter={result.letter}
+                      editorMode={editorMode}
+                      root={editorMode ? result.word.root : undefined}
+                      status={editorMode ? result.status : undefined}
+                      definitionsCount={editorMode ? result.word.values.length : undefined}
+                      assignedTo={editorMode ? result.assignedTo: undefined}
+                      currentUserId={currentUserId}
+                    />
+                );})}
               </div>
             </>
           ) : (
