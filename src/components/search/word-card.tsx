@@ -17,6 +17,7 @@ interface WordCardProps {
   /** Only in editor mode */
   status?: string;
   /** Only in editor mode */
+  createdBy?: number;
   definitionsCount?: number;
   /** Optional class name for styling */
   className?: string;
@@ -30,6 +31,7 @@ export function WordCard({
   editorMode = false,
   root,
   status,
+  createdBy,
   definitionsCount,
   className = '',
   assignedTo,
@@ -37,9 +39,12 @@ export function WordCard({
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-  const { isAdmin } = useUserRole(editorMode);
 
-  const canEdit = isAdmin || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+  const { isAdmin, currentId } = useUserRole(editorMode);
+
+  const canEdit = isAdmin || (!!currentId && !!assignedTo && currentId === assignedTo);
+
+  const isCreator = createdBy === currentId;
 
   const isPublished = status === 'published';
   const viewUrl =
@@ -48,7 +53,7 @@ export function WordCard({
       : `/palabra/${encodeURIComponent(lemma)}`;
   // In editor mode, we need the public domain URL for preview
   const publicPreviewUrl = editorMode
-    ? `http://localhost:3000/palabra/${encodeURIComponent(lemma)}`
+    ? `${process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3000'}/palabra/${encodeURIComponent(lemma)}`
     : undefined;
 
   // Get status label and color for editor mode
@@ -97,7 +102,7 @@ export function WordCard({
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
             {root && root !== lemma && (
               <div className="flex items-center gap-1">
-                <span className="font-medium">Raíz:</span>
+                <span className="font-medium">Palabra base:</span>
                 <span className="text-gray-900">{root}</span>
               </div>
             )}
@@ -120,6 +125,7 @@ export function WordCard({
         </div>
 
         <div className="flex flex-col gap-2">
+          {/* {isCreator o aca iria lo de canEdit y todo eso ( */}
           <Button
             href={viewUrl}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
@@ -140,6 +146,7 @@ export function WordCard({
               </>
             )}
           </Button>
+
           {isPublished && (
             <Button
               href={publicPreviewUrl}
@@ -150,7 +157,7 @@ export function WordCard({
               <EyeIcon className="h-4 w-4" />
             </Button>
           )}
-          {/* ← Botón solo visible para admins */}
+          {/* ← Button visible only to admins */}
         </div>
       </div>
     </div>

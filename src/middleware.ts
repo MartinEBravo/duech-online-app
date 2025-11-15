@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const EDITOR_HOST = 'editor.localhost';
+const EDITOR_HOST = process.env.HOST_URL || 'editor.localhost';
 const EDITOR_PATH_PREFIX = '/editor';
 const SESSION_COOKIE = 'duech_session';
 
@@ -10,6 +10,7 @@ function shouldBypass(pathname: string): boolean {
     pathname.startsWith('/_next/') || // Next.js internals
     pathname.startsWith('/api/') || // API routes
     pathname === '/login' || // Login page
+    pathname === '/cambiar-contrasena' || // Password change page (needs token in URL, not session)
     /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2|ttf|eot)$/i.test(pathname) // Static files
   );
 }
@@ -57,13 +58,38 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Redirect to login if accessing editor host without token
-  if (isEditorMode && !token) {
+  // Helper function to create login redirect
+  const createLoginRedirect = () => {
     const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
     const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set('redirectTo', redirectTarget);
     return NextResponse.redirect(loginUrl);
+  };
+
+  // Redirect to login if accessing editor host without token
+  if (isEditorMode && !token) {
+    return createLoginRedirect();
+  }
+
+  // Admin-only routes: must be authenticated, in editor mode, and have admin role
+  const adminOnlyRoutes = ['/usuarios'];
+  const isAdminRoute = adminOnlyRoutes.some((route) => normalizedPathname.startsWith(route));
+
+  if (isAdminRoute) {
+    // Redirect to editor login if not in editor mode
+    if (!isEditorMode) {
+      const editorUrl = new URL(request.url);
+      editorUrl.hostname = EDITOR_HOST;
+      editorUrl.pathname = '/login';
+      editorUrl.searchParams.set('redirectTo', '/usuarios');
+      return NextResponse.redirect(editorUrl);
+    }
+
+    // Redirect to login if not authenticated
+    if (!token) {
+      return createLoginRedirect();
+    }
   }
 
   const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();

@@ -34,12 +34,6 @@ interface ParseError {
 
 type ParseResult = ParseSuccess | ParseError;
 
-const MATCH_ORDER: Record<SearchResult['matchType'], number> = {
-  exact: 0,
-  partial: 1,
-  filter: 2,
-};
-
 export async function GET(request: NextRequest) {
   const rateLimitResult = await applyRateLimit(request);
   if (!rateLimitResult.success) {
@@ -94,34 +88,29 @@ export async function GET(request: NextRequest) {
     };
 
     if (!metaOnly) {
-      // Search in database using advanced search
-      const results = await searchWords({
+      // Search in database using advanced search with pagination
+      const { results, total } = await searchWords({
         query: filters.query || undefined,
         categories: filters.categories.length > 0 ? filters.categories : undefined,
         styles: filters.styles.length > 0 ? filters.styles : undefined,
         origins: filters.origins.length > 0 ? filters.origins : undefined,
-        letter: filters.letters.length > 0 ? filters.letters[0] : undefined,
+        letters: filters.letters.length > 0 ? filters.letters : undefined,
         status: filters.status || undefined,
         assignedTo: filters.assignedTo.length > 0 ? filters.assignedTo : undefined,
         editorMode,
         limit: MAX_LIMIT,
+        page: page,
+        pageSize: limit,
       });
 
-      // Sort results by match type
-      const sortedResults = results.sort(
-        (a, b) => MATCH_ORDER[a.matchType] - MATCH_ORDER[b.matchType]
-      );
-
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      paginatedResults = sortedResults.slice(startIndex, endIndex);
+      paginatedResults = results;
 
       pagination = {
         page,
         limit,
-        total: sortedResults.length,
-        totalPages: Math.ceil(sortedResults.length / limit),
-        hasNext: endIndex < sortedResults.length,
+        total: total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
         hasPrev: page > 1,
       };
     }
