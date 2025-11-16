@@ -15,18 +15,25 @@ function DropdownButton({
   displayText,
   isEmpty,
   badge,
+  disabled,
 }: {
   onClick: () => void;
   isOpen: boolean;
   displayText: string;
   isEmpty: boolean;
   badge?: number;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className="focus:border-duech-blue w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left transition-colors focus:outline-none"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+        disabled
+          ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-60'
+          : 'focus:border-duech-blue cursor-pointer border-gray-300 bg-white hover:bg-gray-50 focus:outline-none'
+      } `}
     >
       <div className="flex items-center justify-between">
         <span className={`truncate ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
@@ -37,7 +44,7 @@ function DropdownButton({
             <span className="bg-duech-blue rounded-full px-2 py-1 text-xs text-white">{badge}</span>
           )}
           <ChevronDownIcon
-            className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`h-5 w-5 text-gray-400 transition-transform ${!disabled && isOpen ? 'rotate-180' : ''}`}
           />
         </div>
       </div>
@@ -68,12 +75,14 @@ export function SelectDropdown({
   selectedValue,
   onChange,
   placeholder = 'Seleccionar...',
+  disabled,
 }: {
   label: string;
   options: Option[];
   selectedValue: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useDropdownClose(setIsOpen);
@@ -82,21 +91,23 @@ export function SelectDropdown({
   const displayText = selectedOption ? selectedOption.label : placeholder;
 
   const handleSelect = (value: string) => {
+    if (disabled) return;
     onChange(value);
     setIsOpen(false);
   };
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
       <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
       <DropdownButton
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         isOpen={isOpen}
+        disabled={disabled}
         displayText={displayText}
         isEmpty={!selectedValue}
       />
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-lg">
           {options.map((option) => (
             <button
@@ -125,6 +136,7 @@ export function MultiSelectDropdown({
   onChange,
   placeholder = 'Seleccionar...',
   maxDisplay = 3,
+  disabled,
 }: {
   label: string;
   options: Option[];
@@ -132,6 +144,7 @@ export function MultiSelectDropdown({
   onChange: (values: string[]) => void;
   placeholder?: string;
   maxDisplay?: number;
+  disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -161,22 +174,24 @@ export function MultiSelectDropdown({
   };
 
   const handleSelectAll = () => {
+    if (disabled) return;
     if (selectedValues.length === options.length) onChange([]);
     else onChange(options.map((o) => o.value));
   };
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
       <DropdownButton
         onClick={() => setIsOpen((prev) => !prev)}
         isOpen={isOpen}
+        disabled={disabled}
         displayText={displayText}
         isEmpty={selectedValues.length === 0}
         badge={selectedValues.length > 0 ? selectedValues.length : undefined}
       />
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-10 mt-1 max-h-64 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
           <div className="border-b border-gray-200 p-2">
             <input

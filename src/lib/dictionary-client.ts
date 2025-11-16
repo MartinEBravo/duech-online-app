@@ -10,26 +10,33 @@ export async function searchDictionary(
   page: number = 1,
   limit: number = 1000,
   status?: string,
-  assignedTo?: string[]
+  assignedTo?: string[],
+  editorMode?: boolean
 ): Promise<SearchResponse> {
   try {
     const params = buildFilterParams(filters);
 
-    // Handle status parameter:
-    // - If status is undefined (not passed), it means public search → append '' to indicate "published only"
-    // - If status is '' (empty string), it means editor with no filter → don't append (show all)
-    // - If status has a value, append it to filter by that specific status
-    if (status === undefined) {
-      params.append('status', 'published'); // Public search: only published
-    } else if (status !== '') {
-      params.append('status', status); // Specific status selected
+    // Status handling logic
+    // - Public users always receive "published"
+    // - Editors:
+    //   * undefined or "" → no filter → return all statuses
+    //   * any specific value → filter by that value
+    if (!editorMode) {
+      // Public search: always filter to published words only
+      params.append('status', 'published');
+    } else {
+      if (status && status.trim() !== '') {
+        // Editor filtering by a specific status
+        params.append('status', status);
+      }
+      // 👉 If status is undefined or empty, DO NOT append anything
     }
-    // If status is '', don't append anything (editor: show all statuses)
 
     if (assignedTo?.length) params.append('assignedTo', assignedTo.join(','));
 
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    console.log('URL params:', params.toString());
 
     return await fetchSearchResults(params, page, limit);
   } catch {
@@ -65,7 +72,7 @@ function buildFilterParams(filters: SearchFilters): URLSearchParams {
   if (filters.styles?.length) params.append('styles', filters.styles.join(','));
   if (filters.origins?.length) params.append('origins', filters.origins.join(','));
   if (filters.letters?.length) params.append('letters', filters.letters.join(','));
-
+  console.log('🔍 Final search query:', params.toString());
   return params;
 }
 
@@ -73,7 +80,6 @@ async function fetchSearchResults(params: URLSearchParams, page: number, limit: 
   try {
     const queryString = params.toString();
     const response = await fetch(`/api/search${queryString ? `?${queryString}` : ''}`);
-
     if (!response.ok) {
       throw new Error('Search failed');
     }

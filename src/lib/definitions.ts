@@ -78,6 +78,7 @@ export interface SearchResult {
   letter: string;
   matchType: 'exact' | 'partial' | 'filter';
   status?: string;
+  assignedTo: number | null;
   createdBy?: number;
 }
 
