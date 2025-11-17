@@ -150,8 +150,11 @@ export async function searchWords(params: {
 
   // Text search in lemma or meaning
   if (query) {
-    const searchPattern = `%${query}%`;
-    conditions.push(or(ilike(words.lemma, searchPattern), ilike(meanings.meaning, searchPattern))!);
+    // NEED CHANGES, pattern matches only starts of word, works bad for phrases
+    const searchPattern = `${query}%`;
+    // Accent-insensitive match using PostgreSQL unaccent: requires the unaccent extension
+    // This compares lower(unaccent(lemma)) LIKE lower(unaccent(pattern))
+    conditions.push(sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${searchPattern}))`);
   }
 
   // Filter by letters (OR within letters - if multiple letters provided)
@@ -247,8 +250,17 @@ export async function searchWords(params: {
     return { fullWord, matchType };
   });
 
+  // Sort so exact matches first,   then prefix/partial, then others.
+  const rank = { exact: 0, partial: 1, filter: 2 } as const;
   const finalResults = wordsWithMeanings
     .filter((w) => w.fullWord !== undefined)
+    .sort((a, b) => {
+      const ra = rank[a.matchType];
+      const rb = rank[b.matchType];
+      if (ra !== rb) return ra - rb;
+      // Tie-breaker: alphabetic by lemma (accent-insensitive)
+      return a.fullWord!.lemma.localeCompare(b.fullWord!.lemma, 'es', { sensitivity: 'base' });
+    })
     .map((w) => dbWordToSearchResult(w.fullWord!, w.matchType));
 
   return {
