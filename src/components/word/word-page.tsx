@@ -73,11 +73,12 @@ export function WordDisplay({
 
   const { isAdmin, isCoordinator, currentId } = useUserRole(editorMode);
   console.log({ '💡 status: ': status });
+  console.log({ '💡 Rol: ': isAdmin ? 'Admin' : isCoordinator ? 'Coordinador' : 'Editor' });
 
   const canEdit =
     isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
   const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
-  const canActuallyEdit = editorMode && canEdit && status === 'preredacted';
+  const canActuallyEdit = editorMode && canEdit && (status === 'preredacted'|| status === 'included'|| status === 'imported');
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
