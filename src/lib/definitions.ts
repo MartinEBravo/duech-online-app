@@ -121,8 +121,20 @@ export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
   // Adverbio
   adv: 'Adverbio',
 
+  // Despectivo
+  desp: 'Despectivo',
+
+  // Eufemismo
+  euf: 'Eufemismo',
+
   // Fórmula
   fórm: 'Fórmula',
+
+  // Histórico
+  hist: 'Histórico',
+
+  // Verbo impersonal
+  impers: 'Verbo impersonal',
 
   // Interjección
   interj: 'Interjección',
@@ -131,29 +143,31 @@ export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
   loc: 'Locución',
 
   // Locución sustantiva/adjetiva
-  'loc sust/adj': 'Locución sustantiva/adjetiva',
+  'loc. sust/adj': 'Locución sustantiva/adjetiva',
 
   // Locución adjetiva
-  'loc adj': 'Locución adjetiva',
+  'loc. adj': 'Locución adjetiva',
 
   // Locución adjetiva/adverbial
-  'loc adj/adv': 'Locución adjetiva/adverbial',
+  'loc. adj/adv': 'Locución adjetiva/adverbial',
 
   // Locución adjetiva/sustantiva
-  'loc adj/sust': 'Locución adjetiva/sustantiva',
+  'loc. adj/sust': 'Locución adjetiva/sustantiva',
 
   // Locución adverbial
-  'loc adv': 'Locución adverbial',
+  'loc. adv': 'Locución adverbial',
 
   // Locución interjectiva
-  'loc interj': 'Locución interjectiva',
+  'loc. interj': 'Locución interjectiva',
 
   // Locución sustantiva
-  'loc sust': 'Locución sustantiva',
+  'loc. sust': 'Locución sustantiva',
+
+  // Locución verbal
+  'loc. verb': 'Locución verbal',
 
   // Marcador discursivo
-  marc: 'Marcador discursivo',
-  disc: 'Marcador discursivo',
+  'marc. disc': 'Marcador discursivo',
 
   // Sustantivo/Adjetivo
   sust: 'Sustantivo/Adjetivo',
@@ -174,27 +188,33 @@ export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
   'm y f': 'Sustantivo masculino y femenino',
 
   // Sustantivo masculino plural
-  'm pl': 'Sustantivo masculino plural',
+  'm. pl': 'Sustantivo masculino plural',
 
   // Sustantivo femenino plural
-  'f pl': 'Sustantivo femenino plural',
+  'f. pl': 'Sustantivo femenino plural',
+
+  // Poco usado
+  'p. us': 'Poco usado',
 
   // Verbo intransitivo
   intr: 'Verbo intransitivo',
 
   // Verbo transitivo
   tr: 'Verbo transitivo',
+
+  // Vulgar
+  vulgar: 'Vulgar',
 };
 
 // Style mappings
 export const USAGE_STYLES: Record<string, string> = {
+  afec: 'Afectivo',
+  cult: 'Culto',
   espon: 'Espontáneo',
   fest: 'Festivo',
-  vulgar: 'Vulgar',
-  hist: 'Histórico',
   esm: 'Esmerado',
-  'p. us.': 'Poco usado',
-  p: 'Poco usado',
+  obsol: 'Obsolescente',
+  pop: 'Popular',
   us: 'Usado',
 };
 
