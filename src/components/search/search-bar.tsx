@@ -410,9 +410,7 @@ export default function SearchBar({
           <Button
             type="button"
             onClick={() => setAdvancedOpen((prev) => !prev)}
-            aria-label={
-              advancedOpen ? 'Ocultar opciones avanzadas' : 'Mostrar opciones avanzadas'
-            }
+            aria-label={advancedOpen ? 'Ocultar opciones avanzadas' : 'Mostrar opciones avanzadas'}
             className="hover:text-duech-blue bg-gray-100 p-3 text-gray-600 hover:bg-blue-50"
           >
             <SettingsIcon className="h-6 w-6" />
