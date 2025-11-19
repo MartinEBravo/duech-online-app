@@ -142,6 +142,15 @@ export async function POST(request: NextRequest) {
     const values = normalizeWordDefinitions(payload.values);
     const createdBy = resolveAssignedTo(payload.createdBy);
     // Ensure at least one definition exists
+    console.log('Creating word with:', {
+      lemma,
+      root,
+      letter,
+      assignedTo,
+      status,
+      createdBy,
+      valuesCount: values.length,
+    });
     const finalValues =
       values.length > 0
         ? values

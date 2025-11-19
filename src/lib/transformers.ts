@@ -54,6 +54,6 @@ export function dbWordToSearchResult(
     matchType,
     status: dbWord.status,
     assignedTo: dbWord.assignedTo ?? null,
-    createdBy: dbWord.createdBy,
+    createdBy: dbWord.createdBy ?? null,
   };
 }

@@ -8,7 +8,8 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const editorMode = await isEditorMode();
   const { id } = await params;
   const decodedLemma = decodeURIComponent(id);
-
+  const user = await getSessionUser();
+  const currentUserId = user ? Number(user.id) : null;
   const wordData = await getWordByLemma(
     decodedLemma,
     editorMode ? { includeDrafts: true } : undefined

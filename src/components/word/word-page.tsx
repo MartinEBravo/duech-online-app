@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { MultiSelector } from '@/components/word/multi-selector-modal';
 import { Button } from '@/components/common/button';
 import { DefinitionSection } from '@/components/word/word-definition';
@@ -20,7 +20,6 @@ import {
 import { ExampleEditorModal, type ExampleDraft } from '@/components/word/word-example-editor-modal';
 import WordCommentSection from '@/components/word/comment/section';
 import type { WordComment } from '@/components/word/comment/globe';
-import { getPublicUrl } from '@/lib/search-utils';
 interface WordDisplayProps {
   initialWord: Word;
   initialLetter: string;
@@ -52,7 +51,6 @@ export function WordDisplay({
   editorMode,
 }: WordDisplayProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const editorBasePath = pathname?.startsWith('/editor') ? '/editor' : '';
   const [word, setWord] = useState<Word>(initialWord);
   const [letter, setLetter] = useState(initialLetter);
@@ -78,7 +76,10 @@ export function WordDisplay({
   const canEdit =
     isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
   const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
-  const canActuallyEdit = editorMode && canEdit && (status === 'preredacted'|| status === 'included'|| status === 'imported');
+  const canActuallyEdit =
+    editorMode &&
+    canEdit &&
+    (status === 'preredacted' || status === 'included' || status === 'imported');
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
@@ -162,23 +163,23 @@ export function WordDisplay({
     };
   }, [word, letter, status, assignedTo, autoSave, editorMode]);
 
-  useEffect(() => {
-    if (!editorMode) return;
+  // useEffect(() => {
+  //   if (!editorMode) return;
 
-    if (status === 'redacted') {
-      if (saveStatus === 'saved') {
-        const timer = setTimeout(() => {
-          alert('Palabra enviada exitosamente');
-          const destination = getPublicUrl(`/`);
-          //esto cuando este arreglado lo de ver
-          //const destination = getPublicUrl(`/palabra/${encodeURIComponent(word.lemma)}`);
-          window.location.href = destination;
-        }, 1000);
+  //   if (status === 'redacted') {
+  //     if (saveStatus === 'saved') {
+  //       const timer = setTimeout(() => {
+  //         alert('Palabra enviada exitosamente');
+  //         //const destination = getPublicUrl(`/`);
+  //         //esto cuando este arreglado lo de ver
+  //         //const destination = getPublicUrl(`/palabra/${encodeURIComponent(word.lemma)}`);
+  //         //window.location.href = destination;
+  //       }, 1000);
 
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [status, saveStatus, editorMode, router, word.lemma]);
+  //       return () => clearTimeout(timer);
+  //     }
+  //   }
+  // }, [status, saveStatus, editorMode, router, word.lemma]);
 
   // Helper functions
   const patchWordLocal = (patch: Partial<Word>) => {

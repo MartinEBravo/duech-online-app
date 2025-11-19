@@ -17,7 +17,7 @@ interface WordCardProps {
   /** Only in editor mode */
   status?: string;
   /** Only in editor mode */
-  createdBy?: number;
+  createdBy?: number | null;
   definitionsCount?: number;
   /** Optional class name for styling */
   className?: string;
@@ -39,12 +39,13 @@ export function WordCard({
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-
+  console.log('assignedTo in WordCard:', currentUserId);
   const { isAdmin, currentId } = useUserRole(editorMode);
-
-  const canEdit = isAdmin || (!!currentId && !!assignedTo && currentId === assignedTo);
-
-  const isCreator = createdBy === currentId;
+  const isCreator = createdBy === currentUserId;
+  const canEdit =
+    isAdmin ||
+    (isCreator && !!assignedTo) ||
+    (!!currentId && !!assignedTo && currentId === assignedTo);
 
   const isPublished = status === 'published';
   const viewUrl =

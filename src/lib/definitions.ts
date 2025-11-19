@@ -79,7 +79,7 @@ export interface SearchResult {
   matchType: 'exact' | 'partial' | 'filter';
   status?: string;
   assignedTo: number | null;
-  createdBy?: number;
+  createdBy?: number | null;
 }
 
 export interface SearchFilters {

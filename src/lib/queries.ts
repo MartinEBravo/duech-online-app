@@ -108,11 +108,10 @@ export async function searchWords(params: {
     categories,
     styles,
     origins,
-    letter,
+    letters,
     status,
     assignedTo,
     editorMode,
-    limit = 50,
     page = 1,
     pageSize = 25,
   } = params;

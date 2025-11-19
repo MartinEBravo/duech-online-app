@@ -303,13 +303,11 @@ export function SearchPage({
             origins: filters.origins,
             letters: filters.letters,
           },
-          1,
-          1000,
-          editorMode && searchState.status !== '' ? searchState.status : undefined,
-          editorMode ? searchState.assignedTo : undefined,
-          editorMode
           page,
           RESULTS_PER_PAGE,
+          editorMode ? searchState.status : undefined,
+          editorMode ? searchState.assignedTo : undefined,
+          editorMode
         );
 
         setSearchResults(searchData.results);
@@ -500,7 +498,6 @@ export function SearchPage({
               />
               {/* Results list */}
               <div className="space-y-4">
-
                 {searchResults.map((result, index) => {
                   return (
                     <WordCard

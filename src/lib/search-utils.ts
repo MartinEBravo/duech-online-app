@@ -131,16 +131,3 @@ export function getStatusByRole(
 
   return [];
 }
-export function getPublicUrl(path: string): string {
-  const publicBaseUrl = process.env.NEXT_PUBLIC_PUBLIC_URL;
-
-  if (publicBaseUrl) {
-    return `${publicBaseUrl}${path}`;
-  }
-
-  const { protocol, hostname, port } = window.location;
-  const publicHostname = hostname.replace(/^editor\./, '');
-  const portPart = port ? `:${port}` : '';
-
-  return `${protocol}//${publicHostname}${portPart}${path}`;
-}

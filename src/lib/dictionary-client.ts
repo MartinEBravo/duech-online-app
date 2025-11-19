@@ -37,7 +37,7 @@ export async function searchDictionary(
     params.append('page', page.toString());
     params.append('limit', limit.toString());
     console.log('URL params:', params.toString());
-
+    console.log('editorMode:', editorMode, 'status filter:', params.get('status'));
     return await fetchSearchResults(params, page, limit);
   } catch {
     return {
