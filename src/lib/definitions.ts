@@ -109,95 +109,97 @@ export interface SearchResponse {
   };
 }
 
-// Categories mapping for advanced search
 export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
-  // Adjetivo
   adj: 'Adjetivo',
-
-  // Adjetivo/Adverbio
   'adj/adv': 'Adjetivo/Adverbio',
-
-  // Adjetivo/Sustantivo
   'adj/sust': 'Adjetivo/Sustantivo',
-
-  // Adverbio
   adv: 'Adverbio',
-
-  // Fórmula
   fórm: 'Fórmula',
-
-  // Interjección
   interj: 'Interjección',
-
-  // Locución
-  loc: 'Locución',
-
-  // Locución sustantiva/adjetiva
-  'loc sust/adj': 'Locución sustantiva/adjetiva',
-
-  // Locución adjetiva
-  'loc adj': 'Locución adjetiva',
-
-  // Locución adjetiva/adverbial
-  'loc adj/adv': 'Locución adjetiva/adverbial',
-
-  // Locución adjetiva/sustantiva
-  'loc adj/sust': 'Locución adjetiva/sustantiva',
-
-  // Locución adverbial
-  'loc adv': 'Locución adverbial',
-
-  // Locución interjectiva
-  'loc interj': 'Locución interjectiva',
-
-  // Locución sustantiva
-  'loc sust': 'Locución sustantiva',
-
-  // Marcador discursivo
-  marc: 'Marcador discursivo',
-  disc: 'Marcador discursivo',
-
-  // Sustantivo/Adjetivo
+  'loc. sust/adj': 'Locución sustantiva/adjetiva',
+  'loc. adj': 'Locución adjetiva',
+  'loc. adj/adv': 'Locución adjetiva/adverbial',
+  'loc. adj/sust': 'Locución adjetiva/sustantiva',
+  'loc. adv/adj': 'Locución adverbial/adjetiva',
+  'loc. adv': 'Locución adverbial',
+  'loc. interj': 'Locución interjectiva',
+  'loc. sust': 'Locución sustantiva',
+  'loc. verb': 'Locución verbal',
+  impers: 'Impersonal',
+  'marc. disc': 'Marcador discursivo',
   sust: 'Sustantivo/Adjetivo',
-
-  // Sustantivo femenino
   f: 'Sustantivo femenino',
-
-  // Sustantivo masculino
   m: 'Sustantivo masculino',
-
-  // Sustantivo masculino o femenino
   'm o f': 'Sustantivo masculino o femenino',
-
-  // Sustantivo masculino-femenino
   'm-f': 'Sustantivo masculino-femenino',
-
-  // Sustantivo masculino y femenino
   'm y f': 'Sustantivo masculino y femenino',
-
-  // Sustantivo masculino plural
-  'm pl': 'Sustantivo masculino plural',
-
-  // Sustantivo femenino plural
-  'f pl': 'Sustantivo femenino plural',
-
-  // Verbo intransitivo
+  'm. pl': 'Sustantivo masculino plural',
+  'f. pl': 'Sustantivo femenino plural',
   intr: 'Verbo intransitivo',
-
-  // Verbo transitivo
   tr: 'Verbo transitivo',
 };
 
-// Style mappings
-export const USAGE_STYLES: Record<string, string> = {
-  espon: 'Espontáneo',
-  fest: 'Festivo',
+export const SOCIAL_VALUATIONS: Record<string, string> = {
   vulgar: 'Vulgar',
-  hist: 'Histórico',
+  euf: 'Eufemismo',
+};
+
+export const GEOGRAPHICAL_MARKERS: Record<string, string> = {
+  norte: 'Norte',
+  centro: 'Centro',
+  sur: 'Sur',
+  austral: 'Zona Austral',
+};
+
+export const SOCIAL_STRATUM_MARKERS: Record<string, string> = {
+  pop: 'Popular',
+  cult: 'Culto',
+};
+
+export const STYLE_MARKERS: Record<string, string> = {
+  espon: 'Espontáneo',
   esm: 'Esmerado',
-  'p. us.': 'Poco usado',
-  p: 'Poco usado',
-  us: 'Usado',
+};
+
+export const INTENTIONALITY_MARKERS: Record<string, string> = {
+  fest: 'Festivo',
+  desp: 'Despectivo',
+  afect: 'Afectivo',
+};
+
+export const CRONOLOGICAL_MARKERS: Record<string, string> = {
+  hist: 'Histórico',
+  obsol: 'Obsolescente',
+};
+
+export const FREQUENCY_MARKERS: Record<string, string> = {
+  'p. us': 'Poco usado',
+};
+
+export const ORIGINS: Record<string, string> = {
+  africano: 'Africano',
+  aimara: 'Aymara',
+  'aimara y quechua': 'Aymara y quechua',
+  alemán: 'Alemán',
+  'alemán, con influencia del inglés': 'Alemán, con influencia del inglés',
+  arahuaco: 'Arawaco',
+  croata: 'Croata',
+  francés: 'Francés',
+  'indígena antillano o mexicano': 'Indígena antillano o mexicano',
+  inglés: 'Inglés',
+  italiano: 'Italiano',
+  kawesqar: 'Kawésqar',
+  mapuche: 'Mapuche',
+  maya: 'Maya',
+  nahua: 'Náhuatl',
+  polinésico: 'Polinésico',
+  portugués: 'Portugués',
+  quechua: 'Quechua',
+  'quechua o aimara': 'Quechua o aymara',
+  'rapa nui': 'Rapa Nui',
+  romané: 'Romané',
+  selknam: "Selk'nam",
+  taíno: 'Taíno',
 };
 
 // Word states (for editorial workflow)
