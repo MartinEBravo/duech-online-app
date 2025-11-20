@@ -17,7 +17,7 @@ interface WordHeaderProps {
   editorMode: boolean;
   canActuallyEdit: boolean;
   canAsigned: boolean;
-
+  canChangeStatus?: boolean;
   // Lemma field
   editingLemma: boolean;
   onStartEditLemma: () => void;
@@ -49,6 +49,7 @@ export function WordHeader({
   editorMode,
   canActuallyEdit,
   canAsigned,
+  canChangeStatus,
   editingLemma,
   onStartEditLemma,
   onCancelEditLemma,
@@ -74,12 +75,13 @@ export function WordHeader({
 
   const userOptions = useMemo(
     () => getLexicographerByRole(users, username, isAdmin, isCoordinator, isLexicographer),
-    [users, username, isAdmin, isCoordinator, isLexicographer] // ← Todas las dependencias
+    [users, username, isAdmin, isCoordinator, isLexicographer] // ← all dependencies
   );
   const statusFilters = useMemo(
     () => getStatusByRole(statusOptions, isAdmin, isCoordinator, isLexicographer),
     [statusOptions, isAdmin, isCoordinator, isLexicographer]
   );
+  console.log(!canActuallyEdit || !canChangeStatus);
 
   return (
     <>
@@ -161,7 +163,7 @@ export function WordHeader({
                 selectedValue={status}
                 onChange={onStatusChange}
                 placeholder="Seleccionar estado"
-                disabled={!canActuallyEdit}
+                disabled={!canActuallyEdit && !canChangeStatus}
               />
             </div>
           </div>

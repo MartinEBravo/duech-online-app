@@ -76,10 +76,13 @@ export function WordDisplay({
   const canEdit =
     isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
   const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
+  const canChangeStatus = isAdmin && status !== 'preredacted';
+  console.log({ '💡 canChangeStatus: ': canChangeStatus });
   const canActuallyEdit =
     editorMode &&
     canEdit &&
     (status === 'preredacted' || status === 'included' || status === 'imported');
+  console.log({ '💡 canActuallyEdit: ': canActuallyEdit });
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
@@ -162,24 +165,6 @@ export function WordDisplay({
       }
     };
   }, [word, letter, status, assignedTo, autoSave, editorMode]);
-
-  // useEffect(() => {
-  //   if (!editorMode) return;
-
-  //   if (status === 'redacted') {
-  //     if (saveStatus === 'saved') {
-  //       const timer = setTimeout(() => {
-  //         alert('Palabra enviada exitosamente');
-  //         //const destination = getPublicUrl(`/`);
-  //         //esto cuando este arreglado lo de ver
-  //         //const destination = getPublicUrl(`/palabra/${encodeURIComponent(word.lemma)}`);
-  //         //window.location.href = destination;
-  //       }, 1000);
-
-  //       return () => clearTimeout(timer);
-  //     }
-  //   }
-  // }, [status, saveStatus, editorMode, router, word.lemma]);
 
   // Helper functions
   const patchWordLocal = (patch: Partial<Word>) => {
@@ -435,6 +420,7 @@ export function WordDisplay({
         definitions={word.values}
         canActuallyEdit={canActuallyEdit}
         canAsigned={canAsigned}
+        canChangeStatus={canChangeStatus}
       />
 
       <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">

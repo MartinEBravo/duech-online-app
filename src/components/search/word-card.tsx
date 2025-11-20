@@ -126,7 +126,6 @@ export function WordCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          {/* {isCreator o aca iria lo de canEdit y todo eso ( */}
           <Button
             href={viewUrl}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
@@ -143,7 +142,7 @@ export function WordCard({
             ) : (
               <>
                 Comentar
-                <PencilIcon className="h-4 w-4" /> {/* usa el icono que prefieras */}
+                <PencilIcon className="h-4 w-4" /> {/* Use the icon you prefer */}
               </>
             )}
           </Button>
