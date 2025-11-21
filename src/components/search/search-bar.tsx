@@ -9,6 +9,7 @@ import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import { GRAMMATICAL_CATEGORIES, USAGE_STYLES, SearchFilters } from '@/lib/definitions';
 import { useDebounce } from '@/hooks/useDebounce';
+import { getEditorSearchFilters, setEditorSearchFilters } from '@/lib/cookies';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -261,6 +262,22 @@ export default function SearchBar({
         return;
       }
 
+      if (editorMode) {
+        const existing = getEditorSearchFilters();
+        setEditorSearchFilters({
+          query: trimmedQuery,
+          selectedCategories: [...filters.categories],
+          selectedStyles: [...filters.styles],
+          selectedOrigins: [...filters.origins],
+          selectedLetters: [...filters.letters],
+          selectedStatus: existing.selectedStatus,
+          selectedAssignedTo: [...existing.selectedAssignedTo],
+        });
+
+        router.push(searchPath);
+        return;
+      }
+
       const params = new URLSearchParams();
       if (trimmedQuery) params.set('q', trimmedQuery);
       if (filters.categories.length) params.set('categories', filters.categories.join(','));
@@ -271,7 +288,7 @@ export default function SearchBar({
       const queryString = params.toString();
       router.push(`${searchPath}${queryString ? `?${queryString}` : ''}`);
     },
-    [filters, hasActiveFilters, onSearch, query, router, searchPath]
+    [editorMode, filters, hasActiveFilters, onSearch, query, router, searchPath]
   );
 
   const updateFilters = useCallback(<K extends keyof InternalFilters>(key: K, values: string[]) => {
@@ -369,18 +386,18 @@ export default function SearchBar({
 
   // Use debounced values for onStateChange to prevent rapid updates
   useEffect(() => {
-    if (!onStateChange) {
-      return;
-    }
+    if (!onStateChange) return;
+    // En modo editor desactivamos completamente la propagación en vivo
+    // para que escribir no afecte resultados ni estado externo hasta el submit.
+    if (editorMode) return;
 
-    // Don't call onStateChange when we're syncing from props to avoid circular updates
+    // No llamar durante sincronización desde props para evitar bucles.
     if (isSyncingFromPropsRef.current) {
       isSyncingFromPropsRef.current = false;
       return;
     }
-
     onStateChange({ query: debouncedQuery, filters: debouncedFilters });
-  }, [debouncedFilters, debouncedQuery, onStateChange]);
+  }, [debouncedFilters, debouncedQuery, onStateChange, editorMode]);
 
   const additionalFiltersContent = additionalFilters?.render?.();
 

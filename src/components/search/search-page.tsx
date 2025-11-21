@@ -81,34 +81,6 @@ function updateStateIfChanged(
   };
 }
 
-// Helper to validate if URL-based search should proceed
-function shouldProceedWithUrlSearch(
-  editorMode: boolean,
-  hasUrlCriteria: boolean,
-  isInitialized: boolean
-): boolean {
-  if (!editorMode) return false;
-  if (!hasUrlCriteria) return false;
-  if (!isInitialized) return false;
-  return true;
-}
-
-// Helper to handle early returns in URL search effects
-function handleEarlyUrlSearchReturn(
-  editorMode: boolean,
-  urlParams: { hasUrlCriteria: boolean },
-  isInitialized: boolean,
-  urlSearchTriggeredRef: React.MutableRefObject<boolean>
-): boolean {
-  if (!shouldProceedWithUrlSearch(editorMode, urlParams.hasUrlCriteria, isInitialized)) {
-    if (editorMode && !urlParams.hasUrlCriteria) {
-      urlSearchTriggeredRef.current = false;
-    }
-    return true; // Should return early
-  }
-  return false; // Should continue
-}
-
 interface SearchPageProps {
   title?: string;
   placeholder: string;
@@ -133,15 +105,26 @@ export function SearchPage({
   const pageTitle = title || (editorMode ? 'Editor de Diccionario' : 'Diccionario');
 
   // Manage search state with URL/cookie synchronization
-  const { searchState, updateState, saveFilters, clearAll, isInitialized } = useSearchState({
+  const { searchState, updateState, saveFilters, clearAll } = useSearchState({
     editorMode,
     urlParams,
   });
 
-  const urlSearchTriggeredRef = useRef(false);
+  const editorHasInitialCriteria =
+    editorMode &&
+    (searchState.query.length > 0 ||
+      searchState.filters.categories.length > 0 ||
+      searchState.filters.styles.length > 0 ||
+      searchState.filters.origins.length > 0 ||
+      searchState.filters.letters.length > 0 ||
+      searchState.status.length > 0 ||
+      searchState.assignedTo.length > 0);
+
+  const latestRequestRef = useRef(0);
+  const initialSearchTriggeredRef = useRef(false);
 
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(!editorMode);
+  const [isLoading, setIsLoading] = useState(() => (!editorMode ? true : editorHasInitialCriteria));
   const [hasSearched, setHasSearched] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,28 +141,48 @@ export function SearchPage({
   const availableUsers = initialUsers;
 
   const initialFilters = useMemo(
-    () => ({
-      categories: urlParams.categories,
-      styles: urlParams.styles,
-      origins: urlParams.origins,
-      letters: urlParams.letters,
-    }),
-    [urlParams.categories, urlParams.styles, urlParams.origins, urlParams.letters]
+    () =>
+      editorMode
+        ? searchState.filters
+        : {
+            categories: urlParams.categories,
+            styles: urlParams.styles,
+            origins: urlParams.origins,
+            letters: urlParams.letters,
+          },
+    [
+      editorMode,
+      searchState.filters,
+      urlParams.categories,
+      urlParams.styles,
+      urlParams.origins,
+      urlParams.letters,
+    ]
   );
 
-  // Reset URL search trigger when URL params change
+  // Reset resultados cuando la URL cambia en modo público (historial/links compartidos)
   useEffect(() => {
-    if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
+    if (editorMode) {
       return;
     }
 
     if (!matchesUrlState(searchState, urlParams)) {
-      urlSearchTriggeredRef.current = false;
-      setHasSearched(false);
-      setSearchResults([]);
-      setTotalResults(0);
+      const noCriteria =
+        urlParams.trimmedQuery.length === 0 &&
+        urlParams.categories.length === 0 &&
+        urlParams.styles.length === 0 &&
+        urlParams.origins.length === 0 &&
+        urlParams.letters.length === 0 &&
+        urlParams.status.length === 0 &&
+        urlParams.assignedTo.length === 0;
+
+      if (noCriteria) {
+        setHasSearched(false);
+        setSearchResults([]);
+        setTotalResults(0);
+      }
     }
-  }, [editorMode, isInitialized, urlParams, searchState]);
+  }, [editorMode, urlParams, searchState]);
 
   // Auto-search on mount for public mode
   useEffect(() => {
@@ -249,9 +252,25 @@ export function SearchPage({
 
   const handleSearchStateChange = useCallback(
     ({ query, filters }: { query: string; filters: LocalSearchFilters }) => {
-      updateState((prev) => updateStateIfChanged(prev, query, filters));
+      // En modo editor evitamos que el cambio de query (mientras el usuario escribe) dispare búsquedas.
+      // Manteneremos el último query ejecutado en searchState.query hasta que el usuario haga submit.
+      // Sí permitimos actualizar filtros para que la UI refleje selección, pero sin ejecutar búsqueda automática.
+      updateState((prev) => {
+        if (editorMode) {
+          const hasFiltersChanged = filtersChanged(prev.filters, filters);
+          if (!hasFiltersChanged) {
+            return prev; // Ignora cambios de query en vivo
+          }
+          return {
+            ...prev,
+            filters: cloneFilters(filters),
+          };
+        }
+        // Modo público: comportamiento normal (actualiza query y filtros en vivo)
+        return updateStateIfChanged(prev, query, filters);
+      });
     },
-    [updateState]
+    [updateState, editorMode]
   );
 
   const handleStatusChange = useCallback(
@@ -292,8 +311,9 @@ export function SearchPage({
       filters: LocalSearchFilters;
       page?: number;
     }) => {
+      const requestId = latestRequestRef.current + 1;
+      latestRequestRef.current = requestId;
       setIsLoading(true);
-      setHasSearched(true);
 
       try {
         const searchData = await searchDictionary(
@@ -311,6 +331,10 @@ export function SearchPage({
           editorMode
         );
 
+        if (requestId !== latestRequestRef.current) {
+          return;
+        }
+
         setSearchResults(searchData.results);
         setTotalResults(searchData.pagination.total);
         setPagination({
@@ -323,15 +347,23 @@ export function SearchPage({
 
         updateState((prev) => updateStateIfChanged(prev, query, filters));
 
+        setHasSearched(true);
+
         if (editorMode) {
           setTimeout(() => saveFilters(), 0);
         }
       } catch {
+        if (requestId !== latestRequestRef.current) {
+          return;
+        }
         setSearchResults([]);
         setTotalResults(0);
         setPagination({ totalPages: 0, hasNext: false, hasPrev: false });
+        setHasSearched(true);
       } finally {
-        setIsLoading(false);
+        if (requestId === latestRequestRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [
@@ -342,6 +374,17 @@ export function SearchPage({
       updateState,
       RESULTS_PER_PAGE,
     ]
+  );
+
+  // Wrapper para búsquedas manuales desde la barra con normalización compartida
+  const handleManualSearch = useCallback(
+    async ({ query, filters }: { query: string; filters: LocalSearchFilters }) => {
+      const trimmedQuery = query.trim();
+      const normalizedFilters = cloneFilters(filters);
+
+      await executeSearch({ query: trimmedQuery, filters: normalizedFilters, page: 1 });
+    },
+    [executeSearch]
   );
 
   const handleClearAll = useCallback(() => {
@@ -370,26 +413,7 @@ export function SearchPage({
     [pagination.totalPages, executeSearch, searchState.query, searchState.filters]
   );
 
-  // Trigger search when URL params match current state in editor mode
-  useEffect(() => {
-    if (handleEarlyUrlSearchReturn(editorMode, urlParams, isInitialized, urlSearchTriggeredRef)) {
-      return;
-    }
-
-    if (!matchesUrlState(searchState, urlParams)) {
-      urlSearchTriggeredRef.current = false;
-      return;
-    }
-
-    if (urlSearchTriggeredRef.current) return;
-
-    urlSearchTriggeredRef.current = true;
-
-    void executeSearch({
-      query: searchState.query,
-      filters: searchState.filters,
-    });
-  }, [editorMode, executeSearch, isInitialized, urlParams, searchState]);
+  // En modo editor ya no sincronizamos con la URL; historial del público sigue gestionado por el efecto anterior.
 
   const userOptions = useMemo(() => getLexicographerOptions(availableUsers), [availableUsers]);
 
@@ -402,6 +426,34 @@ export function SearchPage({
     searchState.filters.origins.length > 0 ||
     searchState.filters.letters.length > 0 ||
     (editorMode && hasEditorFilters);
+
+  useEffect(() => {
+    if (!editorMode) {
+      return;
+    }
+    if (hasSearched) {
+      return;
+    }
+    if (initialSearchTriggeredRef.current) {
+      return;
+    }
+    if (!hasSearchCriteria) {
+      return;
+    }
+
+    initialSearchTriggeredRef.current = true;
+    void executeSearch({
+      query: searchState.query,
+      filters: searchState.filters,
+    });
+  }, [
+    editorMode,
+    executeSearch,
+    hasSearched,
+    hasSearchCriteria,
+    searchState.filters,
+    searchState.query,
+  ]);
 
   // Memoize filter components for editor mode
   const statusFilter = useMemo(
@@ -469,7 +521,7 @@ export function SearchPage({
           placeholder={placeholder}
           initialValue={searchState.query}
           initialFilters={searchState.filters}
-          onSearch={executeSearch}
+          onSearch={handleManualSearch}
           onStateChange={handleSearchStateChange}
           onClearAll={editorMode ? handleClearAll : undefined}
           additionalFilters={additionalFiltersConfig}
@@ -487,7 +539,7 @@ export function SearchPage({
 
       {/* Results Section */}
       <div>
-        {isLoading ? (
+        {isLoading && !hasSearched ? (
           <SearchLoadingSkeleton editorMode={editorMode} />
         ) : hasSearched || (!editorMode && hasSearchCriteria) ? (
           searchResults.length > 0 ? (

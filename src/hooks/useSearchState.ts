@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { arraysEqual, LocalSearchFilters } from '@/lib/search-utils';
+import { LocalSearchFilters } from '@/lib/search-utils';
 import {
   setEditorSearchFilters,
   getEditorSearchFilters,
@@ -11,7 +11,7 @@ import {
 } from '@/lib/cookies';
 import { UrlSearchParams } from '@/hooks/useUrlSearchParams';
 
-interface SearchState {
+export interface SearchState {
   query: string;
   filters: LocalSearchFilters;
   status: string;
@@ -35,13 +35,29 @@ interface UseSearchStateOptions {
   urlParams: UrlSearchParams;
 }
 
+const createSearchStateFromCookies = (): SearchState => {
+  const savedFilters = getEditorSearchFilters();
+
+  return {
+    query: savedFilters.query,
+    filters: {
+      categories: savedFilters.selectedCategories,
+      styles: savedFilters.selectedStyles,
+      origins: savedFilters.selectedOrigins,
+      letters: savedFilters.selectedLetters,
+    },
+    status: savedFilters.selectedStatus,
+    assignedTo: savedFilters.selectedAssignedTo,
+  };
+};
+
 /**
- * Manages search state with synchronization from URL params (priority) or cookies (fallback)
+ * Manages search state with synchronization from URL params (public) or cookies (editor)
  */
 export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions) {
   const [searchState, setSearchState] = useState<SearchState>(() => {
     if (editorMode) {
-      return createDefaultSearchState();
+      return createSearchStateFromCookies();
     }
     // Public mode: use URL params
     return {
@@ -57,10 +73,15 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     };
   });
 
-  const isInitializedRef = useRef(false);
-  const mountedRef = useRef(false);
+  const isInitializedRef = useRef(editorMode);
 
-  const setSearchStateFromUrl = useCallback(() => {
+  // Sync state when URL params change (public mode)
+  useEffect(() => {
+    if (editorMode) {
+      isInitializedRef.current = true;
+      return;
+    }
+
     setSearchState({
       query: urlParams.trimmedQuery,
       filters: {
@@ -72,59 +93,9 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
       status: urlParams.status,
       assignedTo: [...urlParams.assignedTo],
     });
-  }, [urlParams]);
-
-  // Initialize state on mount for editor mode (URL params take precedence over cookies)
-  useEffect(() => {
-    if (!editorMode || mountedRef.current) return;
-
-    mountedRef.current = true;
-
-    if (urlParams.hasUrlCriteria) {
-      setSearchStateFromUrl();
-      isInitializedRef.current = true;
-    } else {
-      const savedFilters = getEditorSearchFilters();
-
-      setSearchState({
-        query: savedFilters.query,
-        filters: {
-          categories: savedFilters.selectedCategories,
-          styles: savedFilters.selectedStyles,
-          origins: savedFilters.selectedOrigins,
-          letters: savedFilters.selectedLetters,
-        },
-        status: savedFilters.selectedStatus,
-        assignedTo: savedFilters.selectedAssignedTo,
-      });
-      isInitializedRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorMode]);
-  // Only run on mount to initialize state from URL params or cookies
-
-  // Sync state when URL params change (e.g., browser back/forward navigation)
-  useEffect(() => {
-    if (!editorMode || !mountedRef.current) return;
-    if (!urlParams.hasUrlCriteria) return;
-
-    // Check if URL params differ from current state
-    const urlMatchesState =
-      searchState.query === urlParams.trimmedQuery &&
-      arraysEqual(searchState.filters.categories, urlParams.categories) &&
-      arraysEqual(searchState.filters.styles, urlParams.styles) &&
-      arraysEqual(searchState.filters.origins, urlParams.origins) &&
-      arraysEqual(searchState.filters.letters, urlParams.letters) &&
-      searchState.status === urlParams.status &&
-      arraysEqual(searchState.assignedTo, urlParams.assignedTo);
-
-    if (urlMatchesState) return;
-
-    // URL params changed (e.g., from browser navigation), sync state
-    setSearchStateFromUrl();
+    isInitializedRef.current = true;
   }, [
     editorMode,
-    urlParams.hasUrlCriteria,
     urlParams.trimmedQuery,
     urlParams.categories,
     urlParams.styles,
@@ -132,30 +103,27 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     urlParams.letters,
     urlParams.status,
     urlParams.assignedTo,
-    setSearchStateFromUrl,
-    searchState.query,
-    searchState.filters.categories,
-    searchState.filters.styles,
-    searchState.filters.origins,
-    searchState.filters.letters,
-    searchState.status,
-    searchState.assignedTo,
   ]);
 
   // Save filters to cookies for editor mode
-  const saveFilters = useCallback(() => {
+  const saveFilters = useCallback(
+    (stateOverride?: SearchState) => {
     if (!editorMode || !isInitializedRef.current) return;
 
+      const snapshot = stateOverride ?? searchState;
+
     setEditorSearchFilters({
-      query: searchState.query,
-      selectedCategories: searchState.filters.categories,
-      selectedStyles: searchState.filters.styles,
-      selectedOrigins: searchState.filters.origins,
-      selectedLetters: searchState.filters.letters,
-      selectedStatus: searchState.status,
-      selectedAssignedTo: searchState.assignedTo,
+        query: snapshot.query,
+        selectedCategories: snapshot.filters.categories,
+        selectedStyles: snapshot.filters.styles,
+        selectedOrigins: snapshot.filters.origins,
+        selectedLetters: snapshot.filters.letters,
+        selectedStatus: snapshot.status,
+        selectedAssignedTo: snapshot.assignedTo,
     });
-  }, [editorMode, searchState]);
+    },
+    [editorMode, searchState]
+  );
 
   // Clear all filters and reset state
   const clearAll = useCallback(() => {
