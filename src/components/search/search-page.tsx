@@ -142,6 +142,7 @@ export function SearchPage({
   const [hasSearched, setHasSearched] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [lastExecutedQuery, setLastExecutedQuery] = useState(''); // Track the query used in the last search
   const [pagination, setPagination] = useState({
     totalPages: 0,
     hasNext: false,
@@ -314,6 +315,7 @@ export function SearchPage({
           hasPrev: searchData.pagination.hasPrev,
         });
         setCurrentPage(page);
+        setLastExecutedQuery(query); // Save the query that was actually executed
 
         updateState((prev) => updateStateIfChanged(prev, query, filters));
 
@@ -344,6 +346,7 @@ export function SearchPage({
     setHasSearched(false);
     setTotalResults(0);
     setCurrentPage(1);
+    setLastExecutedQuery('');
     setPagination({ totalPages: 0, hasNext: false, hasPrev: false });
   }, [clearAll]);
 
@@ -488,7 +491,7 @@ export function SearchPage({
               <SearchResultsCount
                 editorMode={editorMode}
                 totalResults={totalResults}
-                query={searchState.query}
+                query={lastExecutedQuery}
                 currentPage={currentPage}
                 pageSize={RESULTS_PER_PAGE}
               />
