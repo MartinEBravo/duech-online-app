@@ -196,8 +196,8 @@ export const MEANING_MARKER_GROUPS: Record<
     labels: SOCIAL_STRATUM_MARKERS,
   },
   styleMarkers: {
-    label: 'Registro',
-    addLabel: '+ Añadir registro',
+    label: 'Marcas de estilo',
+    addLabel: '+ Añadir marca de estilo',
     labels: STYLE_MARKERS,
   },
   intentionalityMarkers: {
