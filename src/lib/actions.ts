@@ -139,8 +139,6 @@ export async function createUserAction(
       await createPasswordResetToken(newUser.id, resetToken);
 
       await sendWelcomeEmail(newUser.email || '', newUser.username, resetToken);
-
-      console.log(`Welcome email sent to ${newUser.email}`);
     } catch (emailError) {
       // Log email error but don't fail user creation
       console.error('Failed to send welcome email:', emailError);
@@ -347,7 +345,6 @@ export async function resetUserPasswordAction(userId: number): Promise<ResetPass
       }
 
       await sendPasswordResetEmail(targetUser.email, targetUser.username, resetToken);
-      console.log(`Password reset email sent to ${targetUser.email}`);
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);
       return {

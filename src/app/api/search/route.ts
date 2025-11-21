@@ -5,6 +5,7 @@ import { applyRateLimit } from '@/lib/rate-limiting';
 import { db } from '@/lib/db';
 import { meanings } from '@/lib/schema';
 import { sql } from 'drizzle-orm';
+import { isEditorModeFromHeaders } from '@/lib/editor-mode-server';
 
 const MAX_QUERY_LENGTH = 100;
 const MAX_FILTER_OPTIONS = 10;
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const parsed = parseSearchParams(searchParams);
+    const editorMode = isEditorModeFromHeaders(request.headers);
 
     if ('errorResponse' in parsed) {
       return parsed.errorResponse;
@@ -95,6 +97,8 @@ export async function GET(request: NextRequest) {
         letters: filters.letters.length > 0 ? filters.letters : undefined,
         status: filters.status || undefined,
         assignedTo: filters.assignedTo.length > 0 ? filters.assignedTo : undefined,
+        editorMode,
+        limit: MAX_LIMIT,
         page: page,
         pageSize: limit,
       });

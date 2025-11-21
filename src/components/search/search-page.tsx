@@ -114,6 +114,8 @@ interface SearchPageProps {
   placeholder: string;
   initialUsers?: User[];
   editorMode?: boolean;
+  currentUserId?: number | null;
+  currentUserRole?: string | null;
 }
 
 export function SearchPage({
@@ -121,6 +123,7 @@ export function SearchPage({
   placeholder,
   initialUsers = [],
   editorMode = false,
+  currentUserId,
 }: SearchPageProps) {
   // Parse URL search params
   const searchParams = useSearchParams();
@@ -304,7 +307,8 @@ export function SearchPage({
           page,
           RESULTS_PER_PAGE,
           editorMode ? searchState.status : undefined,
-          editorMode ? searchState.assignedTo : undefined
+          editorMode ? searchState.assignedTo : undefined,
+          editorMode
         );
 
         setSearchResults(searchData.results);
@@ -497,17 +501,22 @@ export function SearchPage({
               />
               {/* Results list */}
               <div className="space-y-4">
-                {searchResults.map((result, index) => (
-                  <WordCard
-                    key={`${result.word.lemma}-${index}`}
-                    lemma={result.word.lemma}
-                    letter={result.letter}
-                    editorMode={editorMode}
-                    root={editorMode ? result.word.root : undefined}
-                    status={editorMode ? result.status : undefined}
-                    definitionsCount={editorMode ? result.word.values.length : undefined}
-                  />
-                ))}
+                {searchResults.map((result, index) => {
+                  return (
+                    <WordCard
+                      key={`${result.word.lemma}-${index}`}
+                      lemma={result.word.lemma}
+                      letter={result.letter}
+                      editorMode={editorMode}
+                      root={editorMode ? result.word.root : undefined}
+                      status={editorMode ? result.status : undefined}
+                      createdBy={editorMode ? result.createdBy : undefined}
+                      definitionsCount={editorMode ? result.word.values.length : undefined}
+                      assignedTo={editorMode ? result.assignedTo : undefined}
+                      currentUserId={currentUserId}
+                    />
+                  );
+                })}
               </div>
 
               {/* Pagination */}
