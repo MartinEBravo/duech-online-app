@@ -86,10 +86,6 @@ export async function getWordByLemma(
   };
 }
 
-/**
- * Advanced search with filters
- * Returns in frontend-compatible format
- */
 export async function searchWords(params: {
   query?: string;
   categories?: string[];
@@ -118,68 +114,60 @@ export async function searchWords(params: {
 
   const conditions: SQL[] = [];
 
-  // STATUS logic:
   if (!editorMode) {
-    // Public mode: ALWAYS show only published words
     conditions.push(eq(words.status, 'published'));
-  } else {
-    // Editor mode:
-    if (status && status !== '') {
-      // If editor selected a specific filter → apply it
-      conditions.push(eq(words.status, status));
-    }
-    // If status === '' → editor wants all words → do NOT push conditions
+  } else if (status && status !== '') {
+    conditions.push(eq(words.status, status));
   }
-  // If status is '', don't add any status filter (show all statuses - editor mode)
 
-  // Filter by assignedTo (OR within assignedTo values)
   if (assignedTo && assignedTo.length > 0) {
     const assignedToIds = assignedTo.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
     if (assignedToIds.length > 0) {
-      const assignedConditions = assignedToIds.map((id) => eq(words.assignedTo, id));
-      conditions.push(or(...assignedConditions)!);
+      conditions.push(or(...assignedToIds.map((id) => eq(words.assignedTo, id)))!);
     }
   }
 
-  // Text search in lemma or meaning
+  let normalizedQuery: string | null = null;
+  let prefixPattern: string | null = null;
+  let inlinePattern: string | null = null;
+  let containsPattern: string | null = null;
+
   if (query) {
-    // NEED CHANGES, pattern matches only starts of word, works bad for phrases
-    const searchPattern = `${query}%`;
-    // Accent-insensitive match using PostgreSQL unaccent: requires the unaccent extension
-    // This compares lower(unaccent(lemma)) LIKE lower(unaccent(pattern))
-    conditions.push(sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${searchPattern}))`);
+    normalizedQuery = query.trim();
+    if (normalizedQuery.length > 0) {
+      prefixPattern = `${normalizedQuery}%`;
+      inlinePattern = `% ${normalizedQuery}%`;
+      containsPattern = `%${normalizedQuery}%`;
+      conditions.push(
+        or(
+          sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${prefixPattern}))`,
+          sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${inlinePattern}))`,
+          sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${containsPattern}))`
+        )!
+      );
+    } else {
+      normalizedQuery = null;
+    }
   }
 
-  // Filter by letters (OR within letters - if multiple letters provided)
   if (letters && letters.length > 0) {
-    const letterConditions = letters.map((letter) => eq(words.letter, letter.toLowerCase()));
-    conditions.push(or(...letterConditions)!);
+    conditions.push(or(...letters.map((letter) => eq(words.letter, letter.toLowerCase())))!);
   }
 
-  // Filter by origins (OR within origins - any selected origin matches)
   if (origins && origins.length > 0) {
-    const originConditions = origins.map((origin) => ilike(meanings.origin, `%${origin}%`));
-    conditions.push(or(...originConditions)!);
+    conditions.push(or(...origins.map((origin) => ilike(meanings.origin, `%${origin}%`)))!);
   }
 
-  // Filter by categories (OR within categories - any selected category matches)
   if (categories && categories.length > 0) {
-    const categoryConditions = categories.map((cat) => sql`${cat} = ANY(${meanings.categories})`);
-    conditions.push(or(...categoryConditions)!);
+    conditions.push(or(...categories.map((cat) => sql`${cat} = ANY(${meanings.categories})`))!);
   }
 
-  // Filter by styles (OR within styles - any selected style matches)
   if (styles && styles.length > 0) {
-    const styleConditions = styles.map((style) => sql`${style} = ANY(${meanings.styles})`);
-    conditions.push(or(...styleConditions)!);
+    conditions.push(or(...styles.map((style) => sql`${style} = ANY(${meanings.styles})`))!);
   }
 
-  // All conditions are combined with AND
-  // Within each filter type (categories, styles, assignedTo), values are OR'ed
-  // This means: (cat1 OR cat2) AND (style1 OR style2) AND letter AND query
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  // Get total count of matching results
   const countResult = await db
     .select({ count: sql<number>`count(distinct ${words.id})` })
     .from(words)
@@ -188,10 +176,23 @@ export async function searchWords(params: {
 
   const total = Number(countResult[0]?.count || 0);
 
-  // Execute query - get unique word IDs with pagination
   const offset = (page - 1) * pageSize;
+  const alphabeticalOrderExpression = sql`unaccent(lower(${words.lemma}))`;
+  const matchPriorityExpression =
+    normalizedQuery && prefixPattern && inlinePattern && containsPattern
+      ? sql<number>`
+          CASE
+            WHEN unaccent(lower(${words.lemma})) = unaccent(lower(${normalizedQuery})) THEN 0
+            WHEN unaccent(lower(${words.lemma})) LIKE unaccent(lower(${prefixPattern})) THEN 1
+            WHEN unaccent(lower(${words.lemma})) LIKE unaccent(lower(${inlinePattern})) THEN 2
+            WHEN unaccent(lower(${words.lemma})) LIKE unaccent(lower(${containsPattern})) THEN 3
+            ELSE 4
+          END
+        `
+      : sql<number>`4`;
+
   const results = await db
-    .selectDistinctOn([words.id], {
+    .select({
       id: words.id,
       lemma: words.lemma,
       root: words.root,
@@ -206,10 +207,22 @@ export async function searchWords(params: {
     .from(words)
     .leftJoin(meanings, eq(words.id, meanings.wordId))
     .where(whereClause)
+    .groupBy(
+      words.id,
+      words.lemma,
+      words.root,
+      words.letter,
+      words.variant,
+      words.status,
+      words.createdBy,
+      words.assignedTo,
+      words.createdAt,
+      words.updatedAt
+    )
+    .orderBy(matchPriorityExpression, alphabeticalOrderExpression)
     .limit(pageSize)
     .offset(offset);
 
-  // Batch fetch full word data with meanings in a single optimized query
   const wordIds = results.map((w) => w.id);
 
   const fullWords = await db.query.words.findMany({
@@ -221,44 +234,75 @@ export async function searchWords(params: {
     },
   });
 
-  // Create a map for O(1) lookup performance
   const wordMap = new Map(fullWords.map((w) => [w.id, w]));
 
-  // Determine match type for each word
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  type MatchCategory = 'exact' | 'prefix' | 'inline' | 'partial' | 'filter';
+  const bucketOrder: MatchCategory[] = ['exact', 'prefix', 'inline', 'partial', 'filter'];
+
   const wordsWithMeanings = results.map((w) => {
     const fullWord = wordMap.get(w.id);
+    let matchType: MatchCategory = 'filter';
 
-    // Determine match type
-    let matchType: 'exact' | 'partial' | 'filter' = 'filter';
     if (query && fullWord) {
-      const normalizedQuery = query.toLowerCase();
-      const lemma = fullWord.lemma.toLowerCase();
-      if (lemma === normalizedQuery) {
+      const normalizedQueryForMatch = normalize(query);
+      const lemma = normalize(fullWord.lemma);
+
+      if (normalizedQueryForMatch.length === 0) {
+        matchType = 'filter';
+      } else if (lemma === normalizedQueryForMatch) {
         matchType = 'exact';
-      } else if (lemma.includes(normalizedQuery)) {
-        matchType = 'partial';
+      } else if (lemma.startsWith(normalizedQueryForMatch)) {
+        matchType = 'prefix';
+      } else {
+        const tokens = lemma.split(/\s+/).map((token) => token.replace(/^[^a-z0-9]+/i, ''));
+        const hasInlineMatch = tokens.some((token) => token.startsWith(normalizedQueryForMatch));
+
+        if (hasInlineMatch) {
+          matchType = 'inline';
+        } else if (lemma.includes(normalizedQueryForMatch)) {
+          matchType = 'partial';
+        }
       }
     }
 
     return { fullWord, matchType };
   });
 
-  // Sort so exact matches first,   then prefix/partial, then others.
-  const rank = { exact: 0, partial: 1, filter: 2 } as const;
-  const finalResults = wordsWithMeanings
-    .filter((w) => w.fullWord !== undefined)
-    .sort((a, b) => {
-      const ra = rank[a.matchType];
-      const rb = rank[b.matchType];
-      if (ra !== rb) return ra - rb;
-      // Tie-breaker: alphabetic by lemma (accent-insensitive)
-      return a.fullWord!.lemma.localeCompare(b.fullWord!.lemma, 'es', { sensitivity: 'base' });
-    })
-    .map((w) => dbWordToSearchResult(w.fullWord!, w.matchType));
+  const compareLemma = (
+    a: { fullWord: (typeof fullWords)[number] | undefined },
+    b: { fullWord: (typeof fullWords)[number] | undefined }
+  ) => {
+    const lemmaA = a.fullWord!.lemma;
+    const lemmaB = b.fullWord!.lemma;
+    return lemmaA.localeCompare(lemmaB, 'es', { sensitivity: 'base' });
+  };
+
+  const orderedResults = bucketOrder.flatMap((bucket) =>
+    wordsWithMeanings
+      .filter((entry) => entry.fullWord && entry.matchType === bucket)
+      .sort(compareLemma)
+  );
+
+  const finalResults = orderedResults.map((w) => {
+    const mappedMatch: 'filter' | 'partial' | 'exact' | undefined =
+      w.matchType === 'exact'
+        ? 'exact'
+        : w.matchType === 'partial' || w.matchType === 'prefix' || w.matchType === 'inline'
+          ? 'partial'
+          : 'filter';
+
+    return dbWordToSearchResult(w.fullWord!, mappedMatch);
+  });
 
   return {
     results: finalResults,
-    total: total,
+    total,
   };
 }
 
