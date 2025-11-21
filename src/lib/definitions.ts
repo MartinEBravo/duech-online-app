@@ -191,18 +191,18 @@ export const MEANING_MARKER_GROUPS: Record<
     labels: SOCIAL_VALUATIONS,
   },
   socialStratumMarkers: {
-    label: 'Estrato social',
-    addLabel: '+ Añadir estrato social',
+    label: 'Marca de estrato social',
+    addLabel: '+ Añadir marca de estrato social',
     labels: SOCIAL_STRATUM_MARKERS,
   },
   styleMarkers: {
-    label: 'Marcas de estilo',
+    label: 'Marca de estilo',
     addLabel: '+ Añadir marca de estilo',
     labels: STYLE_MARKERS,
   },
   intentionalityMarkers: {
-    label: 'Intencionalidad',
-    addLabel: '+ Añadir intencionalidad',
+    label: 'Marca de intencionalidad',
+    addLabel: '+ Añadir marca de intencionalidad',
     labels: INTENTIONALITY_MARKERS,
   },
   geographicalMarkers: {
@@ -216,8 +216,8 @@ export const MEANING_MARKER_GROUPS: Record<
     labels: CRONOLOGICAL_MARKERS,
   },
   frequencyMarkers: {
-    label: 'Frecuencia',
-    addLabel: '+ Añadir frecuencia',
+    label: 'Marca de frecuencia',
+    addLabel: '+ Añadir marca de frecuencia',
     labels: FREQUENCY_MARKERS,
   },
 };
