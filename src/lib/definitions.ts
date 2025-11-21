@@ -36,38 +36,36 @@ export interface DBWord {
   meanings?: Meaning[]; // When joined with meanings
 }
 
-export interface Meaning {
-  id: number;
-  wordId: number;
+export type MeaningMarkerKey =
+  | 'socialValuations'
+  | 'socialStratumMarkers'
+  | 'styleMarkers'
+  | 'intentionalityMarkers'
+  | 'geographicalMarkers'
+  | 'chronologicalMarkers'
+  | 'frequencyMarkers';
+
+export type MeaningMarkerValues = Partial<Record<MeaningMarkerKey, string[] | null>>;
+
+export interface Meaning extends MeaningMarkerValues {
+  id?: number;
+  wordId?: number;
   number: number;
   origin?: string | null;
   meaning: string;
   observation?: string | null;
   remission?: string | null;
   categories: string[] | null;
-  styles: string[] | null;
   examples: Example[] | null; // JSONB field
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Legacy types for backward compatibility (will be deprecated)
-export interface WordDefinition {
-  number: number;
-  origin: string | null;
-  categories: string[];
-  remission: string | null;
-  meaning: string;
-  styles: string[] | null;
-  observation: string | null;
-  example: Example | Example[];
-  variant: string | null;
+  variant?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Word {
   lemma: string;
   root: string;
-  values: WordDefinition[];
+  values: Meaning[];
 }
 
 /**
@@ -82,18 +80,21 @@ export interface SearchResult {
   createdBy?: number | null;
 }
 
-export interface SearchFilters {
+export type MarkerFilterState = Partial<Record<MeaningMarkerKey, string[]>>;
+
+export type SearchFilters = {
   query?: string;
   categories?: string[];
-  styles?: string[];
   origins?: string[];
   letters?: string[];
-}
+} & MarkerFilterState;
+
+export type MarkerMetadata = Record<MeaningMarkerKey, string[]>;
 
 export interface SearchMetadata {
   categories: string[];
-  styles: string[];
   origins: string[];
+  markers: MarkerMetadata;
 }
 
 export interface SearchResponse {
@@ -176,6 +177,63 @@ export const FREQUENCY_MARKERS: Record<string, string> = {
   'p. us': 'Poco usado',
 };
 
+export const MEANING_MARKER_GROUPS: Record<
+  MeaningMarkerKey,
+  {
+    label: string;
+    addLabel: string;
+    labels: Record<string, string>;
+  }
+> = {
+  socialValuations: {
+    label: 'Valoración social',
+    addLabel: '+ Añadir valoración social',
+    labels: SOCIAL_VALUATIONS,
+  },
+  socialStratumMarkers: {
+    label: 'Estrato social',
+    addLabel: '+ Añadir estrato social',
+    labels: SOCIAL_STRATUM_MARKERS,
+  },
+  styleMarkers: {
+    label: 'Registro',
+    addLabel: '+ Añadir registro',
+    labels: STYLE_MARKERS,
+  },
+  intentionalityMarkers: {
+    label: 'Intencionalidad',
+    addLabel: '+ Añadir intencionalidad',
+    labels: INTENTIONALITY_MARKERS,
+  },
+  geographicalMarkers: {
+    label: 'Marca geográfica',
+    addLabel: '+ Añadir marca geográfica',
+    labels: GEOGRAPHICAL_MARKERS,
+  },
+  chronologicalMarkers: {
+    label: 'Marca cronológica',
+    addLabel: '+ Añadir marca cronológica',
+    labels: CRONOLOGICAL_MARKERS,
+  },
+  frequencyMarkers: {
+    label: 'Frecuencia',
+    addLabel: '+ Añadir frecuencia',
+    labels: FREQUENCY_MARKERS,
+  },
+};
+
+export const MEANING_MARKER_KEYS = Object.keys(MEANING_MARKER_GROUPS) as MeaningMarkerKey[];
+
+export function createEmptyMarkerFilterState(): Record<MeaningMarkerKey, string[]> {
+  return MEANING_MARKER_KEYS.reduce(
+    (acc, key) => {
+      acc[key] = [];
+      return acc;
+    },
+    {} as Record<MeaningMarkerKey, string[]>
+  );
+}
+
 export const ORIGINS: Record<string, string> = {
   africano: 'Africano',
   aimara: 'Aymara',
@@ -201,6 +259,16 @@ export const ORIGINS: Record<string, string> = {
   selknam: "Selk'nam",
   taíno: 'Taíno',
 };
+
+function sortKeysByLabel(source: Record<string, string>): string[] {
+  return Object.entries(source)
+    .sort(([, labelA], [, labelB]) => labelA.localeCompare(labelB, 'es'))
+    .map(([key]) => key);
+}
+
+export const PREDEFINED_GRAMMATICAL_CATEGORY_FILTERS = sortKeysByLabel(GRAMMATICAL_CATEGORIES);
+
+export const PREDEFINED_ORIGIN_FILTERS = sortKeysByLabel(ORIGINS);
 
 // Word states (for editorial workflow)
 export const STATUS_OPTIONS = [
