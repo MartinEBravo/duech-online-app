@@ -39,7 +39,6 @@ export function WordCard({
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-  console.log('assignedTo in WordCard:', currentUserId);
   const { isAdmin, currentId } = useUserRole(editorMode);
   const isCreator = createdBy === currentUserId;
   const canEdit =

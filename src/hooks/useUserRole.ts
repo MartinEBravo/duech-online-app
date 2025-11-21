@@ -24,7 +24,7 @@ export function useUserRole(editorMode: boolean) {
         const username = data.user?.name;
         const createdBy = data.user?.id ? parseInt(data.user.id, 10) : null;
         setCreatedBy(createdBy);
-        setIsAdmin(role === 'admin');
+        setIsAdmin(role === 'admin' || role === 'superadmin');
         setIsCoordinator(role === 'coordinator');
         setIsLexicographer(role === 'lexicographer');
         setUsername(username || '');

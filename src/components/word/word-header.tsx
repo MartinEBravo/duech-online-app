@@ -81,7 +81,6 @@ export function WordHeader({
     () => getStatusByRole(statusOptions, isAdmin, isCoordinator, isLexicographer),
     [statusOptions, isAdmin, isCoordinator, isLexicographer]
   );
-  console.log(!canActuallyEdit || !canChangeStatus);
 
   return (
     <>

@@ -36,8 +36,6 @@ export async function searchDictionary(
 
     params.append('page', page.toString());
     params.append('limit', limit.toString());
-    console.log('URL params:', params.toString());
-    console.log('editorMode:', editorMode, 'status filter:', params.get('status'));
     return await fetchSearchResults(params, page, limit);
   } catch {
     return {
@@ -72,7 +70,6 @@ function buildFilterParams(filters: SearchFilters): URLSearchParams {
   if (filters.styles?.length) params.append('styles', filters.styles.join(','));
   if (filters.origins?.length) params.append('origins', filters.origins.join(','));
   if (filters.letters?.length) params.append('letters', filters.letters.join(','));
-  console.log('🔍 Final search query:', params.toString());
   return params;
 }
 

@@ -70,19 +70,15 @@ export function WordDisplay({
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
 
   const { isAdmin, isCoordinator, currentId } = useUserRole(editorMode);
-  console.log({ '💡 status: ': status });
-  console.log({ '💡 Rol: ': isAdmin ? 'Admin' : isCoordinator ? 'Coordinador' : 'Editor' });
 
   const canEdit =
     isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
   const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
   const canChangeStatus = isAdmin && status !== 'preredacted';
-  console.log({ '💡 canChangeStatus: ': canChangeStatus });
   const canActuallyEdit =
     editorMode &&
     canEdit &&
     (status === 'preredacted' || status === 'included' || status === 'imported');
-  console.log({ '💡 canActuallyEdit: ': canActuallyEdit });
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)

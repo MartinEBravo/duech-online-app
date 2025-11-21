@@ -118,12 +118,6 @@ export async function searchWords(params: {
 
   const conditions: SQL[] = [];
 
-  console.log('🔍 searchWords backend flags:', {
-    query,
-    status,
-    editorMode,
-  });
-
   // STATUS logic:
   if (!editorMode) {
     // Public mode: ALWAYS show only published words
