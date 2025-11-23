@@ -8,6 +8,7 @@ import { getSearchMetadata } from '@/lib/dictionary-client';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import { GRAMMATICAL_CATEGORIES, USAGE_STYLES, SearchFilters } from '@/lib/definitions';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -120,8 +121,19 @@ export default function SearchBar({
   const extraFiltersActive = Boolean(additionalFilters?.hasActive);
   const hasActiveFilters = baseHasActiveFilters || extraFiltersActive;
 
+  // Debounce query and filters for onStateChange to prevent loops
+  const debouncedQuery = useDebounce(query, 300);
+  const debouncedFilters = useDebounce(filters, 300);
+
+  // Track if we're currently typing to prevent external updates
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    setQuery(initialValue);
+    // Only update from props if user is not actively typing
+    if (!isTypingRef.current) {
+      setQuery(initialValue);
+    }
   }, [initialValue]);
 
   useEffect(() => {
@@ -196,6 +208,15 @@ export default function SearchBar({
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -346,6 +367,7 @@ export default function SearchBar({
     );
   };
 
+  // Use debounced values for onStateChange to prevent rapid updates
   useEffect(() => {
     if (!onStateChange) {
       return;
@@ -357,8 +379,8 @@ export default function SearchBar({
       return;
     }
 
-    onStateChange({ query, filters });
-  }, [filters, onStateChange, query]);
+    onStateChange({ query: debouncedQuery, filters: debouncedFilters });
+  }, [debouncedFilters, debouncedQuery, onStateChange]);
 
   const additionalFiltersContent = additionalFilters?.render?.();
 
@@ -368,31 +390,39 @@ export default function SearchBar({
         <input
           type="text"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            // Mark that user is typing
+            isTypingRef.current = true;
+            // Clear existing timeout
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+            }
+            // Reset typing flag after 500ms of inactivity
+            typingTimeoutRef.current = setTimeout(() => {
+              isTypingRef.current = false;
+            }, 500);
+          }}
           placeholder={placeholder}
           className="focus:border-duech-blue w-full rounded-xl border-2 border-gray-300 bg-white px-6 py-4 pr-28 text-lg text-gray-900 shadow-lg transition-all duration-200 focus:ring-4 focus:ring-blue-200 focus:outline-none"
         />
         <div className="absolute inset-y-0 right-3 flex items-center gap-2">
-          <div className="absolute inset-y-0 right-3 flex items-center gap-2">
-            <Button
-              type="button"
-              onClick={() => setAdvancedOpen((prev) => !prev)}
-              aria-label={
-                advancedOpen ? 'Ocultar opciones avanzadas' : 'Mostrar opciones avanzadas'
-              }
-              className="hover:text-duech-blue bg-gray-100 p-3 text-gray-600 hover:bg-blue-50"
-            >
-              <SettingsIcon className="h-6 w-6" />
-            </Button>
+          <Button
+            type="button"
+            onClick={() => setAdvancedOpen((prev) => !prev)}
+            aria-label={advancedOpen ? 'Ocultar opciones avanzadas' : 'Mostrar opciones avanzadas'}
+            className="hover:text-duech-blue bg-gray-100 p-3 text-gray-600 hover:bg-blue-50"
+          >
+            <SettingsIcon className="h-6 w-6" />
+          </Button>
 
-            <Button
-              type="submit"
-              aria-label="Buscar"
-              className="hover:text-duech-blue bg-gray-100 p-3 text-gray-600 hover:bg-blue-50"
-            >
-              <SearchIcon className="h-6 w-6" />
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            aria-label="Buscar"
+            className="hover:text-duech-blue bg-gray-100 p-3 text-gray-600 hover:bg-blue-50"
+          >
+            <SearchIcon className="h-6 w-6" />
+          </Button>
         </div>
       </div>
 
