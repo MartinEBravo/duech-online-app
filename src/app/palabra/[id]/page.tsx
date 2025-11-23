@@ -32,7 +32,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       initialComments={comments}
       editorMode={editorMode}
       currentUserId={currentUserId}
-      currentUserRole={currentUserRole|| null}
+      currentUserRole={currentUserRole || null}
     />
   );
 }

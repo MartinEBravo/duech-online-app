@@ -71,9 +71,9 @@ export function WordDisplay({
   const [activeExample, setActiveExample] = useState<ActiveExample | null>(null);
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
 
-  const isAdmin = currentUserRole === 'admin'; 
+  const isAdmin = currentUserRole === 'admin';
   const isSAdmin = currentUserRole === 'superadmin';
-  const isCoordinator= currentUserRole === 'coordinator';
+  const isCoordinator = currentUserRole === 'coordinator';
 
   // Editor can edit if:
   // - Superadmin → always allowed
@@ -81,23 +81,23 @@ export function WordDisplay({
   // - Creator → allowed
   // - Assigned → allowed
   const canEdit =
-    isSAdmin || isAdmin || craetedBy == currentUserId || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
-  
+    isSAdmin ||
+    isAdmin ||
+    craetedBy == currentUserId ||
+    (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+
   // Can assign users if:
   // - Superadmin → always
   // - Admin or Coordinator → allowed
   // - Creator → allowed (optional rule)
-  const canAsigned = 
-    isSAdmin || isAdmin || isCoordinator || craetedBy == currentUserId;
+  const canAsigned = isSAdmin || isAdmin || isCoordinator || craetedBy == currentUserId;
 
   // Can change status if:
   // - Superadmin → always allowed
   // - Admin → allowed except on preredacted
-  const canChangeStatus = 
-    (isAdmin && status !== 'preredacted') || isSAdmin;
+  const canChangeStatus = (isAdmin && status !== 'preredacted') || isSAdmin;
 
-  
-// Final check for editing inside editorMode rules
+  // Final check for editing inside editorMode rules
   const canActuallyEdit =
     editorMode &&
     canEdit &&
