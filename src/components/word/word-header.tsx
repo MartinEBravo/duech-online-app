@@ -71,15 +71,15 @@ export function WordHeader({
   searchLabel,
   definitions,
 }: WordHeaderProps) {
-  const { isAdmin, isCoordinator, isLexicographer, username } = useUserRole(true);
+  const { isAdmin, isLexicographer, username } = useUserRole(true);
 
   const userOptions = useMemo(
-    () => getLexicographerByRole(users, username, isAdmin, isCoordinator, isLexicographer),
-    [users, username, isAdmin, isCoordinator, isLexicographer] // ← all dependencies
+    () => getLexicographerByRole(users, username, isAdmin, isLexicographer),
+    [users, username, isAdmin, isLexicographer] // ← all dependencies
   );
   const statusFilters = useMemo(
-    () => getStatusByRole(statusOptions, isAdmin, isCoordinator, isLexicographer),
-    [statusOptions, isAdmin, isCoordinator, isLexicographer]
+    () => getStatusByRole(statusOptions, isAdmin, isLexicographer),
+    [statusOptions, isAdmin, isLexicographer]
   );
 
   return (

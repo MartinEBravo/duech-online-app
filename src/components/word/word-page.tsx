@@ -73,7 +73,6 @@ export function WordDisplay({
 
   const isAdmin = currentUserRole === 'admin';
   const isSAdmin = currentUserRole === 'superadmin';
-  const isCoordinator = currentUserRole === 'coordinator';
 
   // Editor can edit if:
   // - Superadmin → always allowed
@@ -88,9 +87,9 @@ export function WordDisplay({
 
   // Can assign users if:
   // - Superadmin → always
-  // - Admin or Coordinator → allowed
+  // - Admin → allowed
   // - Creator → allowed (optional rule)
-  const canAsigned = isSAdmin || isAdmin || isCoordinator || craetedBy == currentUserId;
+  const canAsigned = isSAdmin || isAdmin || craetedBy == currentUserId;
 
   // Can change status if:
   // - Superadmin → always allowed

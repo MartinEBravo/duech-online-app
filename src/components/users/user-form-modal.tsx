@@ -41,7 +41,6 @@ export default function UserFormModal({
     lexicographer: 'Lexicógrafo',
     admin: 'Administrador',
     superadmin: 'Super Administrador',
-    coordinator: 'Coordinador',
   };
 
   const allowedRoles = getAllowedRoles(currentUserRole || 'admin');
