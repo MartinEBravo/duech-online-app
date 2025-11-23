@@ -124,6 +124,7 @@ export function SearchPage({
   initialUsers = [],
   editorMode = false,
   currentUserId,
+  currentUserRole,
 }: SearchPageProps) {
   // Parse URL search params
   const searchParams = useSearchParams();
@@ -511,6 +512,7 @@ export function SearchPage({
                       definitionsCount={editorMode ? result.word.values.length : undefined}
                       assignedTo={editorMode ? result.assignedTo : undefined}
                       currentUserId={currentUserId}
+                      currentUserRole={currentUserRole}
                     />
                   );
                 })}
