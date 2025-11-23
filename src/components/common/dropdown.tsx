@@ -215,7 +215,7 @@ export function MultiSelectDropdown({
             </button>
           </div>
 
-          <div className="max-h-40 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto">
             {filteredOptions.map((option) => (
               <label
                 key={option.value}

@@ -21,6 +21,13 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
 
   const { word, letter, status, assignedTo, wordId, comments, createdBy } = wordData;
 
+  // Get user role for editor mode features
+  let userRole: string | undefined;
+  if (editorMode) {
+    const user = await getSessionUser();
+    userRole = user?.role;
+  }
+
   return (
     <WordDisplay
       initialWord={word}
@@ -31,6 +38,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       wordId={wordId}
       initialComments={comments}
       editorMode={editorMode}
+      userRole={userRole}
       currentUserId={currentUserId}
       currentUserRole={currentUserRole || null}
     />

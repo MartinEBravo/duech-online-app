@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           { status: 400 }
         );
       }
-      updateData.username = username.trim().toLowerCase();
+      updateData.username = username.trim();
     }
 
     if (email !== undefined) {

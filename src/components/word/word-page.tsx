@@ -19,6 +19,8 @@ import {
 import { ExampleEditorModal, type ExampleDraft } from '@/components/word/word-example-editor-modal';
 import WordCommentSection from '@/components/word/comment/section';
 import type { WordComment } from '@/components/word/comment/globe';
+import { DeleteWordModal } from '@/components/word/delete-word-modal';
+
 interface WordDisplayProps {
   initialWord: Word;
   initialLetter: string;
@@ -27,6 +29,7 @@ interface WordDisplayProps {
   wordId: number;
   initialComments: WordComment[];
   editorMode: boolean;
+  userRole?: string;
   craetedBy?: number;
   currentUserId: number | null;
   currentUserRole: string | null;
@@ -49,6 +52,7 @@ export function WordDisplay({
   initialComments,
   craetedBy,
   editorMode,
+  userRole,
   currentUserId,
   currentUserRole,
 }: WordDisplayProps) {
@@ -61,6 +65,7 @@ export function WordDisplay({
   const [status, setStatus] = useState<string>(initialStatus || 'draft');
   const [assignedTo, setAssignedTo] = useState<number | null>(initialAssignedTo || null);
   const [users, setUsers] = useState<Array<{ id: number; username: string; role: string }>>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const isEditing = (k: string) => editingKey === k;
@@ -355,6 +360,11 @@ export function WordDisplay({
     });
   };
 
+  const handleDeleteWord = () => {
+    if (!editorMode || userRole !== 'superadmin') return;
+    setShowDeleteModal(true);
+  };
+
   // Render example helper
   const renderExample = (example: Example | Example[], defIndex?: number, isEditable = false) => {
     return (
@@ -438,6 +448,8 @@ export function WordDisplay({
         searchPath={searchPath}
         searchLabel={searchLabel}
         definitions={word.values}
+        onDeleteWord={handleDeleteWord}
+        userRole={userRole}
         canActuallyEdit={canActuallyEdit}
         canAsigned={canAsigned}
         canChangeStatus={canChangeStatus}
@@ -532,6 +544,11 @@ export function WordDisplay({
         onSave={saveExampleDraft}
         onCancel={() => closeExampleEditor(activeExample?.isNew)}
       />
+
+      {/* Delete word modal */}
+      {showDeleteModal && (
+        <DeleteWordModal lemma={lastSavedLemma} onClose={() => setShowDeleteModal(false)} />
+      )}
     </div>
   );
 }

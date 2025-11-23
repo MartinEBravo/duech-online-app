@@ -1,8 +1,14 @@
+import React from 'react';
 import { Resend } from 'resend';
-import { render } from '@react-email/components';
-import WelcomeEmail from '@/emails/welcome-email';
-import PasswordChangedEmail from '@/emails/password-changed-email';
-import PasswordResetEmail from '@/emails/password-reset-email';
+import { render, Text } from '@react-email/components';
+import {
+  PasswordEmail,
+  type PasswordEmailVariant,
+  type PasswordEmailParagraph,
+  type PasswordEmailProps,
+} from '@/components/emails/password-email';
+import RedactedWordsReportEmail from '@/components/emails/redacted-words-report-email';
+import { formatSpanishDate } from '@/lib/date-utils';
 
 const FROM_EMAIL = 'soporte@duech.cl';
 
@@ -25,7 +31,8 @@ async function sendEmail(
   to: string,
   subject: string,
   htmlContent: string,
-  logPrefix: string
+  logPrefix: string,
+  attachments?: Array<{ filename: string; content: Buffer }>
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const resend = getResend();
@@ -34,6 +41,10 @@ async function sendEmail(
       to,
       subject,
       html: htmlContent,
+      attachments: attachments?.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+      })),
     });
 
     if (result.error) {
@@ -52,6 +63,130 @@ async function sendEmail(
 }
 
 /**
+ * Helper function to create formatted email paragraphs.
+ * Uses PasswordEmailParagraph type for consistency with email components.
+ */
+function createEmailParagraph(text: string, className?: string): PasswordEmailParagraph {
+  return { text, className };
+}
+
+/**
+ * Helper function to construct password reset links
+ */
+function createResetLink(resetToken: string): string {
+  const editorHost = process.env.HOST_URL || 'editor.localhost:3000';
+  return `http://${editorHost}/cambiar-contrasena?token=${resetToken}`;
+}
+
+/**
+ * Configuration for each password email variant.
+ * Uses PasswordEmailVariant and PasswordEmailParagraph types for type safety.
+ */
+const PASSWORD_EMAIL_CONFIGS: Record<
+  PasswordEmailVariant,
+  {
+    subject: string;
+    getParagraphs: (resetLink?: string) => PasswordEmailParagraph[];
+    needsButton: boolean;
+    getButtonText?: () => string;
+    showInfoBox?: boolean;
+    getInfoBoxContent?: () => React.ReactNode;
+    getAlertContent?: () => React.ReactNode;
+  }
+> = {
+  welcome: {
+    subject: 'Bienvenido a DUECh Online',
+    needsButton: true,
+    getButtonText: () => 'Establecer mi contraseña',
+    getParagraphs: () => [
+      createEmailParagraph(
+        'Tu cuenta en el Diccionario de Uso del Español de Chile (DUECh) ha sido creada exitosamente.'
+      ),
+      createEmailParagraph(
+        'Para comenzar a usar tu cuenta, necesitas establecer tu contraseña. Haz clic en el botón de abajo para crear tu contraseña:'
+      ),
+    ],
+  },
+  reset: {
+    subject: 'Restablece tu contraseña de DUECh Online',
+    needsButton: true,
+    getButtonText: () => 'Restablecer contraseña',
+    getParagraphs: () => [
+      createEmailParagraph(
+        'Hemos recibido una solicitud para restablecer tu contraseña en DUECh Online.'
+      ),
+      createEmailParagraph('Haz clic en el botón de abajo para establecer una nueva contraseña:'),
+    ],
+    getAlertContent: () =>
+      Text({
+        className: 'm-0',
+        children:
+          'Si no solicitaste restablecer tu contraseña, puedes ignorar este correo de forma segura.',
+      }),
+  },
+  changed: {
+    subject: 'Tu contraseña ha sido actualizada',
+    needsButton: false,
+    getParagraphs: () => [
+      createEmailParagraph(
+        'Tu contraseña ha sido actualizada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
+      ),
+    ],
+    showInfoBox: true,
+    getInfoBoxContent: () =>
+      Text({
+        className: 'm-0 text-sm leading-relaxed text-gray-600',
+        children: `Fecha: ${new Date().toLocaleString('es-CL', {
+          timeZone: 'America/Santiago',
+          dateStyle: 'long',
+          timeStyle: 'short',
+        })}`,
+      }),
+    getAlertContent: () =>
+      Text({
+        className: 'm-0 text-sm text-red-600',
+        children:
+          'Si no realizaste este cambio, por favor contacta inmediatamente a nuestro equipo de soporte en soporte@duech.cl',
+      }),
+  },
+};
+
+/**
+ * Helper function to send password-related emails using the PasswordEmail component.
+ * Uses PasswordEmailProps type for type safety.
+ */
+async function sendPasswordEmailWithVariant(
+  to: string,
+  username: string,
+  variant: PasswordEmailVariant,
+  resetLink?: string
+): Promise<{ success: boolean; error?: string }> {
+  const config = PASSWORD_EMAIL_CONFIGS[variant];
+
+  // Build PasswordEmailProps
+  const emailProps: PasswordEmailProps = {
+    username,
+    variant,
+    paragraphs: config.getParagraphs(resetLink),
+    ...(config.needsButton &&
+      resetLink && {
+        buttonText: config.getButtonText?.(),
+        buttonLink: resetLink,
+      }),
+    ...(config.showInfoBox && {
+      showInfoBox: true,
+      infoBoxContent: config.getInfoBoxContent?.(),
+    }),
+    ...(config.getAlertContent && {
+      alertContent: config.getAlertContent(),
+    }),
+  };
+
+  const emailHtml = await render(PasswordEmail(emailProps));
+  return sendEmail(to, config.subject, emailHtml, `${variant} email`);
+}
+
+/**
  * Sends a welcome email to a newly created user with a link to set their password.
  */
 export async function sendWelcomeEmail(
@@ -59,17 +194,8 @@ export async function sendWelcomeEmail(
   username: string,
   resetToken: string
 ): Promise<{ success: boolean; error?: string }> {
-  const editorHost = process.env.HOST_URL || 'editor.localhost:3000';
-  const resetLink = `http://${editorHost}/cambiar-contrasena?token=${resetToken}`;
-
-  const emailHtml = await render(
-    WelcomeEmail({
-      username,
-      resetLink,
-    })
-  );
-
-  return sendEmail(email, 'Bienvenido a DUECh Online', emailHtml, 'welcome email');
+  const resetLink = createResetLink(resetToken);
+  return sendPasswordEmailWithVariant(email, username, 'welcome', resetLink);
 }
 
 /**
@@ -79,18 +205,7 @@ export async function sendPasswordChangeConfirmation(
   email: string,
   username: string
 ): Promise<{ success: boolean; error?: string }> {
-  const emailHtml = await render(
-    PasswordChangedEmail({
-      username,
-    })
-  );
-
-  return sendEmail(
-    email,
-    'Tu contraseña ha sido actualizada',
-    emailHtml,
-    'password change confirmation'
-  );
+  return sendPasswordEmailWithVariant(email, username, 'changed');
 }
 
 /**
@@ -101,20 +216,33 @@ export async function sendPasswordResetEmail(
   username: string,
   resetToken: string
 ): Promise<{ success: boolean; error?: string }> {
-  const editorHost = process.env.HOST_URL || 'editor.localhost:3000';
-  const resetLink = `http://${editorHost}/cambiar-contrasena?token=${resetToken}`;
+  const resetLink = createResetLink(resetToken);
+  return sendPasswordEmailWithVariant(email, username, 'reset', resetLink);
+}
+
+/**
+ * Sends an email with the redacted words PDF report as an attachment.
+ */
+export async function sendRedactedWordsReport(
+  email: string,
+  username: string,
+  pdfBuffer: Buffer
+): Promise<{ success: boolean; error?: string }> {
+  const now = new Date();
+  const dateStr = formatSpanishDate(now);
 
   const emailHtml = await render(
-    PasswordResetEmail({
+    RedactedWordsReportEmail({
       username,
-      resetLink,
+      dateStr,
     })
   );
 
   return sendEmail(
     email,
-    'Restablece tu contraseña de DUECh Online',
+    'Reporte de Palabras Redactadas - DUECh Online',
     emailHtml,
-    'password reset email'
+    'redacted words report',
+    [{ filename: `reporte_redactadas_${now.toISOString().split('T')[0]}.pdf`, content: pdfBuffer }]
   );
 }

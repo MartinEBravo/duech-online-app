@@ -20,11 +20,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailOrUsername = email.trim().toLowerCase();
+    const emailOrUsername = email.trim();
 
     // Try database users first - check both email and username
-    let dbUser = await getUserByEmail(emailOrUsername);
+    // Email lookup with lowercase for consistency
+    let dbUser = await getUserByEmail(emailOrUsername.toLowerCase());
     if (!dbUser) {
+      // Username lookup (case-insensitive handled by query)
       dbUser = await getUserByUsername(emailOrUsername);
     }
 
