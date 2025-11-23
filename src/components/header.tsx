@@ -14,7 +14,7 @@ import {
   GlobeIcon,
   MenuIcon,
   CloseIcon,
-  ArrowRightIcon,
+  BookOpenIcon,
 } from '@/components/icons';
 
 // Navigation link component with icon
@@ -226,6 +226,11 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                   </NavLink>
                 )}
                 {editorMode && (
+                  <NavLink href={buildHref('/redactadas')} icon={BookOpenIcon} onClick={closeMenu}>
+                    Palabras Redactadas
+                  </NavLink>
+                )}
+                {editorMode && (
                   <a
                     href={process.env.NEXT_PUBLIC_HOST_URL || 'http://localhost:3000/'}
                     onClick={closeMenu}
@@ -235,15 +240,6 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                     <GlobeIcon className="h-5 w-5" />
                     <span className="hover:text-yellow-300">Diccionario Público</span>
                   </a>
-                )}
-                {/* Export redactadas button - only in editor mode */}
-                {editorMode && (
-                  <Button
-                    href="/api/words/reporte-redactadas"
-                    className="bg-duech-gold px-1 py-1 mx-5 text-sm font-semibold text-gray-900 shadow-md hover:bg-yellow-500"
-                  >
-                    Exportar palabras redactadas
-                  </Button>
                 )}
               </div>
             )}

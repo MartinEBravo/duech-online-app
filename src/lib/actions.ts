@@ -104,7 +104,7 @@ export async function createUserAction(
     }
 
     // Check if username already exists
-    const existingUsername = await getUserByUsername(username.trim().toLowerCase());
+    const existingUsername = await getUserByUsername(username.trim());
     if (existingUsername) {
       return {
         success: false,
@@ -127,7 +127,7 @@ export async function createUserAction(
 
     // Create user
     const newUser = await createUser({
-      username: username.trim().toLowerCase(),
+      username: username.trim(),
       email: email.trim().toLowerCase(),
       passwordHash,
       role,
@@ -203,7 +203,7 @@ export async function updateUserAction(
 
     // Check if username already exists (if changing username)
     if (data.username) {
-      const existingUsername = await getUserByUsername(data.username.trim().toLowerCase());
+      const existingUsername = await getUserByUsername(data.username.trim());
       if (existingUsername && existingUsername.id !== userId) {
         return {
           success: false,
@@ -230,7 +230,7 @@ export async function updateUserAction(
       role?: string;
     } = {};
 
-    if (data.username) updateData.username = data.username.trim().toLowerCase();
+    if (data.username) updateData.username = data.username.trim();
     if (data.email) updateData.email = data.email.trim().toLowerCase();
     if (data.role) updateData.role = data.role;
 

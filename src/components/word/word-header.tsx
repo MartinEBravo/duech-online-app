@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import InlineEditable from '@/components/word/inline-editable';
 import { SelectDropdown } from '@/components/common/dropdown';
+import { Button } from '@/components/common/button';
 import { InformationCircleIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
 import type { WordDefinition } from '@/lib/definitions';
@@ -34,6 +35,8 @@ interface WordHeaderProps {
   searchPath: string;
   searchLabel: string;
   definitions?: WordDefinition[];
+  onDeleteWord?: () => void;
+  userRole?: string;
 }
 
 export function WordHeader({
@@ -60,6 +63,8 @@ export function WordHeader({
   searchPath,
   searchLabel,
   definitions,
+  onDeleteWord,
+  userRole,
 }: WordHeaderProps) {
   return (
     <>
@@ -111,7 +116,7 @@ export function WordHeader({
 
         {/* Editor controls */}
         {editorMode && (
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-end gap-3 text-sm">
             <div className="w-24">
               <SelectDropdown
                 label="Letra"
@@ -151,6 +156,16 @@ export function WordHeader({
                 placeholder="Seleccionar estado"
               />
             </div>
+
+            {onDeleteWord && userRole === 'superadmin' && (
+              <Button
+                type="button"
+                onClick={onDeleteWord}
+                className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+              >
+                Eliminar palabra
+              </Button>
+            )}
           </div>
         )}
       </div>

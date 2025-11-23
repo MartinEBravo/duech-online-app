@@ -177,7 +177,7 @@ export function MultiSelectDropdown({
       />
 
       {isOpen && (
-        <div className="absolute z-10 mt-1 max-h-64 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
+        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
           <div className="border-b border-gray-200 p-2">
             <input
               type="text"
@@ -200,7 +200,7 @@ export function MultiSelectDropdown({
             </button>
           </div>
 
-          <div className="max-h-40 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto">
             {filteredOptions.map((option) => (
               <label
                 key={option.value}

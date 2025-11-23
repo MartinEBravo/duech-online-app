@@ -246,19 +246,27 @@ export async function searchWords(params: {
  */
 
 /**
- * Find user by username
+ * Find user by username (case-insensitive)
  */
 export async function getUserByUsername(username: string) {
-  const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.username}) = lower(${username})`)
+    .limit(1);
 
   return result.length > 0 ? result[0] : null;
 }
 
 /**
- * Find user by email
+ * Find user by email (case-insensitive)
  */
 export async function getUserByEmail(email: string) {
-  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.email}) = lower(${email})`)
+    .limit(1);
 
   return result.length > 0 ? result[0] : null;
 }
@@ -438,4 +446,17 @@ export async function getPasswordResetToken(token: string) {
  */
 export async function deletePasswordResetToken(token: string) {
   await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+}
+
+/**
+ * Get all words with "redacted" status, including their notes
+ */
+export async function getRedactedWords() {
+  return db.query.words.findMany({
+    where: (table, { eq }) => eq(table.status, 'redacted'),
+    with: {
+      notes: true,
+    },
+    orderBy: (table, { asc }) => [asc(table.lemma)],
+  });
 }
