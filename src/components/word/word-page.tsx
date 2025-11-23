@@ -8,7 +8,6 @@ import { DefinitionSection } from '@/components/word/word-definition';
 import { WordHeader } from '@/components/word/word-header';
 import { ExampleDisplay } from '@/components/word/word-example';
 import { SpinnerIcon, CheckCircleIcon, ExclamationCircleIcon } from '@/components/icons';
-import { useUserRole } from '@/hooks/useUserRole';
 import {
   GRAMMATICAL_CATEGORIES,
   USAGE_STYLES,
@@ -30,6 +29,7 @@ interface WordDisplayProps {
   editorMode: boolean;
   craetedBy?: number;
   currentUserId: number | null;
+  currentUserRole: string | null;
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -49,6 +49,8 @@ export function WordDisplay({
   initialComments,
   craetedBy,
   editorMode,
+  currentUserId,
+  currentUserRole,
 }: WordDisplayProps) {
   const pathname = usePathname();
   const editorBasePath = pathname?.startsWith('/editor') ? '/editor' : '';
@@ -69,16 +71,39 @@ export function WordDisplay({
   const [activeExample, setActiveExample] = useState<ActiveExample | null>(null);
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
 
-  const { isAdmin, isCoordinator, currentId } = useUserRole(editorMode);
+  const isAdmin = currentUserRole === 'admin'; 
+  const isSAdmin = currentUserRole === 'superadmin';
+  const isCoordinator= currentUserRole === 'coordinator';
 
+  // Editor can edit if:
+  // - Superadmin → always allowed
+  // - Admin → always allowed
+  // - Creator → allowed
+  // - Assigned → allowed
   const canEdit =
-    isAdmin || craetedBy == currentId || (!!currentId && !!assignedTo && currentId === assignedTo);
-  const canAsigned = isAdmin || isCoordinator || craetedBy == currentId;
-  const canChangeStatus = isAdmin && status !== 'preredacted';
+    isSAdmin || isAdmin || craetedBy == currentUserId || (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+  
+  // Can assign users if:
+  // - Superadmin → always
+  // - Admin or Coordinator → allowed
+  // - Creator → allowed (optional rule)
+  const canAsigned = 
+    isSAdmin || isAdmin || isCoordinator || craetedBy == currentUserId;
+
+  // Can change status if:
+  // - Superadmin → always allowed
+  // - Admin → allowed except on preredacted
+  const canChangeStatus = 
+    (isAdmin && status !== 'preredacted') || isSAdmin;
+
+  
+// Final check for editing inside editorMode rules
   const canActuallyEdit =
     editorMode &&
     canEdit &&
     (status === 'preredacted' || status === 'included' || status === 'imported');
+
+  // Whether the UI should enable edit mode at all
   const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)

@@ -10,6 +10,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const decodedLemma = decodeURIComponent(id);
   const user = await getSessionUser();
   const currentUserId = user ? Number(user.id) : null;
+  const currentUserRole = user?.role ?? null;
   const wordData = await getWordByLemma(
     decodedLemma,
     editorMode ? { includeDrafts: true } : undefined
@@ -31,6 +32,7 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       initialComments={comments}
       editorMode={editorMode}
       currentUserId={currentUserId}
+      currentUserRole={currentUserRole|| null}
     />
   );
 }

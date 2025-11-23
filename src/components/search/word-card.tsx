@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface WordCardProps {
   lemma: string;
@@ -23,6 +22,7 @@ interface WordCardProps {
   className?: string;
   assignedTo?: number | null;
   currentUserId?: number | null;
+  currentUserRole?: string | null;
 }
 
 export function WordCard({
@@ -36,15 +36,24 @@ export function WordCard({
   className = '',
   assignedTo,
   currentUserId,
+  currentUserRole,
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-  const { isAdmin, currentId } = useUserRole(editorMode);
+  const isAdmin = currentUserRole === 'admin';
   const isCreator = createdBy === currentUserId;
+  const isSAdmin = currentUserRole === 'superadmin';
+
+  // Editor can edit if:
+  // - Superadmin → always allowed
+  // - Admin → always allowed
+  // - Creator → allowed
+  // - Assigned → allowed
   const canEdit =
+    isSAdmin ||
     isAdmin ||
     (isCreator && !!assignedTo) ||
-    (!!currentId && !!assignedTo && currentId === assignedTo);
+    (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
 
   const isPublished = status === 'published';
   const viewUrl =
