@@ -143,14 +143,11 @@ export async function searchWords(params: {
 
   // Text search in lemma or meaning
   if (query) {
-    const searchPattern = `%${query}%`;
-
-    conditions.push(or(ilike(words.lemma, searchPattern), ilike(meanings.meaning, searchPattern))!);
     // NEED CHANGES, pattern matches only starts of word, works bad for phrases
-    //const searchPattern = `${query}%`;
+    const searchPattern = `${query}%`;
     // Accent-insensitive match using PostgreSQL unaccent: requires the unaccent extension
     // This compares lower(unaccent(lemma)) LIKE lower(unaccent(pattern))
-    //conditions.push(sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${searchPattern}))`);
+    conditions.push(sql`unaccent(lower(${words.lemma})) LIKE unaccent(lower(${searchPattern}))`);
   }
 
   // Filter by letters (OR within letters - if multiple letters provided)
