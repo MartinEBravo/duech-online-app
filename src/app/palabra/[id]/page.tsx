@@ -8,17 +8,18 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
   const editorMode = await isEditorMode();
   const { id } = await params;
   const decodedLemma = decodeURIComponent(id);
-
+  const user = await getSessionUser();
+  const currentUserId = user ? Number(user.id) : null;
+  const currentUserRole = user?.role ?? null;
   const wordData = await getWordByLemma(
     decodedLemma,
     editorMode ? { includeDrafts: true } : undefined
   );
-
   if (!wordData) {
     notFound();
   }
 
-  const { word, letter, status, assignedTo, wordId, comments } = wordData;
+  const { word, letter, status, assignedTo, wordId, comments, createdBy } = wordData;
 
   // Get user role for editor mode features
   let userRole: string | undefined;
@@ -33,10 +34,13 @@ export default async function WordDetailPage({ params }: { params: Promise<{ id:
       initialLetter={letter}
       initialStatus={status}
       initialAssignedTo={assignedTo ?? undefined}
+      craetedBy={createdBy ?? undefined}
       wordId={wordId}
       initialComments={comments}
       editorMode={editorMode}
       userRole={userRole}
+      currentUserId={currentUserId}
+      currentUserRole={currentUserRole || null}
     />
   );
 }

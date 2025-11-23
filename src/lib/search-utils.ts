@@ -71,15 +71,56 @@ export interface User {
   email?: string | null;
   role: string;
 }
+function mapUsersToOptions(users: User[]) {
+  return users.map((user) => ({
+    value: user.id.toString(),
+    label: user.username,
+  }));
+}
+
+function filterLexicographers(users: User[]) {
+  return users.filter((user) => user.role === 'lexicographer');
+}
 
 /**
  * Get lexicographer options for dropdowns
  */
 export function getLexicographerOptions(users: User[]) {
-  return users
-    .filter((user) => user.role === 'lexicographer')
-    .map((user) => ({
-      value: user.id.toString(),
-      label: user.username,
-    }));
+  return mapUsersToOptions(filterLexicographers(users));
+}
+
+export function getLexicographerByRole(
+  users: User[],
+  currentUsername: string,
+  isAdmin: boolean,
+
+  isLexicographer: boolean
+) {
+  if (isAdmin) {
+    return mapUsersToOptions(filterLexicographers(users));
+  }
+
+  if (isLexicographer) {
+    const filteredUsers = users.filter((user) => user.username === currentUsername);
+    return mapUsersToOptions(filteredUsers);
+  }
+
+  return [];
+}
+export function getStatusByRole(
+  statusOptions: { value: string; label: string }[],
+  isAdmin: boolean,
+  isLexicographer: boolean
+) {
+  if (isAdmin) {
+    return statusOptions.filter((status) => status.value !== 'imported');
+  }
+
+  if (isLexicographer) {
+    return statusOptions.filter(
+      (status) => status.value === 'redacted' || status.value === 'preredacted'
+    );
+  }
+
+  return [];
 }

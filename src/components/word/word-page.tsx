@@ -30,6 +30,9 @@ interface WordDisplayProps {
   initialComments: WordComment[];
   editorMode: boolean;
   userRole?: string;
+  craetedBy?: number;
+  currentUserId: number | null;
+  currentUserRole: string | null;
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -47,8 +50,11 @@ export function WordDisplay({
   initialAssignedTo,
   wordId,
   initialComments,
+  craetedBy,
   editorMode,
   userRole,
+  currentUserId,
+  currentUserRole,
 }: WordDisplayProps) {
   const pathname = usePathname();
   const editorBasePath = pathname?.startsWith('/editor') ? '/editor' : '';
@@ -69,6 +75,40 @@ export function WordDisplay({
   const [editingStyles, setEditingStyles] = useState<number | null>(null);
   const [activeExample, setActiveExample] = useState<ActiveExample | null>(null);
   const [exampleDraft, setExampleDraft] = useState<ExampleDraft | null>(null);
+
+  const isAdmin = currentUserRole === 'admin';
+  const isSAdmin = currentUserRole === 'superadmin';
+
+  // Editor can edit if:
+  // - Superadmin → always allowed
+  // - Admin → always allowed
+  // - Creator → allowed
+  // - Assigned → allowed
+  const canEdit =
+    isSAdmin ||
+    isAdmin ||
+    craetedBy == currentUserId ||
+    (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+
+  // Can assign users if:
+  // - Superadmin → always
+  // - Admin → allowed
+  // - Creator → allowed (optional rule)
+  const canAsigned = isSAdmin || isAdmin || craetedBy == currentUserId;
+
+  // Can change status if:
+  // - Superadmin → always allowed
+  // - Admin → allowed except on preredacted
+  const canChangeStatus = (isAdmin && status !== 'preredacted') || isSAdmin;
+
+  // Final check for editing inside editorMode rules
+  const canActuallyEdit =
+    editorMode &&
+    canEdit &&
+    (status === 'preredacted' || status === 'included' || status === 'imported');
+
+  // Whether the UI should enable edit mode at all
+  const allowEditor = editorMode;
 
   // Fetch users for assignedTo dropdown (editor mode only)
   useEffect(() => {
@@ -410,6 +450,9 @@ export function WordDisplay({
         definitions={word.values}
         onDeleteWord={handleDeleteWord}
         userRole={userRole}
+        canActuallyEdit={canActuallyEdit}
+        canAsigned={canAsigned}
+        canChangeStatus={canChangeStatus}
       />
 
       <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">
@@ -421,7 +464,7 @@ export function WordDisplay({
                 key={defIndex}
                 definition={def}
                 defIndex={defIndex}
-                editorMode={editorMode}
+                editorMode={canActuallyEdit}
                 editingKey={editingKey}
                 onToggleEdit={toggle}
                 onPatchDefinition={(patch) => patchDefLocal(defIndex, patch)}
@@ -435,7 +478,7 @@ export function WordDisplay({
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/40 px-6 py-10 text-center text-gray-600">
               <p>Esta palabra aún no tiene definiciones.</p>
-              {editorMode && (
+              {canActuallyEdit && (
                 <Button
                   type="button"
                   onClick={() => handleAddDefinition()}
@@ -450,7 +493,7 @@ export function WordDisplay({
       </div>
 
       {/* Comments Section */}
-      {editorMode && (
+      {allowEditor && (
         <div className="mt-12 lg:mt-16">
           <WordCommentSection
             key={wordId}

@@ -52,7 +52,6 @@ async function sendEmail(
       return { success: false, error: result.error.message };
     }
 
-    console.log(`${logPrefix} sent successfully:`, result.data?.id);
     return { success: true };
   } catch (error) {
     console.error(`Failed to send ${logPrefix}:`, error);

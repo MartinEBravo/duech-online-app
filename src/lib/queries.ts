@@ -25,6 +25,7 @@ export async function getWordByLemma(
   letter: string;
   status: string;
   assignedTo: number | null;
+  createdBy: number | null;
   wordId: number;
   comments: WordNote[];
 } | null> {
@@ -36,6 +37,18 @@ export async function getWordByLemma(
 
   const result = await db.query.words.findFirst({
     where: whereCondition,
+    columns: {
+      id: true,
+      lemma: true,
+      root: true,
+      letter: true,
+      variant: true,
+      status: true,
+      createdBy: true,
+      assignedTo: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     with: {
       meanings: {
         orderBy: (meanings, { asc }) => [asc(meanings.number)],
@@ -56,6 +69,7 @@ export async function getWordByLemma(
     letter: result.letter,
     status: result.status,
     assignedTo: result.assignedTo ?? null,
+    createdBy: result.createdBy ?? null,
     wordId: result.id,
     comments:
       result.notes?.map((note) => ({
@@ -84,6 +98,8 @@ export async function searchWords(params: {
   letters?: string[];
   status?: string;
   assignedTo?: string[];
+  editorMode?: boolean;
+  limit?: number;
   page?: number;
   pageSize?: number;
 }): Promise<{ results: SearchResult[]; total: number }> {
@@ -95,19 +111,24 @@ export async function searchWords(params: {
     letters,
     status,
     assignedTo,
+    editorMode,
     page = 1,
     pageSize = 25,
   } = params;
 
   const conditions: SQL[] = [];
 
-  // Filter by status
-  if (status !== undefined && status !== '') {
-    // Specific status value provided - filter by it
-    conditions.push(eq(words.status, status));
-  } else if (status === undefined) {
-    // No status provided - default to published only (public search)
+  // STATUS logic:
+  if (!editorMode) {
+    // Public mode: ALWAYS show only published words
     conditions.push(eq(words.status, 'published'));
+  } else {
+    // Editor mode:
+    if (status && status !== '') {
+      // If editor selected a specific filter → apply it
+      conditions.push(eq(words.status, status));
+    }
+    // If status === '' → editor wants all words → do NOT push conditions
   }
   // If status is '', don't add any status filter (show all statuses - editor mode)
 
