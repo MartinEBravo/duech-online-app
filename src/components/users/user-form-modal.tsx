@@ -39,10 +39,8 @@ export default function UserFormModal({
   // Determine available role options based on current user's role
   const roleLabels: Record<string, string> = {
     lexicographer: 'Lexicógrafo',
-    editor: 'Editor',
     admin: 'Administrador',
     superadmin: 'Super Administrador',
-    coordinator: 'Coordinador',
   };
 
   const allowedRoles = getAllowedRoles(currentUserRole || 'admin');

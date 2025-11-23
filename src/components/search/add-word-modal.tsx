@@ -26,11 +26,11 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
   const [newWordLetter, setNewWordLetter] = useState('');
   const [newWordAssignedTo, setNewWordAssignedTo] = useState<string[]>([]);
 
-  const { isAdmin, isCoordinator, isLexicographer, username, currentId } = useUserRole(true);
+  const { isAdmin, isLexicographer, username, currentId } = useUserRole(true);
 
   const userOptions = useMemo(
-    () => getLexicographerByRole(availableUsers, username, isAdmin, isCoordinator, isLexicographer),
-    [availableUsers, username, isAdmin, isCoordinator, isLexicographer] // ← Todas las dependencias
+    () => getLexicographerByRole(availableUsers, username, isAdmin, isLexicographer),
+    [availableUsers, username, isAdmin, isLexicographer] // ← Todas las dependencias
   );
   const createdById = currentId;
   const autoLetterForLemma = newWordLemma.trim().charAt(0).toLowerCase();
