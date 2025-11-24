@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import Popup from 'reactjs-popup';
 import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
-import { getLexicographerOptions, type User } from '@/lib/search-utils';
-
+import { getLexicographerByRole, type User } from '@/lib/search-utils';
+import { useUserRole } from '@/hooks/useUserRole';
 interface AddWordModalProps {
   availableUsers: User[];
 }
@@ -26,8 +26,13 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
   const [newWordLetter, setNewWordLetter] = useState('');
   const [newWordAssignedTo, setNewWordAssignedTo] = useState<string[]>([]);
 
-  const userOptions = useMemo(() => getLexicographerOptions(availableUsers), [availableUsers]);
+  const { isAdmin, isLexicographer, username, currentId } = useUserRole(true);
 
+  const userOptions = useMemo(
+    () => getLexicographerByRole(availableUsers, username, isAdmin, isLexicographer),
+    [availableUsers, username, isAdmin, isLexicographer] // ← Todas las dependencias
+  );
+  const createdById = currentId;
   const autoLetterForLemma = newWordLemma.trim().charAt(0).toLowerCase();
   const selectedLetter = newWordLetter || autoLetterForLemma;
 
@@ -56,6 +61,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
           letter: letterToSend || undefined,
           assignedTo: assignedToValue,
           values: [],
+          createdBy: createdById,
         }),
       });
 
@@ -157,6 +163,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                   options={[{ value: '', label: 'Seleccionar letra' }, ...LETTER_OPTIONS]}
                   selectedValue={selectedLetter}
                   onChange={(value) => setNewWordLetter(value.toLowerCase())}
+                  disabled={false}
                   placeholder="Seleccionar letra"
                 />
               </div>
@@ -165,6 +172,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
               label="Asignado a"
               options={userOptions}
               selectedValues={newWordAssignedTo}
+              disabled={false}
               onChange={setNewWordAssignedTo}
             />
 

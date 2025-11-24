@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRightCircleIcon, EyeIcon } from '@/components/icons';
+import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
@@ -16,9 +16,13 @@ interface WordCardProps {
   /** Only in editor mode */
   status?: string;
   /** Only in editor mode */
+  createdBy?: number | null;
   definitionsCount?: number;
   /** Optional class name for styling */
   className?: string;
+  assignedTo?: number | null;
+  currentUserId?: number | null;
+  currentUserRole?: string | null;
 }
 
 export function WordCard({
@@ -27,11 +31,30 @@ export function WordCard({
   editorMode = false,
   root,
   status,
+  createdBy,
   definitionsCount,
   className = '',
+  assignedTo,
+  currentUserId,
+  currentUserRole,
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
+  const isAdmin = currentUserRole === 'admin';
+  const isCreator = createdBy === currentUserId;
+  const isSAdmin = currentUserRole === 'superadmin';
+
+  // Editor can edit if:
+  // - Superadmin → always allowed
+  // - Admin → always allowed
+  // - Creator → allowed
+  // - Assigned → allowed
+  const canEdit =
+    isSAdmin ||
+    isAdmin ||
+    (isCreator && !!assignedTo) ||
+    (!!currentUserId && !!assignedTo && currentUserId === assignedTo);
+
   const isPublished = status === 'published';
   const viewUrl =
     editorMode && editorBasePath
@@ -50,6 +73,7 @@ export function WordCard({
     draft: 'bg-gray-100 text-gray-800',
     in_review: 'bg-yellow-100 text-yellow-800',
     reviewed: 'bg-blue-100 text-blue-800',
+    preredacted: 'bg-purple-100 text-purple-800',
     rejected: 'bg-red-100 text-red-800',
     published: 'bg-green-100 text-green-800',
   };
@@ -112,11 +136,25 @@ export function WordCard({
         <div className="flex flex-col gap-2">
           <Button
             href={viewUrl}
-            className="bg-duech-blue inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800"
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              canEdit
+                ? 'bg-duech-blue text-white hover:bg-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
-            Editar
-            <ArrowRightCircleIcon className="h-4 w-4" />
+            {canEdit ? (
+              <>
+                Editar
+                <ArrowRightCircleIcon className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Comentar
+                <PencilIcon className="h-4 w-4" /> {/* Use the icon you prefer */}
+              </>
+            )}
           </Button>
+
           {isPublished && (
             <Button
               href={publicPreviewUrl}
@@ -127,6 +165,7 @@ export function WordCard({
               <EyeIcon className="h-4 w-4" />
             </Button>
           )}
+          {/* ← Button visible only to admins */}
         </div>
       </div>
     </div>

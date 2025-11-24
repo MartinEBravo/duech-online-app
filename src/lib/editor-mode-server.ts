@@ -11,6 +11,13 @@ export async function isEditorMode(): Promise<boolean> {
 }
 
 /**
+ * Check if current request is in editor mode from provided headers.
+ */
+export function isEditorModeFromHeaders(headersList: Headers): boolean {
+  return headersList.get('x-editor-mode') === 'true';
+}
+
+/**
  * Retrieve the editor base path for the current request, if any.
  * Returns an empty string when not using the /editor prefix.
  */
