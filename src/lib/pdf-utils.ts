@@ -1,8 +1,12 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { formatSpanishDate } from '@/lib/date-utils';
+import { Meaning, GRAMMATICAL_CATEGORIES, USAGE_STYLES } from '@/lib/definitions';
 
 interface RedactedWord {
   lemma: string;
+  root?: string | null;
+  letter: string;
+  meanings?: Meaning[];
   notes?: Array<{
     note: string | null;
   }> | null;
@@ -28,6 +32,22 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   const marginBottom = 60;
   const lineHeight = 16;
   const contentWidth = width - marginLeft - marginRight;
+
+  // Helper para dividir texto largo en líneas
+  const wrapText = (text: string, maxChars: number): string[] => {
+    const lines: string[] = [];
+    let current = text;
+
+    while (current.length > maxChars) {
+      const cutAt = current.lastIndexOf(' ', maxChars);
+      const idx = cutAt > 0 ? cutAt : maxChars;
+      lines.push(current.slice(0, idx));
+      current = current.slice(idx).trimStart();
+    }
+
+    if (current.length > 0) lines.push(current);
+    return lines;
+  };
 
   let y = height - marginTop;
 
@@ -154,6 +174,207 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     y -= lineHeight + 4;
 
+    // Root if different from lemma
+    if (word.root && word.root !== word.lemma) {
+      ensureSpace(1);
+      page.drawText(`Raíz: ${word.root}`, {
+        x: marginLeft + 15,
+        y,
+        size: 9,
+        font: fontText,
+        color: rgb(0.4, 0.4, 0.4),
+      });
+      y -= lineHeight;
+    }
+
+    if (word.meanings && word.meanings.length > 0) {
+      for (const meaning of word.meanings) {
+        ensureSpace(6);
+
+        // Definition number
+        page.drawText(`Definición ${meaning.number}:`, {
+          x: marginLeft + 15,
+          y,
+          size: 11,
+          font: fontTitle,
+          color: rgb(0, 0, 0),
+        });
+        y -= lineHeight;
+
+        // Origin
+        if (meaning.origin) {
+          ensureSpace(1);
+          page.drawText(`Origen: ${meaning.origin}`, {
+            x: marginLeft + 25,
+            y,
+            size: 9,
+            font: fontText,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          y -= lineHeight - 2;
+        }
+
+        // Categories
+        if (meaning.categories && meaning.categories.length > 0) {
+          ensureSpace(2);
+          const cats = meaning.categories.map((c) => GRAMMATICAL_CATEGORIES[c] || c).join(', ');
+          const catLines = wrapText(`Categorías: ${cats}`, 80);
+
+          for (const line of catLines) {
+            ensureSpace(1);
+            page.drawText(line, {
+              x: marginLeft + 25,
+              y,
+              size: 9,
+              font: fontText,
+              color: rgb(0.3, 0.3, 0.3),
+            });
+            y -= lineHeight - 2;
+          }
+        }
+
+        // Meaning text (con etiqueta)
+        ensureSpace(3);
+        const meaningLines = wrapText(meaning.meaning, 75);
+        for (let i = 0; i < meaningLines.length; i++) {
+          ensureSpace(1);
+          const line = meaningLines[i];
+          page.drawText(line, {
+            x: marginLeft + 25,
+            y,
+            size: 10,
+            font: fontText,
+            color: rgb(0, 0, 0),
+          });
+          y -= lineHeight;
+        }
+
+        // Styles
+        if (meaning.styles && meaning.styles.length > 0) {
+          ensureSpace(1);
+          const styles = meaning.styles.map((s) => USAGE_STYLES[s] || s).join(', ');
+          page.drawText(`Estilos: ${styles}`, {
+            x: marginLeft + 25,
+            y,
+            size: 9,
+            font: fontText,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          y -= lineHeight - 2;
+        }
+
+        // Observation
+        if (meaning.observation) {
+          ensureSpace(2);
+          page.drawText('Observación:', {
+            x: marginLeft + 25,
+            y,
+            size: 9,
+            font: fontTitle,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          y -= lineHeight - 2;
+
+          const obsLines = wrapText(meaning.observation, 75);
+          for (const line of obsLines) {
+            ensureSpace(1);
+            page.drawText(line, {
+              x: marginLeft + 30,
+              y,
+              size: 9,
+              font: fontItalic,
+              color: rgb(0.2, 0.2, 0.4),
+            });
+            y -= lineHeight - 2;
+          }
+        }
+
+        // Remission (se mueve después de observación)
+        if (meaning.remission) {
+          ensureSpace(1);
+          page.drawText(`Ver: ${meaning.remission}`, {
+            x: marginLeft + 25,
+            y,
+            size: 9,
+            font: fontItalic,
+            color: rgb(0, 0, 0.5),
+          });
+          y -= lineHeight - 2;
+        }
+
+        // Examples
+        if (meaning.examples && meaning.examples.length > 0) {
+          ensureSpace(2);
+          page.drawText(`Ejemplos (${meaning.examples.length}):`, {
+            x: marginLeft + 25,
+            y,
+            size: 9,
+            font: fontTitle,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+          y -= lineHeight;
+
+          for (const ex of meaning.examples) {
+            ensureSpace(4);
+
+            // Example text
+            const exLines = wrapText(ex.value, 72);
+            for (const line of exLines) {
+              ensureSpace(1);
+              page.drawText(`"${line}"`, {
+                x: marginLeft + 30,
+                y,
+                size: 9,
+                font: fontItalic,
+                color: rgb(0.15, 0.15, 0.15),
+              });
+              y -= lineHeight - 3;
+            }
+
+            // Example metadata
+            const metadata: string[] = [];
+            if (ex.author) metadata.push(`Autor: ${ex.author}`);
+            if (ex.title) metadata.push(`Título: ${ex.title}`);
+            if (ex.source) metadata.push(`Fuente: ${ex.source}`);
+            if (ex.date) metadata.push(`Fecha: ${ex.date}`);
+            if (ex.page) metadata.push(`Pág: ${ex.page}`);
+
+            if (metadata.length > 0) {
+              ensureSpace(1);
+              const metaText = metadata.join(' | ');
+              const metaLines = wrapText(metaText, 70);
+
+              for (const line of metaLines) {
+                ensureSpace(1);
+                page.drawText(line, {
+                  x: marginLeft + 35,
+                  y,
+                  size: 7,
+                  font: fontText,
+                  color: rgb(0.5, 0.5, 0.5),
+                });
+                y -= lineHeight - 4;
+              }
+            }
+
+            y -= 4; // Space between examples
+          }
+        }
+
+        y -= 8; // Space between definitions
+      }
+    } else {
+      ensureSpace(1);
+      page.drawText('Sin definiciones.', {
+        x: marginLeft + 15,
+        y,
+        size: 10,
+        font: fontItalic,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+      y -= lineHeight;
+    }
+
     // Editorial notes
     if (word.notes && word.notes.length > 0) {
       ensureSpace(2);
@@ -170,22 +391,8 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       // List each note
       for (const note of word.notes) {
         const noteText = note.note ?? '';
-        const maxCharsPerLine = 85;
-        const lines: string[] = [];
-
-        // Split note into lines if too long
-        if (noteText.length <= maxCharsPerLine) {
-          lines.push(noteText);
-        } else {
-          let current = noteText;
-          while (current.length > maxCharsPerLine) {
-            const cutAt = current.lastIndexOf(' ', maxCharsPerLine);
-            const idx = cutAt > 0 ? cutAt : maxCharsPerLine;
-            lines.push(current.slice(0, idx));
-            current = current.slice(idx).trimStart();
-          }
-          if (current.length > 0) lines.push(current);
-        }
+        const maxCharsPerLine = 75;
+        const lines = wrapText(noteText, maxCharsPerLine);
 
         // Draw each line with bullet points
         for (let i = 0; i < lines.length; i++) {
