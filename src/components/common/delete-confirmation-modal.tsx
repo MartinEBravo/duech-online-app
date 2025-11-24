@@ -12,6 +12,7 @@ interface DeleteConfirmationModalProps {
   warningMessage: string;
   onDelete: () => Promise<void>;
   onClose: () => void;
+  requireConfirmText?: boolean; // If true, user must type itemName to confirm
 }
 
 export function DeleteConfirmationModal({
@@ -21,11 +22,17 @@ export function DeleteConfirmationModal({
   warningMessage,
   onDelete,
   onClose,
+  requireConfirmText = false,
 }: DeleteConfirmationModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [confirmText, setConfirmText] = useState('');
+
+  const isConfirmValid = !requireConfirmText || confirmText === itemName;
 
   const handleDelete = async () => {
+    if (!isConfirmValid) return;
+
     setIsDeleting(true);
     setError('');
 
@@ -58,14 +65,31 @@ export function DeleteConfirmationModal({
             <strong>Advertencia:</strong> {warningMessage}
           </p>
         </Alert>
+
+        {requireConfirmText && (
+          <div className="mt-4">
+            <label htmlFor="confirm-text" className="mb-2 block text-sm font-medium text-gray-700">
+              Para confirmar, escribe <span className="font-semibold">{itemName}</span>:
+            </label>
+            <input
+              id="confirm-text"
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              disabled={isDeleting}
+              className="w-full rounded border border-gray-300 px-3 py-2 focus:border-red-500 focus:border-transparent focus:ring-2 focus:ring-red-500 focus:outline-none disabled:bg-gray-100"
+              placeholder={itemName}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
         <Button
           onClick={handleDelete}
           loading={isDeleting}
-          disabled={isDeleting}
-          className="flex-1 bg-red-600 text-white hover:bg-red-700"
+          disabled={isDeleting || !isConfirmValid}
+          className="flex-1 bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400"
         >
           {title}
         </Button>

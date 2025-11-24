@@ -157,7 +157,7 @@ export function WordHeader({
               />
             </div>
 
-            {onDeleteWord && userRole === 'superadmin' && (
+            {onDeleteWord && (userRole === 'admin' || userRole === 'superadmin') && (
               <Button
                 type="button"
                 onClick={onDeleteWord}

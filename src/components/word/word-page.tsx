@@ -321,7 +321,7 @@ export function WordDisplay({
   };
 
   const handleDeleteWord = () => {
-    if (!editorMode || userRole !== 'superadmin') return;
+    if (!editorMode || (userRole !== 'admin' && userRole !== 'superadmin')) return;
     setShowDeleteModal(true);
   };
 

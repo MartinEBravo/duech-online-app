@@ -270,13 +270,27 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ lem
 
 /**
  * DELETE /api/words/[lemma]
- * Delete a word and its meanings
+ * Delete a word and its meanings (admin only)
  */
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ lemma: string }> }
 ) {
   try {
+    // Check authentication and admin permission
+    const user = await getSessionUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin permission required to delete words' },
+        { status: 403 }
+      );
+    }
+
     const { lemma } = await context.params;
     const decodedLemma = decodeURIComponent(lemma);
 

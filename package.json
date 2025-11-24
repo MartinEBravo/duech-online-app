@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "deps:check": "knip",
     "duplication": "jscpd src",
-    "test": "vitest"
+    "test": "vitest",
+    "full": "pnpm format && pnpm lint && pnpm deps:check && pnpm duplication && pnpm build"
   },
   "dependencies": {
     "@react-email/components": "^0.5.7",
