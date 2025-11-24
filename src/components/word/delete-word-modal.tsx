@@ -36,6 +36,7 @@ export function DeleteWordModal({ lemma, onClose }: DeleteWordModalProps) {
       warningMessage="Esta acción no se puede deshacer. Se eliminarán todas las definiciones, ejemplos y comentarios asociados."
       onDelete={handleDelete}
       onClose={onClose}
+      requireConfirmText={true}
     />
   );
 }
