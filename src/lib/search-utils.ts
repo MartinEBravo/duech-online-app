@@ -16,7 +16,7 @@ export function parseListParam(value: string | null): string[] {
 /**
  * Check if two arrays are equal (same length and same values in order)
  */
-export function arraysEqual(a: string[], b: string[]): boolean {
+function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
   return a.every((value, index) => value === b[index]);
 }
