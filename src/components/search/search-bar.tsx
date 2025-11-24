@@ -9,6 +9,11 @@ import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import { GRAMMATICAL_CATEGORIES, USAGE_STYLES, SearchFilters } from '@/lib/definitions';
 import { useDebounce } from '@/hooks/useDebounce';
+import {
+  getEditorSearchFilters,
+  setEditorSearchFilters,
+  setPublicSearchFilters,
+} from '@/lib/cookies';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -261,17 +266,33 @@ export default function SearchBar({
         return;
       }
 
-      const params = new URLSearchParams();
-      if (trimmedQuery) params.set('q', trimmedQuery);
-      if (filters.categories.length) params.set('categories', filters.categories.join(','));
-      if (filters.styles.length) params.set('styles', filters.styles.join(','));
-      if (filters.origins.length) params.set('origins', filters.origins.join(','));
-      if (filters.letters.length) params.set('letters', filters.letters.join(','));
+      if (editorMode) {
+        const existing = getEditorSearchFilters();
+        setEditorSearchFilters({
+          query: trimmedQuery,
+          selectedCategories: [...filters.categories],
+          selectedStyles: [...filters.styles],
+          selectedOrigins: [...filters.origins],
+          selectedLetters: [...filters.letters],
+          selectedStatus: existing.selectedStatus,
+          selectedAssignedTo: [...existing.selectedAssignedTo],
+        });
 
-      const queryString = params.toString();
-      router.push(`${searchPath}${queryString ? `?${queryString}` : ''}`);
+        router.push(searchPath);
+        return;
+      }
+
+      setPublicSearchFilters({
+        query: trimmedQuery,
+        selectedCategories: [...filters.categories],
+        selectedStyles: [...filters.styles],
+        selectedOrigins: [...filters.origins],
+        selectedLetters: [...filters.letters],
+      });
+
+      router.push(searchPath);
     },
-    [filters, hasActiveFilters, onSearch, query, router, searchPath]
+    [editorMode, filters, hasActiveFilters, onSearch, query, router, searchPath]
   );
 
   const updateFilters = useCallback(<K extends keyof InternalFilters>(key: K, values: string[]) => {
@@ -369,18 +390,17 @@ export default function SearchBar({
 
   // Use debounced values for onStateChange to prevent rapid updates
   useEffect(() => {
-    if (!onStateChange) {
-      return;
-    }
+    if (!onStateChange) return;
+    // In editor mode we disable live propagation entirely
+    // so typing does not affect results or external state until submit.
+    if (editorMode) return;
 
-    // Don't call onStateChange when we're syncing from props to avoid circular updates
     if (isSyncingFromPropsRef.current) {
       isSyncingFromPropsRef.current = false;
       return;
     }
-
     onStateChange({ query: debouncedQuery, filters: debouncedFilters });
-  }, [debouncedFilters, debouncedQuery, onStateChange]);
+  }, [debouncedFilters, debouncedQuery, onStateChange, editorMode]);
 
   const additionalFiltersContent = additionalFilters?.render?.();
 

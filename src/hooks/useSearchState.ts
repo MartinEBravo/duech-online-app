@@ -3,15 +3,18 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { arraysEqual, LocalSearchFilters } from '@/lib/search-utils';
+import { LocalSearchFilters } from '@/lib/search-utils';
 import {
   setEditorSearchFilters,
   getEditorSearchFilters,
   clearEditorSearchFilters,
+  setPublicSearchFilters,
+  getPublicSearchFilters,
+  clearPublicSearchFilters,
 } from '@/lib/cookies';
 import { UrlSearchParams } from '@/hooks/useUrlSearchParams';
 
-interface SearchState {
+export interface SearchState {
   query: string;
   filters: LocalSearchFilters;
   status: string;
@@ -35,133 +38,172 @@ interface UseSearchStateOptions {
   urlParams: UrlSearchParams;
 }
 
+const createEditorSearchStateFromCookies = (): SearchState => {
+  const savedFilters = getEditorSearchFilters();
+
+  return {
+    query: savedFilters.query,
+    filters: {
+      categories: savedFilters.selectedCategories,
+      styles: savedFilters.selectedStyles,
+      origins: savedFilters.selectedOrigins,
+      letters: savedFilters.selectedLetters,
+    },
+    status: savedFilters.selectedStatus,
+    assignedTo: savedFilters.selectedAssignedTo,
+  };
+};
+
+const createPublicSearchStateFromCookies = (): SearchState => {
+  const savedFilters = getPublicSearchFilters();
+
+  return {
+    query: savedFilters.query,
+    filters: {
+      categories: savedFilters.selectedCategories,
+      styles: savedFilters.selectedStyles,
+      origins: savedFilters.selectedOrigins,
+      letters: savedFilters.selectedLetters,
+    },
+    status: '',
+    assignedTo: [],
+  };
+};
+
+const hasUrlSearchCriteria = (params: UrlSearchParams): boolean =>
+  Boolean(params.trimmedQuery) ||
+  params.categories.length > 0 ||
+  params.styles.length > 0 ||
+  params.origins.length > 0 ||
+  params.letters.length > 0 ||
+  params.status.length > 0 ||
+  params.assignedTo.length > 0;
+
+const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean): boolean =>
+  state.query.length > 0 ||
+  state.filters.categories.length > 0 ||
+  state.filters.styles.length > 0 ||
+  state.filters.origins.length > 0 ||
+  state.filters.letters.length > 0 ||
+  (includeEditorFields && (state.status.length > 0 || state.assignedTo.length > 0));
+
 /**
- * Manages search state with synchronization from URL params (priority) or cookies (fallback)
+ * Manages search state with synchronization from URL params (public) or cookies (editor)
  */
 export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions) {
+  const urlHasCriteria = hasUrlSearchCriteria(urlParams);
+  const { trimmedQuery, categories, styles, origins, letters, status, assignedTo } = urlParams;
+  const cookieFallbackState = editorMode ? null : createPublicSearchStateFromCookies();
+  const cookieHasCriteria = cookieFallbackState
+    ? hasSearchStateCriteria(cookieFallbackState, false)
+    : false;
+
   const [searchState, setSearchState] = useState<SearchState>(() => {
     if (editorMode) {
-      return createDefaultSearchState();
+      return createEditorSearchStateFromCookies();
     }
-    // Public mode: use URL params
+    if (urlHasCriteria) {
+      return {
+        query: trimmedQuery,
+        filters: {
+          categories,
+          styles,
+          origins,
+          letters,
+        },
+        status,
+        assignedTo: [...assignedTo],
+      };
+    }
+    if (cookieFallbackState && cookieHasCriteria) {
+      return cookieFallbackState;
+    }
     return {
-      query: urlParams.query,
+      query: '',
       filters: {
-        categories: urlParams.categories,
-        styles: urlParams.styles,
-        origins: urlParams.origins,
-        letters: urlParams.letters,
+        categories: [],
+        styles: [],
+        origins: [],
+        letters: [],
       },
       status: '',
       assignedTo: [],
     };
   });
 
-  const isInitializedRef = useRef(false);
-  const mountedRef = useRef(false);
+  const isInitializedRef = useRef(editorMode || urlHasCriteria || cookieHasCriteria);
 
-  const setSearchStateFromUrl = useCallback(() => {
-    setSearchState({
-      query: urlParams.trimmedQuery,
-      filters: {
-        categories: [...urlParams.categories],
-        styles: [...urlParams.styles],
-        origins: [...urlParams.origins],
-        letters: [...urlParams.letters],
-      },
-      status: urlParams.status,
-      assignedTo: [...urlParams.assignedTo],
-    });
-  }, [urlParams]);
-
-  // Initialize state on mount for editor mode (URL params take precedence over cookies)
+  // Sync state when URL params change (public mode)
   useEffect(() => {
-    if (!editorMode || mountedRef.current) return;
-
-    mountedRef.current = true;
-
-    if (urlParams.hasUrlCriteria) {
-      setSearchStateFromUrl();
+    if (editorMode) {
       isInitializedRef.current = true;
-    } else {
-      const savedFilters = getEditorSearchFilters();
-
-      setSearchState({
-        query: savedFilters.query,
-        filters: {
-          categories: savedFilters.selectedCategories,
-          styles: savedFilters.selectedStyles,
-          origins: savedFilters.selectedOrigins,
-          letters: savedFilters.selectedLetters,
-        },
-        status: savedFilters.selectedStatus,
-        assignedTo: savedFilters.selectedAssignedTo,
-      });
-      isInitializedRef.current = true;
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorMode]);
-  // Only run on mount to initialize state from URL params or cookies
 
-  // Sync state when URL params change (e.g., browser back/forward navigation)
-  useEffect(() => {
-    if (!editorMode || !mountedRef.current) return;
-    if (!urlParams.hasUrlCriteria) return;
-
-    // Check if URL params differ from current state
-    const urlMatchesState =
-      searchState.query === urlParams.trimmedQuery &&
-      arraysEqual(searchState.filters.categories, urlParams.categories) &&
-      arraysEqual(searchState.filters.styles, urlParams.styles) &&
-      arraysEqual(searchState.filters.origins, urlParams.origins) &&
-      arraysEqual(searchState.filters.letters, urlParams.letters) &&
-      searchState.status === urlParams.status &&
-      arraysEqual(searchState.assignedTo, urlParams.assignedTo);
-
-    if (urlMatchesState) return;
-
-    // URL params changed (e.g., from browser navigation), sync state
-    setSearchStateFromUrl();
+    if (urlHasCriteria) {
+      setSearchState({
+        query: trimmedQuery,
+        filters: {
+          categories: [...categories],
+          styles: [...styles],
+          origins: [...origins],
+          letters: [...letters],
+        },
+        status,
+        assignedTo: [...assignedTo],
+      });
+    }
+    isInitializedRef.current = true;
   }, [
     editorMode,
-    urlParams.hasUrlCriteria,
-    urlParams.trimmedQuery,
-    urlParams.categories,
-    urlParams.styles,
-    urlParams.origins,
-    urlParams.letters,
-    urlParams.status,
-    urlParams.assignedTo,
-    setSearchStateFromUrl,
-    searchState.query,
-    searchState.filters.categories,
-    searchState.filters.styles,
-    searchState.filters.origins,
-    searchState.filters.letters,
-    searchState.status,
-    searchState.assignedTo,
+    urlHasCriteria,
+    trimmedQuery,
+    categories,
+    styles,
+    origins,
+    letters,
+    status,
+    assignedTo,
   ]);
 
   // Save filters to cookies for editor mode
-  const saveFilters = useCallback(() => {
-    if (!editorMode || !isInitializedRef.current) return;
+  const saveFilters = useCallback(
+    (stateOverride?: SearchState) => {
+      if (!isInitializedRef.current) return;
 
-    setEditorSearchFilters({
-      query: searchState.query,
-      selectedCategories: searchState.filters.categories,
-      selectedStyles: searchState.filters.styles,
-      selectedOrigins: searchState.filters.origins,
-      selectedLetters: searchState.filters.letters,
-      selectedStatus: searchState.status,
-      selectedAssignedTo: searchState.assignedTo,
-    });
-  }, [editorMode, searchState]);
+      const snapshot = stateOverride ?? searchState;
+
+      if (editorMode) {
+        setEditorSearchFilters({
+          query: snapshot.query,
+          selectedCategories: snapshot.filters.categories,
+          selectedStyles: snapshot.filters.styles,
+          selectedOrigins: snapshot.filters.origins,
+          selectedLetters: snapshot.filters.letters,
+          selectedStatus: snapshot.status,
+          selectedAssignedTo: snapshot.assignedTo,
+        });
+        return;
+      }
+
+      setPublicSearchFilters({
+        query: snapshot.query,
+        selectedCategories: snapshot.filters.categories,
+        selectedStyles: snapshot.filters.styles,
+        selectedOrigins: snapshot.filters.origins,
+        selectedLetters: snapshot.filters.letters,
+      });
+    },
+    [editorMode, searchState]
+  );
 
   // Clear all filters and reset state
   const clearAll = useCallback(() => {
     setSearchState(createDefaultSearchState());
     if (editorMode) {
       clearEditorSearchFilters();
+    } else {
+      clearPublicSearchFilters();
     }
   }, [editorMode]);
 
