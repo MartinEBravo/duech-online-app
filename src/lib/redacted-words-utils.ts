@@ -23,7 +23,6 @@ export async function authenticateAndFetchRedactedWords(): Promise<
       response: NextResponse.json({ error: 'Authentication required' }, { status: 401 }),
     };
   }
-
   // Get words with "redacted" status
   const words = await getRedactedWords();
 

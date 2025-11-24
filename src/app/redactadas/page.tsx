@@ -13,6 +13,5 @@ export default async function RedactadasPage() {
 
   // Fetch redacted words
   const redactadas = await getRedactedWords();
-
   return <RedactedWordsClient initialWords={redactadas} userEmail={user.email} />;
 }
