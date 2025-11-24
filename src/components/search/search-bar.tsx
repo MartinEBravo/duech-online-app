@@ -391,8 +391,8 @@ export default function SearchBar({
   // Use debounced values for onStateChange to prevent rapid updates
   useEffect(() => {
     if (!onStateChange) return;
-  // In editor mode we disable live propagation entirely
-  // so typing does not affect results or external state until submit.
+    // In editor mode we disable live propagation entirely
+    // so typing does not affect results or external state until submit.
     if (editorMode) return;
 
     if (isSyncingFromPropsRef.current) {

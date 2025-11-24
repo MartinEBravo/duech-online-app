@@ -107,7 +107,8 @@ export function SearchPage({
     urlParams,
   });
 
-  const urlHasCriteria = Boolean(urlParams.trimmedQuery) ||
+  const urlHasCriteria =
+    Boolean(urlParams.trimmedQuery) ||
     urlParams.categories.length > 0 ||
     urlParams.styles.length > 0 ||
     urlParams.origins.length > 0 ||
@@ -173,7 +174,6 @@ export function SearchPage({
       setIsLoading(false);
     }
   }, [editorMode, searchState, urlHasCriteria, urlSignature]);
-
 
   const handleSearchStateChange = useCallback(
     ({ query, filters }: { query: string; filters: LocalSearchFilters }) => {

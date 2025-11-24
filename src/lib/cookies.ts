@@ -113,7 +113,9 @@ export function getPublicSearchFilters(): PublicSearchFilters {
     }
 
     const cookies = document.cookie.split(';');
-    const filterCookie = cookies.find((cookie) => cookie.trim().startsWith(`${PUBLIC_COOKIE_NAME}=`));
+    const filterCookie = cookies.find((cookie) =>
+      cookie.trim().startsWith(`${PUBLIC_COOKIE_NAME}=`)
+    );
 
     if (!filterCookie) {
       return defaultFilters;

@@ -92,15 +92,7 @@ const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean
  */
 export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions) {
   const urlHasCriteria = hasUrlSearchCriteria(urlParams);
-  const {
-    trimmedQuery,
-    categories,
-    styles,
-    origins,
-    letters,
-    status,
-    assignedTo,
-  } = urlParams;
+  const { trimmedQuery, categories, styles, origins, letters, status, assignedTo } = urlParams;
   const cookieFallbackState = editorMode ? null : createPublicSearchStateFromCookies();
   const cookieHasCriteria = cookieFallbackState
     ? hasSearchStateCriteria(cookieFallbackState, false)
