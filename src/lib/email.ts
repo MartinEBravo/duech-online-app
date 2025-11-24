@@ -118,11 +118,11 @@ const PASSWORD_EMAIL_CONFIGS: Record<
       createEmailParagraph('Haz clic en el botón de abajo para establecer una nueva contraseña:'),
     ],
     getAlertContent: () =>
-      Text({
-        className: 'm-0',
-        children:
-          'Si no solicitaste restablecer tu contraseña, puedes ignorar este correo de forma segura.',
-      }),
+      React.createElement(
+        Text,
+        { className: 'm-0' },
+        'Si no solicitaste restablecer tu contraseña, puedes ignorar este correo de forma segura.'
+      ),
   },
   changed: {
     subject: 'Tu contraseña ha sido actualizada',
@@ -134,20 +134,21 @@ const PASSWORD_EMAIL_CONFIGS: Record<
     ],
     showInfoBox: true,
     getInfoBoxContent: () =>
-      Text({
-        className: 'm-0 text-sm leading-relaxed text-gray-600',
-        children: `Fecha: ${new Date().toLocaleString('es-CL', {
+      React.createElement(
+        Text,
+        { className: 'm-0 text-sm leading-relaxed text-gray-600' },
+        `Fecha: ${new Date().toLocaleString('es-CL', {
           timeZone: 'America/Santiago',
           dateStyle: 'long',
           timeStyle: 'short',
-        })}`,
-      }),
+        })}`
+      ),
     getAlertContent: () =>
-      Text({
-        className: 'm-0 text-sm text-red-600',
-        children:
-          'Si no realizaste este cambio, por favor contacta inmediatamente a nuestro equipo de soporte en soporte@duech.cl',
-      }),
+      React.createElement(
+        Text,
+        { className: 'm-0 text-sm text-red-600' },
+        'Si no realizaste este cambio, por favor contacta inmediatamente a nuestro equipo de soporte en soporte@duech.cl'
+      ),
   },
 };
 
