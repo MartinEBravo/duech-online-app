@@ -19,10 +19,10 @@ interface RedactedWord {
  */
 function parseMarkdown(text: string): Array<{ text: string; bold: boolean; italic: boolean }> {
   const segments: Array<{ text: string; bold: boolean; italic: boolean }> = [];
-  
+
   const regex = /(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|[^*]+)/g;
   const matches = text.match(regex) || [];
-  
+
   for (const match of matches) {
     if (match.startsWith('***') && match.endsWith('***')) {
       // Bold + Italic
@@ -107,7 +107,39 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
     return lines;
   };
 
-  // Draw wrapped text 
+  // Draw parsed markdown segments in sequence at the current y
+  // Returns the final X position after drawing all segments
+  const drawSegments = (
+    segments: Array<{ text: string; bold: boolean; italic: boolean }>,
+    startX: number,
+    size: number,
+    color: PDFLibColor
+  ): number => {
+    let currentX = startX;
+    for (const seg of segments) {
+      const segFont =
+        seg.bold && seg.italic
+          ? fontBoldItalic
+          : seg.bold
+            ? fontTitle
+            : seg.italic
+              ? fontItalic
+              : fontText;
+
+      page.drawText(seg.text, {
+        x: currentX,
+        y,
+        size,
+        font: segFont,
+        color,
+      });
+
+      currentX += segFont.widthOfTextAtSize(seg.text, size);
+    }
+    return currentX;
+  };
+
+  // Draw wrapped text
   const drawWrapped = (
     text: string,
     x: number,
@@ -118,35 +150,20 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       font?: PDFFont;
       color?: PDFLibColor;
       lineStep?: number;
-    },
+    }
   ) => {
-    const { markdown = false, font = fontText, color = rgb(0, 0, 0), lineStep = lineHeight } = opts || {};
+    const {
+      markdown = false,
+      font = fontText,
+      color = rgb(0, 0, 0),
+      lineStep = lineHeight,
+    } = opts || {};
     const lines = wrapText(text, maxChars);
     for (const line of lines) {
       ensureSpace(1);
       if (markdown) {
         const segments = parseMarkdown(line);
-        let currentX = x;
-        for (const seg of segments) {
-          const segFont =
-            seg.bold && seg.italic
-              ? fontBoldItalic
-              : seg.bold
-              ? fontTitle
-              : seg.italic
-              ? fontItalic
-              : fontText;
-
-          page.drawText(seg.text, {
-            x: currentX,
-            y,
-            size,
-            font: segFont,
-            color,
-          });
-
-          currentX += segFont.widthOfTextAtSize(seg.text, size);
-        }
+        drawSegments(segments, x, size, color);
       } else {
         page.drawText(line, {
           x,
@@ -173,7 +190,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       maxChars?: number;
       lineStep?: number;
       ensureLines?: number;
-    },
+    }
   ) => {
     const {
       size = 10,
@@ -193,27 +210,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     if (markdown) {
       const segments = parseMarkdown(text);
-      let currentX = x;
-      for (const seg of segments) {
-        const segFont =
-          seg.bold && seg.italic
-            ? fontBoldItalic
-            : seg.bold
-            ? fontTitle
-            : seg.italic
-            ? fontItalic
-            : fontText;
-
-        page.drawText(seg.text, {
-          x: currentX,
-          y,
-          size,
-          font: segFont,
-          color,
-        });
-
-        currentX += segFont.widthOfTextAtSize(seg.text, size);
-      }
+      drawSegments(segments, x, size, color);
     } else {
       page.drawText(text, {
         x,
@@ -232,21 +229,31 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   // Current date string
   const dateStr = formatSpanishDate();
 
-  // Header 
+  // Header
   const drawHeader = () => {
     const title = 'REPORTE DE PALABRAS REDACTADAS';
     const titleSize = 16;
     const titleWidth = fontTitle.widthOfTextAtSize(title, titleSize);
     const titleX = marginLeft + (contentWidth - titleWidth) / 2;
 
-    drawLine(title, titleX, { size: titleSize, font: fontTitle, color: rgb(0, 0, 0), lineStep: 22 });
+    drawLine(title, titleX, {
+      size: titleSize,
+      font: fontTitle,
+      color: rgb(0, 0, 0),
+      lineStep: 22,
+    });
 
     const subtitle = `Al ${dateStr}`;
     const subtitleSize = 11;
     const subtitleWidth = fontText.widthOfTextAtSize(subtitle, subtitleSize);
     const subtitleX = marginLeft + (contentWidth - subtitleWidth) / 2;
 
-    drawLine(subtitle, subtitleX, { size: subtitleSize, font: fontText, color: rgb(0.3, 0.3, 0.3), lineStep: 20 });
+    drawLine(subtitle, subtitleX, {
+      size: subtitleSize,
+      font: fontText,
+      color: rgb(0.3, 0.3, 0.3),
+      lineStep: 20,
+    });
   };
 
   // Footer
@@ -264,7 +271,6 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       font: fontText,
       color: rgb(0.4, 0.4, 0.4),
     });
-    
   };
 
   let pageNumber = 1;
@@ -272,10 +278,20 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
   // Draw editorial notes for a word
   const drawEditorialNotesForWord = (notes: RedactedWord['notes']) => {
-    drawLine('Comentarios editoriales:', marginLeft + 15, { size: 10, font: fontTitle, color: rgb(0.2, 0.2, 0.2), lineStep: lineHeight });
+    drawLine('Comentarios editoriales:', marginLeft + 15, {
+      size: 10,
+      font: fontTitle,
+      color: rgb(0.2, 0.2, 0.2),
+      lineStep: lineHeight,
+    });
 
     if (!notes || notes.length === 0) {
-      drawLine('Sin comentarios.', marginLeft + 25, { size: 10, font: fontItalic, color: rgb(0.5, 0.5, 0.5), lineStep: lineHeight });
+      drawLine('Sin comentarios.', marginLeft + 25, {
+        size: 10,
+        font: fontItalic,
+        color: rgb(0.5, 0.5, 0.5),
+        lineStep: lineHeight,
+      });
       return;
     }
 
@@ -283,7 +299,11 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       ensureSpace(3);
       const username = note.user ? `@${note.user}` : 'Anónimo';
 
-      drawLine(`• ${username}:`, marginLeft + 25, { size: 10, markdown: true, lineStep: lineHeight - 2 });
+      drawLine(`• ${username}:`, marginLeft + 25, {
+        size: 10,
+        markdown: true,
+        lineStep: lineHeight - 2,
+      });
 
       const noteText = note.note ?? '';
       if (noteText) {
@@ -298,29 +318,52 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   const drawMeaningBlock = (meaning: Meaning) => {
     ensureSpace(6);
 
-    drawLine(`Acepción ${meaning.number}:`, marginLeft + 15, { size: 11, font: fontTitle, color: rgb(0, 0, 0), lineStep: lineHeight });
+    drawLine(`Acepción ${meaning.number}:`, marginLeft + 15, {
+      size: 11,
+      font: fontTitle,
+      color: rgb(0, 0, 0),
+      lineStep: lineHeight,
+    });
 
     // Origin
     if (meaning.origin) {
-      drawLine(`Origen: ${meaning.origin}`, marginLeft + 25, { size: 9, font: fontText, color: rgb(0.3, 0.3, 0.3), lineStep: lineHeight - 2 });
+      drawLine(`Origen: ${meaning.origin}`, marginLeft + 25, {
+        size: 9,
+        font: fontText,
+        color: rgb(0.3, 0.3, 0.3),
+        lineStep: lineHeight - 2,
+      });
     }
 
     // Categories
     if (meaning.categories && meaning.categories.length > 0) {
-      const cats = meaning.categories.map((c) => GRAMMATICAL_CATEGORIES[c] || c).join(', ');
-      drawWrapped(`Categorías: ${cats}`, marginLeft + 25, 9, 100, { markdown: true, color: rgb(0.3, 0.3, 0.3) });
+      const cats = meaning.categories.map((c) => `"${GRAMMATICAL_CATEGORIES[c] || c}"`).join(', ');
+      drawWrapped(`Categorías: ${cats}`, marginLeft + 25, 9, 100, {
+        markdown: true,
+        color: rgb(0.3, 0.3, 0.3),
+      });
     }
 
     // Meaning with markdown
     drawWrapped(meaning.meaning, marginLeft + 25, 10, 100, { markdown: true });
     if (meaning.styles && meaning.styles.length > 0) {
       const styles = meaning.styles.map((s) => USAGE_STYLES[s] || s).join(', ');
-      drawLine(`Estilos: ${styles}`, marginLeft + 25, { size: 9, font: fontText, color: rgb(0.3, 0.3, 0.3), lineStep: lineHeight - 2 });
+      drawLine(`Estilos: ${styles}`, marginLeft + 25, {
+        size: 9,
+        font: fontText,
+        color: rgb(0.3, 0.3, 0.3),
+        lineStep: lineHeight - 2,
+      });
     }
 
-    // Observation 
+    // Observation
     if (meaning.observation) {
-      drawLine('Observación:', marginLeft + 25, { size: 9, font: fontTitle, color: rgb(0.3, 0.3, 0.3), lineStep: lineHeight - 2 });
+      drawLine('Observación:', marginLeft + 25, {
+        size: 9,
+        font: fontTitle,
+        color: rgb(0.3, 0.3, 0.3),
+        lineStep: lineHeight - 2,
+      });
 
       drawWrapped(meaning.observation, marginLeft + 30, 9, 100, {
         markdown: true,
@@ -331,12 +374,22 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     // Remission
     if (meaning.remission) {
-      drawLine(`Ver: ${meaning.remission}`, marginLeft + 25, { size: 9, font: fontItalic, color: rgb(0, 0, 0.5), lineStep: lineHeight - 2 });
+      drawLine(`Ver: ${meaning.remission}`, marginLeft + 25, {
+        size: 9,
+        font: fontItalic,
+        color: rgb(0, 0, 0.5),
+        lineStep: lineHeight - 2,
+      });
     }
 
     // Examples
     if (meaning.examples && meaning.examples.length > 0) {
-      drawLine(`Ejemplo ${meaning.examples.length}:`, marginLeft + 25, { size: 9, font: fontTitle, color: rgb(0.3, 0.3, 0.3), lineStep: lineHeight });
+      drawLine(`Ejemplo ${meaning.examples.length}:`, marginLeft + 25, {
+        size: 9,
+        font: fontTitle,
+        color: rgb(0.3, 0.3, 0.3),
+        lineStep: lineHeight,
+      });
 
       for (const ex of meaning.examples) {
         ensureSpace(4);
@@ -359,7 +412,12 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
           const metaLines = wrapText(metaText, 85);
 
           for (const line of metaLines) {
-            drawLine(line, marginLeft + 30, { size: 7, font: fontText, color: rgb(0.5, 0.5, 0.5), lineStep: lineHeight - 4 });
+            drawLine(line, marginLeft + 30, {
+              size: 7,
+              font: fontText,
+              color: rgb(0.5, 0.5, 0.5),
+              lineStep: lineHeight - 4,
+            });
           }
         }
 
@@ -373,14 +431,24 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   // If no redacted words
   if (redactedWords.length === 0) {
     ensureSpace(3);
-    drawLine('No se encontraron palabras en estado redactada.', marginLeft, { size: 12, font: fontItalic, color: rgb(0.3, 0.3, 0.3), lineStep: 20 });
+    drawLine('No se encontraron palabras en estado redactada.', marginLeft, {
+      size: 12,
+      font: fontItalic,
+      color: rgb(0.3, 0.3, 0.3),
+      lineStep: 20,
+    });
     return pdfDoc.save();
   }
 
   y -= 2;
 
   // Total redacted words
-  drawLine(`Total de palabras: ${redactedWords.length}`, marginLeft, { size: 10, font: fontText, color: rgb(0.3, 0.3, 0.3), lineStep: 30 });
+  drawLine(`Total de palabras: ${redactedWords.length}`, marginLeft, {
+    size: 10,
+    font: fontText,
+    color: rgb(0.3, 0.3, 0.3),
+    lineStep: 30,
+  });
 
   let index = 1;
 
@@ -389,11 +457,21 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
     ensureSpace(5);
 
     const heading = `${index}. ${word.lemma.toUpperCase()}`;
-    drawLine(heading, marginLeft, { size: 13, font: fontTitle, color: rgb(0, 0, 0), lineStep: lineHeight + 4 });
+    drawLine(heading, marginLeft, {
+      size: 13,
+      font: fontTitle,
+      color: rgb(0, 0, 0),
+      lineStep: lineHeight + 4,
+    });
 
     // Root
     if (word.root && word.root !== word.lemma) {
-      drawLine(`Raíz: ${word.root}`, marginLeft + 15, { size: 9, font: fontText, color: rgb(0.4, 0.4, 0.4), lineStep: lineHeight });
+      drawLine(`Raíz: ${word.root}`, marginLeft + 15, {
+        size: 9,
+        font: fontText,
+        color: rgb(0.4, 0.4, 0.4),
+        lineStep: lineHeight,
+      });
     }
 
     // Meanings
@@ -402,7 +480,12 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
         drawMeaningBlock(meaning);
       }
     } else {
-      drawLine('Sin definiciones.', marginLeft + 15, { size: 10, font: fontItalic, color: rgb(0.5, 0.5, 0.5), lineStep: lineHeight });
+      drawLine('Sin definiciones.', marginLeft + 15, {
+        size: 10,
+        font: fontItalic,
+        color: rgb(0.5, 0.5, 0.5),
+        lineStep: lineHeight,
+      });
     }
 
     // Editorial notes
