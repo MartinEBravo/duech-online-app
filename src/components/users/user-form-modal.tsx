@@ -94,7 +94,7 @@ export default function UserFormModal({
   return (
     <Modal isOpen={true} onClose={onClose} className="w-full max-w-md p-6">
       <h2 className="mb-4 text-2xl font-bold">
-        {mode === 'create' ? 'Agregar Usuario' : 'Editar Usuario'}
+        {mode === 'create' ? 'Agregar usuario' : 'Editar usuario'}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
