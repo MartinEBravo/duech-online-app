@@ -118,7 +118,8 @@ export function WordHeader({
             />
           </h1>
           <div className="flex items-center gap-2">
-            {root && root !== lemma && (
+            {/* Show root: in editor mode always, in public mode only if different from lemma */}
+            {(editorMode || (root && root !== lemma)) && (
               <>
                 <span className="text-lg text-gray-700">Palabra base:</span>
                 <span className="text-duech-blue font-semibold">

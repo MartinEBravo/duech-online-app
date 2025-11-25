@@ -109,7 +109,7 @@ export function WordCard({
           </div>
 
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-            {root && root !== lemma && (
+            {root && root !== lemma && !editorMode && (
               <div className="flex items-center gap-1">
                 <span className="font-medium">Palabra base:</span>
                 <span className="text-gray-900">{root}</span>
@@ -145,12 +145,12 @@ export function WordCard({
             {canEdit ? (
               <>
                 Editar
-                <ArrowRightCircleIcon className="h-4 w-4" />
+                <ArrowRightCircleIcon className="h-5 w-5" />
               </>
             ) : (
               <>
                 Comentar
-                <PencilIcon className="h-4 w-4" /> {/* Use the icon you prefer */}
+                <PencilIcon className="h-5 w-5" /> {/* Use the icon you prefer */}
               </>
             )}
           </Button>
