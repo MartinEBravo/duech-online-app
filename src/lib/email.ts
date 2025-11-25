@@ -171,9 +171,9 @@ async function sendPasswordEmailWithVariant(
     paragraphs: config.getParagraphs(resetLink),
     ...(config.needsButton &&
       resetLink && {
-      buttonText: config.getButtonText?.(),
-      buttonLink: resetLink,
-    }),
+        buttonText: config.getButtonText?.(),
+        buttonLink: resetLink,
+      }),
     ...(config.showInfoBox && {
       showInfoBox: true,
       infoBoxContent: config.getInfoBoxContent?.(),
