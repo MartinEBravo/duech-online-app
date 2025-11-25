@@ -30,6 +30,11 @@ export async function searchDictionary(
         params.append('status', status);
       }
       // 👉 If status is undefined or empty, DO NOT append anything
+      // Ensure the API receives an explicit marker when running in editor mode
+      // because middleware-set headers may not be available to API route requests.
+      if (editorMode) {
+        params.append('editorMode', 'true');
+      }
     }
 
     if (assignedTo?.length) params.append('assignedTo', assignedTo.join(','));
