@@ -241,7 +241,7 @@ export async function sendRedactedWordsReport(
 
   return sendEmail(
     email,
-    'Reporte de Palabras Redactadas - DUECh en línea',
+    'Reporte de palabras redactadas - DUECh en línea',
     emailHtml,
     'redacted words report',
     [{ filename: `reporte_redactadas_${now.toISOString().split('T')[0]}.pdf`, content: pdfBuffer }]

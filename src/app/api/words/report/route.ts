@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { authenticateAndFetchRedactedWords } from '@/lib/redacted-words-utils';
+import {
+  authenticateAndFetchRedactedWords,
+  mapRedactedWordsToPdf,
+} from '@/lib/redacted-words-utils';
 import { generateRedactedWordsPDF } from '@/lib/pdf-utils';
 
 export async function GET() {
@@ -9,7 +12,8 @@ export async function GET() {
     if (!result.success) return result.response;
 
     // Generate PDF
-    const pdfBytes = await generateRedactedWordsPDF(result.words);
+    const pdfReadyWords = mapRedactedWordsToPdf(result.words);
+    const pdfBytes = await generateRedactedWordsPDF(pdfReadyWords);
 
     return new Response(Buffer.from(pdfBytes) as unknown as BodyInit, {
       status: 200,

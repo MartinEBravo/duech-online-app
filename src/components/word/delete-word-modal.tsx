@@ -30,7 +30,7 @@ export function DeleteWordModal({ lemma, onClose }: DeleteWordModalProps) {
 
   return (
     <DeleteConfirmationModal
-      title="Eliminar Palabra"
+      title="Eliminar palabra"
       itemName={lemma}
       itemType="la palabra"
       warningMessage="Esta acción no se puede deshacer. Se eliminarán todas las definiciones, ejemplos y comentarios asociados."
