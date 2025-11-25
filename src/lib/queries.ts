@@ -514,13 +514,16 @@ export async function deletePasswordResetToken(token: string) {
 }
 
 /**
- * Get all words with "redacted" status, including their notes
+ * Get all words with "redacted" status, including their meanings and notes
  */
 export async function getRedactedWords() {
   return db.query.words.findMany({
     where: (table, { eq }) => eq(table.status, 'redacted'),
     with: {
       notes: true,
+      meanings: {
+        orderBy: (meanings, { asc }) => [asc(meanings.number)],
+      },
     },
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
