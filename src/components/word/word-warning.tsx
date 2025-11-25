@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import type { WordDefinition, Example } from '@/lib/definitions';
+import type { Meaning, Example } from '@/lib/definitions';
 import { ChipList } from '@/components/common/chip';
 import { ExclamationCircleIcon } from '@/components/icons';
 
@@ -10,13 +10,13 @@ type DefinitionField =
   | 'categories'
   | 'remission'
   | 'meaning'
-  | 'styles'
+  | 'styleMarkers'
   | 'observation'
-  | 'example'
+  | 'examples'
   | 'variant';
 
 interface WordWarningProps {
-  definitions: WordDefinition | WordDefinition[];
+  definitions: Meaning | Meaning[];
   requiredFields?: DefinitionField[];
   className?: string;
 }
@@ -26,9 +26,9 @@ const LABELS: Record<DefinitionField, string> = {
   categories: 'Categorías sin seleccionar',
   remission: 'Remisión vacía',
   meaning: 'Significado vacío',
-  styles: 'Estilos sin seleccionar',
+  styleMarkers: 'Marcas de estilo sin seleccionar',
   observation: 'Observación vacía',
-  example: 'Ejemplo(s) faltante(s)',
+  examples: 'Ejemplo(s) faltante(s)',
   variant: 'Variante vacía',
 };
 
@@ -45,7 +45,7 @@ function isExampleMissing(ex: Example | Example[] | undefined | null): boolean {
   return items.length === 0 || items.every((e) => (e?.value ?? '').trim().length === 0);
 }
 
-function collectMissing(def: WordDefinition, fields: DefinitionField[]): DefinitionField[] {
+function collectMissing(def: Meaning, fields: DefinitionField[]): DefinitionField[] {
   const missing: DefinitionField[] = [];
 
   for (const f of fields) {
@@ -54,7 +54,7 @@ function collectMissing(def: WordDefinition, fields: DefinitionField[]): Definit
         if (isEmptyValue(def.origin)) missing.push(f);
         break;
       case 'categories':
-        if (isEmptyValue(def.categories)) missing.push(f);
+        if (isEmptyValue(def.grammarCategory)) missing.push(f);
         break;
       case 'remission':
         if (isEmptyValue(def.remission)) missing.push(f);
@@ -62,14 +62,14 @@ function collectMissing(def: WordDefinition, fields: DefinitionField[]): Definit
       case 'meaning':
         if (isEmptyValue(def.meaning)) missing.push(f);
         break;
-      case 'styles':
-        if (isEmptyValue(def.styles)) missing.push(f);
+      case 'styleMarkers':
+        if (isEmptyValue(def.styleMarkers)) missing.push(f);
         break;
       case 'observation':
         if (isEmptyValue(def.observation)) missing.push(f);
         break;
-      case 'example':
-        if (isExampleMissing(def.example as Example | Example[] | undefined)) missing.push(f);
+      case 'examples':
+        if (isExampleMissing(def.examples ?? null)) missing.push(f);
         break;
       case 'variant':
         if (isEmptyValue(def.variant)) missing.push(f);
@@ -86,9 +86,9 @@ export default function WordWarning({
     'categories',
     'remission',
     'meaning',
-    'styles',
+    'styleMarkers',
     'observation',
-    'example',
+    'examples',
     'variant',
   ],
   className,

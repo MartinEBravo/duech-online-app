@@ -2,7 +2,8 @@ import 'server-only';
 import { db } from '@/lib/db';
 import { words, meanings, notes } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import type { Word, Example } from '@/lib/definitions';
+import type { Word, Example, MeaningMarkerKey } from '@/lib/definitions';
+import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
 /**
  * Clean example data by removing undefined fields
@@ -21,18 +22,26 @@ function cleanExample(ex: Example) {
 /**
  * Normalize examples to array and clean them
  */
-function normalizeAndCleanExamples(
-  example: Example | Example[] | undefined
-): ReturnType<typeof cleanExample>[] {
-  const examplesArray = Array.isArray(example) ? example : example ? [example] : [];
-  return examplesArray.map(cleanExample);
+function normalizeAndCleanExamples(examples: Example[] | null | undefined) {
+  if (!examples || examples.length === 0) {
+    return [] as ReturnType<typeof cleanExample>[];
+  }
+  return examples.map(cleanExample);
 }
 
 /**
  * Insert a meaning into the database
  */
 async function insertMeaning(wordId: number, def: Word['values'][number]) {
-  const cleanedExamples = normalizeAndCleanExamples(def.example);
+  const cleanedExamples = normalizeAndCleanExamples(def.examples);
+  const markerValues = MEANING_MARKER_KEYS.reduce(
+    (acc, key) => {
+      const value = def[key as MeaningMarkerKey];
+      acc[key] = value || null;
+      return acc;
+    },
+    {} as Record<MeaningMarkerKey, string | null>
+  );
 
   await db.insert(meanings).values({
     wordId,
@@ -41,8 +50,8 @@ async function insertMeaning(wordId: number, def: Word['values'][number]) {
     meaning: def.meaning,
     observation: def.observation || null,
     remission: def.remission || null,
-    categories: def.categories.length > 0 ? def.categories : null,
-    styles: def.styles && def.styles.length > 0 ? def.styles : null,
+    grammarCategory: def.grammarCategory || null,
+    ...markerValues,
     examples: cleanedExamples.length > 0 ? cleanedExamples : null,
   });
 }

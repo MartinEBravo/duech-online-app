@@ -1,21 +1,29 @@
 'use client';
 
+import {
+  MEANING_MARKER_KEYS,
+  MeaningMarkerKey,
+  createEmptyMarkerFilterState,
+} from '@/lib/definitions';
+
+export type MarkerSelectionState = Record<MeaningMarkerKey, string[]>;
+
 interface EditorSearchFilters {
   query: string;
   selectedCategories: string[];
-  selectedStyles: string[];
   selectedOrigins: string[];
   selectedLetters: string[];
   selectedStatus: string;
   selectedAssignedTo: string[];
+  markers: MarkerSelectionState;
 }
 
 interface PublicSearchFilters {
   query: string;
   selectedCategories: string[];
-  selectedStyles: string[];
   selectedOrigins: string[];
   selectedLetters: string[];
+  markers: MarkerSelectionState;
 }
 
 const COOKIE_NAME = 'duech_editor_filters';
@@ -44,11 +52,11 @@ export function getEditorSearchFilters(): EditorSearchFilters {
   const defaultFilters: EditorSearchFilters = {
     query: '',
     selectedCategories: [],
-    selectedStyles: [],
     selectedOrigins: [],
     selectedLetters: [],
     selectedStatus: '',
     selectedAssignedTo: [],
+    markers: createEmptyMarkerFilterState(),
   };
 
   try {
@@ -76,12 +84,14 @@ export function getEditorSearchFilters(): EditorSearchFilters {
       typeof parsedFilters.query === 'string' &&
       typeof parsedFilters.selectedStatus === 'string' &&
       Array.isArray(parsedFilters.selectedCategories) &&
-      Array.isArray(parsedFilters.selectedStyles) &&
       Array.isArray(parsedFilters.selectedOrigins) &&
       Array.isArray(parsedFilters.selectedLetters) &&
       Array.isArray(parsedFilters.selectedAssignedTo)
     ) {
-      return parsedFilters;
+      return {
+        ...parsedFilters,
+        markers: sanitizeMarkerState(parsedFilters.markers),
+      };
     }
 
     return defaultFilters;
@@ -102,9 +112,9 @@ export function getPublicSearchFilters(): PublicSearchFilters {
   const defaultFilters: PublicSearchFilters = {
     query: '',
     selectedCategories: [],
-    selectedStyles: [],
     selectedOrigins: [],
     selectedLetters: [],
+    markers: createEmptyMarkerFilterState(),
   };
 
   try {
@@ -132,17 +142,37 @@ export function getPublicSearchFilters(): PublicSearchFilters {
     if (
       typeof parsedFilters.query === 'string' &&
       Array.isArray(parsedFilters.selectedCategories) &&
-      Array.isArray(parsedFilters.selectedStyles) &&
       Array.isArray(parsedFilters.selectedOrigins) &&
       Array.isArray(parsedFilters.selectedLetters)
     ) {
-      return parsedFilters;
+      return {
+        ...parsedFilters,
+        markers: sanitizeMarkerState(parsedFilters.markers),
+      };
     }
 
     return defaultFilters;
   } catch {
     return defaultFilters;
   }
+}
+
+function sanitizeMarkerState(state: unknown): MarkerSelectionState {
+  const base = createEmptyMarkerFilterState();
+  if (!state || typeof state !== 'object') {
+    return base;
+  }
+
+  const entries = MEANING_MARKER_KEYS.map((key) => {
+    const rawValue = (state as Record<string, unknown>)[key];
+    if (Array.isArray(rawValue)) {
+      const values = rawValue.filter((item): item is string => typeof item === 'string');
+      return [key, values];
+    }
+    return [key, []];
+  });
+
+  return Object.fromEntries(entries) as MarkerSelectionState;
 }
 
 export function clearPublicSearchFilters(): void {

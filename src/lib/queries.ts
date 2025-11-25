@@ -6,7 +6,14 @@ import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
 import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
-import { Word, SearchResult, WordNote } from '@/lib/definitions';
+import {
+  Word,
+  SearchResult,
+  WordNote,
+  MarkerFilterState,
+  MeaningMarkerKey,
+  MEANING_MARKER_KEYS,
+} from '@/lib/definitions';
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
 /**
@@ -78,18 +85,27 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-              id: note.user.id,
-              username: note.user.username,
-            }
+            id: note.user.id,
+            username: note.user.username,
+          }
           : null,
       })) ?? [],
   };
 }
 
-export async function searchWords(params: {
+const MARKER_COLUMN_MAP = {
+  socialValuations: meanings.socialValuations,
+  socialStratumMarkers: meanings.socialStratumMarkers,
+  styleMarkers: meanings.styleMarkers,
+  intentionalityMarkers: meanings.intentionalityMarkers,
+  geographicalMarkers: meanings.geographicalMarkers,
+  chronologicalMarkers: meanings.chronologicalMarkers,
+  frequencyMarkers: meanings.frequencyMarkers,
+} as const;
+
+type SearchWordsParams = {
   query?: string;
   categories?: string[];
-  styles?: string[];
   origins?: string[];
   letters?: string[];
   status?: string;
@@ -98,11 +114,15 @@ export async function searchWords(params: {
   limit?: number;
   page?: number;
   pageSize?: number;
-}): Promise<{ results: SearchResult[]; total: number }> {
+} & MarkerFilterState;
+
+export async function searchWords(params: SearchWordsParams): Promise<{
+  results: SearchResult[];
+  total: number;
+}> {
   const {
     query,
     categories,
-    styles,
     origins,
     letters,
     status,
@@ -110,7 +130,16 @@ export async function searchWords(params: {
     editorMode,
     page = 1,
     pageSize = 25,
+    limit,
   } = params;
+
+  const markerFilters = MEANING_MARKER_KEYS.reduce((acc, key) => {
+    const values = params[key];
+    if (values && values.length > 0) {
+      acc[key] = values;
+    }
+    return acc;
+  }, {} as MarkerFilterState);
 
   const conditions: SQL[] = [];
 
@@ -159,11 +188,17 @@ export async function searchWords(params: {
   }
 
   if (categories && categories.length > 0) {
-    conditions.push(or(...categories.map((cat) => sql`${cat} = ANY(${meanings.categories})`))!);
+    conditions.push(
+      or(...categories.map((cat) => eq(meanings.grammarCategory, cat)))!
+    );
   }
 
-  if (styles && styles.length > 0) {
-    conditions.push(or(...styles.map((style) => sql`${style} = ANY(${meanings.styles})`))!);
+  for (const key of MEANING_MARKER_KEYS) {
+    const values = markerFilters[key];
+    if (values && values.length > 0) {
+      const column = MARKER_COLUMN_MAP[key];
+      conditions.push(or(...values.map((value) => eq(column, value)))!);
+    }
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

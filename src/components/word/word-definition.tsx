@@ -1,33 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import InlineEditable from '@/components/word/inline-editable';
-import { ChipList } from '@/components/common/chip';
+import { Chip, type MarkerColorVariant } from '@/components/common/chip';
 import { Button } from '@/components/common/button';
 import { PlusIcon, TrashIcon } from '@/components/icons';
 import {
   GRAMMATICAL_CATEGORIES,
-  USAGE_STYLES,
+  MEANING_MARKER_GROUPS,
+  MEANING_MARKER_KEYS,
   type Example,
-  type WordDefinition,
+  type Meaning,
+  type MeaningMarkerKey,
 } from '@/lib/definitions';
 
+// Type for unified chip item
+interface ChipItem {
+  type: 'category' | MeaningMarkerKey;
+  code: string;
+  label: string;
+  variant: MarkerColorVariant;
+}
+
 interface DefinitionSectionProps {
-  definition: WordDefinition;
+  definition: Meaning;
   defIndex: number;
   editorMode: boolean;
   editingKey: string | null;
   onToggleEdit: (key: string) => void;
-  onPatchDefinition: (patch: Partial<WordDefinition>) => void;
+  onPatchDefinition: (patch: Partial<Meaning>) => void;
   onSetEditingCategories: () => void;
-  onSetEditingStyles: () => void;
+  onSetEditingMarker: (markerKey: MeaningMarkerKey) => void;
   onAddDefinition: () => void;
   onDeleteDefinition: () => void;
   renderExample: (
-    example: Example | Example[],
+    examples: Example[] | null,
     defIndex?: number,
     isEditable?: boolean
   ) => React.ReactNode;
@@ -41,7 +51,7 @@ export function DefinitionSection({
   onToggleEdit,
   onPatchDefinition,
   onSetEditingCategories,
-  onSetEditingStyles,
+  onSetEditingMarker,
   onAddDefinition,
   onDeleteDefinition,
   renderExample,
@@ -49,6 +59,45 @@ export function DefinitionSection({
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
   const isEditing = (k: string) => editingKey === k;
+
+  // Gather all chips (category + markers) into a single list
+  const allChips = useMemo(() => {
+    const chips: ChipItem[] = [];
+    
+    // Add grammar category
+    if (def.grammarCategory) {
+      chips.push({
+        type: 'category',
+        code: def.grammarCategory,
+        label: GRAMMATICAL_CATEGORIES[def.grammarCategory] || def.grammarCategory,
+        variant: 'category',
+      });
+    }
+    
+    // Add all markers
+    for (const markerKey of MEANING_MARKER_KEYS) {
+      const value = def[markerKey] as string | null | undefined;
+      if (value) {
+        const markerGroup = MEANING_MARKER_GROUPS[markerKey];
+        chips.push({
+          type: markerKey,
+          code: value,
+          label: markerGroup.labels[value] || value,
+          variant: markerKey as MarkerColorVariant,
+        });
+      }
+    }
+    
+    return chips;
+  }, [def]);
+
+  const handleRemoveChip = (chip: ChipItem) => {
+    if (chip.type === 'category') {
+      onPatchDefinition({ grammarCategory: null });
+    } else {
+      onPatchDefinition({ [chip.type]: null } as Partial<Meaning>);
+    }
+  };
 
   return (
     <section
@@ -68,7 +117,7 @@ export function DefinitionSection({
           {/* Origin */}
           <div className="mb-2">
             <InlineEditable
-              value={def.origin}
+              value={def.origin ?? null}
               onChange={(v) => onPatchDefinition({ origin: v })}
               editorMode={editorMode}
               editing={isEditing(`def:${defIndex}:origin`)}
@@ -84,25 +133,54 @@ export function DefinitionSection({
               )}
             />
           </div>
-          {/* Categories */}
+          {/* Categories and Markers - unified chip display */}
           <div className="mb-3">
-            <ChipList
-              items={def.categories}
-              labels={GRAMMATICAL_CATEGORIES}
-              variant="category"
-              editorMode={editorMode}
-              addLabel="+ Añadir categorías gramaticales"
-              onAdd={onSetEditingCategories}
-              onRemove={(index) => {
-                const updated = def.categories.filter((_, i) => i !== index);
-                onPatchDefinition({ categories: updated });
-              }}
-            />
-          </div>{' '}
+            <div className="flex flex-wrap gap-2">
+              {allChips.map((chip, index) => (
+                <Chip
+                  key={`${chip.type}-${chip.code}-${index}`}
+                  code={chip.code}
+                  label={chip.label}
+                  variant={chip.variant}
+                  editorMode={editorMode}
+                  onRemove={editorMode ? () => handleRemoveChip(chip) : undefined}
+                />
+              ))}
+              {editorMode && (
+                <>
+                  {!def.grammarCategory && (
+                    <Button
+                      onClick={onSetEditingCategories}
+                      className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-blue-400 bg-white px-3 py-1 text-xs text-blue-600 hover:bg-blue-50"
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      Categoría
+                    </Button>
+                  )}
+                  {MEANING_MARKER_KEYS.map((markerKey) => {
+                    const value = def[markerKey] as string | null | undefined;
+                    if (value) return null; // Already has a value
+                    const markerGroup = MEANING_MARKER_GROUPS[markerKey];
+                    return (
+                      <Button
+                        key={markerKey}
+                        onClick={() => onSetEditingMarker(markerKey)}
+                        className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-gray-300 bg-white px-3 py-1 text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50"
+                        title={markerGroup.addLabel}
+                      >
+                        <PlusIcon className="h-4 w-4" />
+                        {markerGroup.label}
+                      </Button>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </div>
           {/* Remission */}
           <div className="mb-2 flex items-center gap-2">
             <InlineEditable
-              value={def.remission}
+              value={def.remission ?? null}
               onChange={(v) => onPatchDefinition({ remission: v })}
               editorMode={editorMode}
               editing={isEditing(`def:${defIndex}:remission`)}
@@ -147,28 +225,11 @@ export function DefinitionSection({
               )}
             />
           </div>
-          {/* Styles */}
-          <div className="mb-3">
-            <ChipList
-              items={def.styles || []}
-              labels={USAGE_STYLES}
-              variant="style"
-              editorMode={editorMode}
-              addLabel="+ Añadir estilos de uso"
-              onAdd={onSetEditingStyles}
-              onRemove={(index) => {
-                const updated = def.styles!.filter((_, i) => i !== index);
-                onPatchDefinition({
-                  styles: updated.length ? updated : null,
-                });
-              }}
-            />
-          </div>{' '}
           {/* Observation */}
           {(def.observation || editorMode) && (
             <div className="mb-3">
               <InlineEditable
-                value={def.observation}
+                value={def.observation ?? null}
                 onChange={(v) => onPatchDefinition({ observation: v })}
                 editorMode={editorMode}
                 editing={isEditing(`def:${defIndex}:observation`)}
@@ -190,14 +251,14 @@ export function DefinitionSection({
             </div>
           )}
           {/* Examples */}
-          {def.example && (
+          {def.examples && def.examples.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 flex items-center gap-3">
                 <h3 className="text-sm font-medium text-gray-900">
-                  Ejemplo{Array.isArray(def.example) && def.example.length > 1 ? 's' : ''}:
+                  Ejemplo{def.examples && def.examples.length > 1 ? 's' : ''}:
                 </h3>
               </div>
-              <div className="space-y-8">{renderExample(def.example, defIndex, editorMode)}</div>
+              <div className="space-y-8">{renderExample(def.examples ?? null, defIndex, editorMode)}</div>
             </div>
           )}
           {/* Variant */}
@@ -205,7 +266,7 @@ export function DefinitionSection({
             <div className="mt-4">
               <span className="text-sm font-medium text-gray-900">Variante: </span>
               <InlineEditable
-                value={def.variant}
+                value={def.variant ?? null}
                 onChange={(v) => onPatchDefinition({ variant: v })}
                 editorMode={editorMode}
                 editing={isEditing(`def:${defIndex}:variant`)}

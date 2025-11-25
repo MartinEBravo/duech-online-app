@@ -52,8 +52,15 @@ export const meanings = pgTable('meanings', {
   meaning: text('meaning').notNull(),
   observation: text('observation'),
   remission: text('remission'), // Cross-reference to another word
-  categories: text('categories').array(), // Array: ['m', 'f', 'adj', 'tr', 'intr']
-  styles: text('styles').array(), // Array: ['espon', 'vulgar', 'hist', 'fest']
+  grammarCategory: text('grammar_categ'), 
+  socialValuations: text('social_valuation'),
+  socialStratumMarkers: text('social_mark'),
+  styleMarkers: text('style_mark'),
+  intentionalityMarkers: text('inten_mark'),
+  geographicalMarkers: text('geo_mark'),
+  chronologicalMarkers: text('chrono_mark'),
+  frequencyMarkers: text('freq_mark'),
+  dictionary: text('dictionary'), // difruech, duech, etc.
   examples: jsonb('examples').$type<
     Array<{
       value: string;

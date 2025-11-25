@@ -5,8 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
 import SearchBar from '@/components/search/search-bar';
 import { searchDictionary } from '@/lib/dictionary-client';
-import { SearchResult } from '@/lib/definitions';
-import { STATUS_OPTIONS } from '@/lib/definitions';
+import {
+  MEANING_MARKER_KEYS,
+  MeaningMarkerKey,
+  SearchResult,
+  STATUS_OPTIONS,
+} from '@/lib/definitions';
 import { WordCard } from '@/components/search/word-card';
 import { AddWordModal } from '@/components/search/add-word-modal';
 import { useUrlSearchParams } from '@/hooks/useUrlSearchParams';
@@ -29,28 +33,29 @@ import {
 const buildUrlSignature = (params: {
   trimmedQuery: string;
   categories: string[];
-  styles: string[];
   origins: string[];
   letters: string[];
   status: string;
   assignedTo: string[];
-}): string =>
-  [
+} & Record<MeaningMarkerKey, string[]>): string => {
+  const markerSegment = MEANING_MARKER_KEYS.map((key) => params[key].join(',')).join('|');
+  return [
     params.trimmedQuery,
     params.categories.join(','),
-    params.styles.join(','),
     params.origins.join(','),
     params.letters.join(','),
+    markerSegment,
     params.status,
     params.assignedTo.join(','),
   ].join('|');
+};
 
 const stateHasCriteria = (state: SearchState, includeEditorFilters: boolean): boolean =>
   state.query.length > 0 ||
   state.filters.categories.length > 0 ||
-  state.filters.styles.length > 0 ||
   state.filters.origins.length > 0 ||
   state.filters.letters.length > 0 ||
+  MEANING_MARKER_KEYS.some((key) => state.filters[key].length > 0) ||
   (includeEditorFilters && (state.status.length > 0 || state.assignedTo.length > 0));
 
 // Helper to update state if query or filters changed
@@ -108,14 +113,7 @@ export function SearchPage({
     urlParams,
   });
 
-  const urlHasCriteria =
-    Boolean(urlParams.trimmedQuery) ||
-    urlParams.categories.length > 0 ||
-    urlParams.styles.length > 0 ||
-    urlParams.origins.length > 0 ||
-    urlParams.letters.length > 0 ||
-    urlParams.status.length > 0 ||
-    urlParams.assignedTo.length > 0;
+  const urlHasCriteria = urlParams.hasUrlCriteria;
 
   const urlSignature = useMemo(() => buildUrlSignature(urlParams), [urlParams]);
 
@@ -143,6 +141,10 @@ export function SearchPage({
   const availableUsers = initialUsers;
 
   const hasEditorFilters = searchState.status.length > 0 || searchState.assignedTo.length > 0;
+  const hasMarkerFilters = useMemo(
+    () => MEANING_MARKER_KEYS.some((key) => searchState.filters[key].length > 0),
+    [searchState.filters]
+  );
   const hasSearchCriteria = stateHasCriteria(searchState, editorMode);
 
   // Reset bookkeeping when public URL params change so new criteria trigger a fresh search
@@ -251,10 +253,7 @@ export function SearchPage({
         const searchData = await searchDictionary(
           {
             query,
-            categories: filters.categories,
-            styles: filters.styles,
-            origins: filters.origins,
-            letters: filters.letters,
+            ...filters,
           },
           page,
           RESULTS_PER_PAGE,
@@ -328,12 +327,17 @@ export function SearchPage({
     const filtersForAutoSearch = editorMode
       ? searchState.filters
       : urlHasCriteria
-        ? {
-            categories: urlParams.categories,
-            styles: urlParams.styles,
-            origins: urlParams.origins,
-            letters: urlParams.letters,
+        ? (() => {
+          const snapshot = {
+            categories: [...urlParams.categories],
+            origins: [...urlParams.origins],
+            letters: [...urlParams.letters],
+          } as LocalSearchFilters;
+          for (const key of MEANING_MARKER_KEYS) {
+            snapshot[key] = [...urlParams[key]];
           }
+          return snapshot;
+        })()
         : searchState.filters;
 
     void executeSearch({
@@ -349,11 +353,7 @@ export function SearchPage({
     searchState.filters,
     searchState.query,
     urlHasCriteria,
-    urlParams.categories,
-    urlParams.letters,
-    urlParams.origins,
-    urlParams.styles,
-    urlParams.trimmedQuery,
+    urlSignature,
   ]);
 
   // Shared manual search handler that normalizes the payload before executing
@@ -462,15 +462,15 @@ export function SearchPage({
     () =>
       editorMode
         ? {
-            hasActive: hasEditorFilters,
-            onClear: clearAdditionalFilters,
-            render: () => (
-              <>
-                {statusFilter}
-                {assignedFilter}
-              </>
-            ),
-          }
+          hasActive: hasEditorFilters,
+          onClear: clearAdditionalFilters,
+          render: () => (
+            <>
+              {statusFilter}
+              {assignedFilter}
+            </>
+          ),
+        }
         : undefined,
     [editorMode, clearAdditionalFilters, hasEditorFilters, statusFilter, assignedFilter]
   );
@@ -500,7 +500,7 @@ export function SearchPage({
           initialAdvancedOpen={
             editorMode &&
             (searchState.filters.categories.length > 0 ||
-              searchState.filters.styles.length > 0 ||
+              hasMarkerFilters ||
               searchState.filters.origins.length > 0 ||
               searchState.filters.letters.length > 0 ||
               hasEditorFilters)

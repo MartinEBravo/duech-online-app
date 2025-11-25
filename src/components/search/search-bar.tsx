@@ -1,13 +1,28 @@
 'use client';
 
-import React from 'react';
-import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  FormEvent,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { MultiSelectDropdown } from '@/components/common/dropdown';
 import { getSearchMetadata } from '@/lib/dictionary-client';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
-import { GRAMMATICAL_CATEGORIES, USAGE_STYLES, SearchFilters } from '@/lib/definitions';
+import {
+  GRAMMATICAL_CATEGORIES,
+  SearchFilters,
+  MEANING_MARKER_KEYS,
+  MEANING_MARKER_GROUPS,
+  createEmptyMarkerFilterState,
+  MeaningMarkerKey,
+  MarkerMetadata,
+} from '@/lib/definitions';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
   getEditorSearchFilters,
@@ -20,8 +35,8 @@ interface SearchBarProps {
   className?: string;
   initialValue?: string;
   initialFilters?: Partial<SearchFilters>;
-  searchPath?: string; // Custom search route, defaults to /buscar
-  initialAdvancedOpen?: boolean; // Whether advanced filters start expanded
+  searchPath?: string;
+  initialAdvancedOpen?: boolean;
   onSearch?: (state: { query: string; filters: InternalFilters }) => void | Promise<void>;
   onStateChange?: (state: { query: string; filters: InternalFilters }) => void;
   onClearAll?: () => void;
@@ -29,9 +44,15 @@ interface SearchBarProps {
   editorMode?: boolean;
 }
 
-type InternalFilters = Required<Omit<SearchFilters, 'query'>>;
+type MarkerSelections = Record<MeaningMarkerKey, string[]>;
 
-type FilterVariant = 'category' | 'style' | 'origin' | 'letter';
+type InternalFilters = {
+  categories: string[];
+  origins: string[];
+  letters: string[];
+} & MarkerSelections;
+
+type FilterVariant = 'category' | 'origin' | 'letter' | 'marker';
 
 interface AdditionalFiltersConfig {
   hasActive: boolean;
@@ -44,12 +65,41 @@ const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => 
   label: letter.toUpperCase(),
 }));
 
-const EMPTY_FILTERS: InternalFilters = {
-  categories: [],
-  styles: [],
-  origins: [],
-  letters: [],
-};
+const MARKER_ENTRIES = MEANING_MARKER_KEYS.map((key) => ({
+  key,
+  config: MEANING_MARKER_GROUPS[key],
+}));
+
+const EMPTY_MARKER_METADATA = createEmptyMarkerFilterState();
+
+function createEmptyFilters(): InternalFilters {
+  const markerDefaults = createEmptyMarkerFilterState();
+  const base = {
+    categories: [] as string[],
+    origins: [] as string[],
+    letters: [] as string[],
+    ...markerDefaults,
+  };
+
+  return base;
+}
+
+function mergeInitialFilters(initial?: Partial<SearchFilters>): InternalFilters {
+  const filters = createEmptyFilters();
+  if (!initial) {
+    return filters;
+  }
+
+  filters.categories = initial.categories ?? [];
+  filters.origins = initial.origins ?? [];
+  filters.letters = initial.letters ?? [];
+
+  for (const key of MEANING_MARKER_KEYS) {
+    filters[key] = initial[key] ?? [];
+  }
+
+  return filters;
+}
 
 function arraysEqual(current: string[], next: string[]): boolean {
   if (current === next) return true;
@@ -61,12 +111,22 @@ function arraysEqual(current: string[], next: string[]): boolean {
 }
 
 function filtersEqual(a: InternalFilters, b: InternalFilters): boolean {
-  return (
-    arraysEqual(a.categories, b.categories) &&
-    arraysEqual(a.styles, b.styles) &&
-    arraysEqual(a.origins, b.origins) &&
-    arraysEqual(a.letters, b.letters)
-  );
+  if (!arraysEqual(a.categories, b.categories)) return false;
+  if (!arraysEqual(a.origins, b.origins)) return false;
+  if (!arraysEqual(a.letters, b.letters)) return false;
+
+  return !MEANING_MARKER_KEYS.some((key) => !arraysEqual(a[key], b[key]));
+}
+
+function buildMarkerSnapshot(filters: InternalFilters): MarkerSelections {
+  return MEANING_MARKER_KEYS.reduce((acc, key) => {
+    acc[key] = [...filters[key]];
+    return acc;
+  }, {} as MarkerSelections);
+}
+
+function buildMarkerSignature(filters: InternalFilters): string {
+  return MEANING_MARKER_KEYS.map((key) => filters[key].join('|')).join(';');
 }
 
 export default function SearchBar({
@@ -88,80 +148,69 @@ export default function SearchBar({
   const isInitialMountRef = useRef(true);
   const isSyncingFromPropsRef = useRef(false);
 
+  const normalizedInitialFilters = useMemo(
+    () => mergeInitialFilters(initialFilters),
+    [initialFilters]
+  );
+
   const [query, setQuery] = useState(initialValue);
-  const [filters, setFilters] = useState<InternalFilters>(() => ({
-    categories: initialFilters?.categories ?? [],
-    styles: initialFilters?.styles ?? [],
-    origins: initialFilters?.origins ?? [],
-    letters: initialFilters?.letters ?? [],
-  }));
+  const [filters, setFilters] = useState<InternalFilters>(normalizedInitialFilters);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [availableStyles, setAvailableStyles] = useState<string[]>([]);
   const [availableOrigins, setAvailableOrigins] = useState<string[]>([]);
+  const [availableMarkers, setAvailableMarkers] = useState<MarkerMetadata>(EMPTY_MARKER_METADATA);
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(initialAdvancedOpen);
   const [metadataLoaded, setMetadataLoaded] = useState(false);
 
   const defaultSearchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchPath = customSearchPath ?? defaultSearchPath;
 
-  const initialCategories = initialFilters?.categories ?? EMPTY_FILTERS.categories;
-  const initialStyles = initialFilters?.styles ?? EMPTY_FILTERS.styles;
-  const initialOrigins = initialFilters?.origins ?? EMPTY_FILTERS.origins;
-  const initialLetters = initialFilters?.letters ?? EMPTY_FILTERS.letters;
+  const initialCategories = normalizedInitialFilters.categories;
+  const initialOrigins = normalizedInitialFilters.origins;
+  const initialLetters = normalizedInitialFilters.letters;
+  const initialMarkerSignature = buildMarkerSignature(normalizedInitialFilters);
 
   const categoriesSignature = initialCategories.join('|');
-  const stylesSignature = initialStyles.join('|');
   const originsSignature = initialOrigins.join('|');
   const lettersSignature = initialLetters.join('|');
 
   const baseHasActiveFilters = useMemo(
     () =>
       filters.categories.length > 0 ||
-      filters.styles.length > 0 ||
       filters.origins.length > 0 ||
-      filters.letters.length > 0,
+      filters.letters.length > 0 ||
+      MEANING_MARKER_KEYS.some((key) => filters[key].length > 0),
     [filters]
   );
 
   const extraFiltersActive = Boolean(additionalFilters?.hasActive);
   const hasActiveFilters = baseHasActiveFilters || extraFiltersActive;
 
-  // Debounce query and filters for onStateChange to prevent loops
   const debouncedQuery = useDebounce(query, 300);
   const debouncedFilters = useDebounce(filters, 300);
 
-  // Track if we're currently typing to prevent external updates
   const isTypingRef = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Only update from props if user is not actively typing
     if (!isTypingRef.current) {
       setQuery(initialValue);
     }
   }, [initialValue]);
 
   useEffect(() => {
-    // Skip on initial mount as state is already initialized
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
       return;
     }
 
-    const nextFilters: InternalFilters = {
-      categories: initialCategories,
-      styles: initialStyles,
-      origins: initialOrigins,
-      letters: initialLetters,
-    };
+    const nextFilters = normalizedInitialFilters;
 
     const shouldAutoOpen =
       initialCategories.length > 0 ||
-      initialStyles.length > 0 ||
       initialOrigins.length > 0 ||
-      initialLetters.length > 0;
+      initialLetters.length > 0 ||
+      MEANING_MARKER_KEYS.some((key) => normalizedInitialFilters[key].length > 0);
 
-    // Only update if filters actually changed (not just array references)
     if (!filtersEqual(filters, nextFilters)) {
       isSyncingFromPropsRef.current = true;
       setFilters(nextFilters);
@@ -173,14 +222,10 @@ export default function SearchBar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     categoriesSignature,
-    stylesSignature,
     originsSignature,
     lettersSignature,
-    initialCategories,
-    initialStyles,
-    initialOrigins,
-    initialLetters,
-    // Note: 'filters' is intentionally excluded to prevent circular updates
+    initialMarkerSignature,
+    normalizedInitialFilters,
   ]);
 
   useEffect(() => {
@@ -195,12 +240,10 @@ export default function SearchBar({
     const loadMetadata = async () => {
       try {
         const metadata = await getSearchMetadata();
-
         if (!isMounted) return;
-
         setAvailableCategories(metadata.categories);
-        setAvailableStyles(metadata.styles);
         setAvailableOrigins(metadata.origins);
+        setAvailableMarkers(metadata.markers);
         setMetadataLoaded(true);
       } catch {
         if (isMounted) {
@@ -216,7 +259,6 @@ export default function SearchBar({
     };
   }, []);
 
-  // Cleanup typing timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -234,23 +276,22 @@ export default function SearchBar({
     [availableCategories]
   );
 
-  const styleOptions = useMemo(() => {
-    const optionsMap = new Map<string, { value: string; label: string }>();
-
-    availableStyles.forEach((style) => {
-      const label = USAGE_STYLES[style] || style;
-      if (!optionsMap.has(label)) {
-        optionsMap.set(label, { value: style, label });
-      }
-    });
-
-    return Array.from(optionsMap.values());
-  }, [availableStyles]);
-
   const originOptions = useMemo(
     () => availableOrigins.map((origin) => ({ value: origin, label: origin })),
     [availableOrigins]
   );
+
+  const markerOptions = useMemo(() => {
+    const entries = MARKER_ENTRIES.map(({ key, config }) => {
+      const values = availableMarkers[key] ?? [];
+      const options = values.map((value) => ({
+        value,
+        label: config.labels[value] || value,
+      }));
+      return [key, options];
+    });
+    return Object.fromEntries(entries) as Record<MeaningMarkerKey, { value: string; label: string }[]>;
+  }, [availableMarkers]);
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -266,16 +307,18 @@ export default function SearchBar({
         return;
       }
 
+      const markerSnapshot = buildMarkerSnapshot(filters);
+
       if (editorMode) {
         const existing = getEditorSearchFilters();
         setEditorSearchFilters({
           query: trimmedQuery,
           selectedCategories: [...filters.categories],
-          selectedStyles: [...filters.styles],
           selectedOrigins: [...filters.origins],
           selectedLetters: [...filters.letters],
           selectedStatus: existing.selectedStatus,
           selectedAssignedTo: [...existing.selectedAssignedTo],
+          markers: markerSnapshot,
         });
 
         router.push(searchPath);
@@ -285,9 +328,9 @@ export default function SearchBar({
       setPublicSearchFilters({
         query: trimmedQuery,
         selectedCategories: [...filters.categories],
-        selectedStyles: [...filters.styles],
         selectedOrigins: [...filters.origins],
         selectedLetters: [...filters.letters],
+        markers: markerSnapshot,
       });
 
       router.push(searchPath);
@@ -301,7 +344,7 @@ export default function SearchBar({
 
   const clearFilters = useCallback(() => {
     setQuery('');
-    setFilters({ ...EMPTY_FILTERS });
+    setFilters(createEmptyFilters());
     additionalFilters?.onClear?.();
     onClearAll?.();
   }, [additionalFilters, onClearAll]);
@@ -330,30 +373,23 @@ export default function SearchBar({
       });
     });
 
-    filters.styles.forEach((style: string) => {
-      pills.push({
-        key: 'styles',
-        value: style,
-        label: USAGE_STYLES[style] || style,
-        variant: 'style',
-      });
-    });
-
     filters.origins.forEach((origin) => {
-      pills.push({
-        key: 'origins',
-        value: origin,
-        label: origin,
-        variant: 'origin',
-      });
+      pills.push({ key: 'origins', value: origin, label: origin, variant: 'origin' });
     });
 
     filters.letters.forEach((letter) => {
-      pills.push({
-        key: 'letters',
-        value: letter,
-        label: letter.toUpperCase(),
-        variant: 'letter',
+      pills.push({ key: 'letters', value: letter, label: letter.toUpperCase(), variant: 'letter' });
+    });
+
+    MEANING_MARKER_KEYS.forEach((markerKey) => {
+      const config = MEANING_MARKER_GROUPS[markerKey];
+      filters[markerKey].forEach((marker) => {
+        pills.push({
+          key: markerKey,
+          value: marker,
+          label: config.labels[marker] || marker,
+          variant: 'marker',
+        });
       });
     });
 
@@ -368,17 +404,14 @@ export default function SearchBar({
             key={`${pill.key}-${pill.value}`}
             type="button"
             onClick={() => removeFilterValue(pill.key, pill.value)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${
-              pill.variant === 'category'
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${pill.variant === 'category'
                 ? 'border-blue-300 bg-blue-100 text-blue-800'
-                : pill.variant === 'style'
-                  ? 'border-green-300 bg-green-100 text-green-800'
-                  : pill.variant === 'origin'
-                    ? 'border-purple-300 bg-purple-100 text-purple-800'
-                    : pill.variant === 'letter'
-                      ? 'border-orange-300 bg-orange-100 text-orange-800'
-                      : 'border-gray-300 bg-gray-100 text-gray-800'
-            } `}
+                : pill.variant === 'origin'
+                  ? 'border-purple-300 bg-purple-100 text-purple-800'
+                  : pill.variant === 'letter'
+                    ? 'border-orange-300 bg-orange-100 text-orange-800'
+                    : 'border-green-300 bg-green-100 text-green-800'
+              } `}
           >
             <span>{pill.label}</span>
             <CloseIcon className="h-3 w-3" />
@@ -388,17 +421,15 @@ export default function SearchBar({
     );
   };
 
-  // Use debounced values for onStateChange to prevent rapid updates
   useEffect(() => {
     if (!onStateChange) return;
-    // In editor mode we disable live propagation entirely
-    // so typing does not affect results or external state until submit.
     if (editorMode) return;
 
     if (isSyncingFromPropsRef.current) {
       isSyncingFromPropsRef.current = false;
       return;
     }
+
     onStateChange({ query: debouncedQuery, filters: debouncedFilters });
   }, [debouncedFilters, debouncedQuery, onStateChange, editorMode]);
 
@@ -412,13 +443,10 @@ export default function SearchBar({
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
-            // Mark that user is typing
             isTypingRef.current = true;
-            // Clear existing timeout
             if (typingTimeoutRef.current) {
               clearTimeout(typingTimeoutRef.current);
             }
-            // Reset typing flag after 500ms of inactivity
             typingTimeoutRef.current = setTimeout(() => {
               isTypingRef.current = false;
             }, 500);
@@ -478,20 +506,23 @@ export default function SearchBar({
                   onChange={(values) => updateFilters('categories', values)}
                   placeholder="Seleccionar categorías"
                 />
+              </div>
 
-                <MultiSelectDropdown
-                  label="Estilos de uso"
-                  options={styleOptions}
-                  selectedValues={filters.styles}
-                  onChange={(values) => updateFilters('styles', values)}
-                  placeholder="Seleccionar estilos"
-                />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {MARKER_ENTRIES.map(({ key, config }) => (
+                  <MultiSelectDropdown
+                    key={key}
+                    label={config.label}
+                    options={markerOptions[key]}
+                    selectedValues={filters[key]}
+                    onChange={(values) => updateFilters(key, values)}
+                    placeholder={config.addLabel.replace('+ ', '')}
+                  />
+                ))}
               </div>
 
               {additionalFiltersContent && (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {additionalFiltersContent}
-                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{additionalFiltersContent}</div>
               )}
             </div>
           )}

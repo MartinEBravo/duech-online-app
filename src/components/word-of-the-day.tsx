@@ -46,10 +46,10 @@ export default function WordOfTheDay({ data, editorMode = false }: WordOfTheDayP
       </h2>
       <div className="mb-6">
         <h3 className="text-duech-blue mb-3 text-3xl font-bold">{word.lemma}</h3>
-        {firstDefinition.categories.length > 0 && (
+        {firstDefinition.grammarCategory && (
           <div className="mb-4">
             <ChipList
-              items={firstDefinition.categories}
+              items={[firstDefinition.grammarCategory]}
               labels={GRAMMATICAL_CATEGORIES}
               variant="category"
               editorMode={editorMode}

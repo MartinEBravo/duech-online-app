@@ -1,4 +1,10 @@
-import { SearchFilters, SearchMetadata, SearchResponse } from '@/lib/definitions';
+import {
+  SearchFilters,
+  SearchMetadata,
+  SearchResponse,
+  MEANING_MARKER_KEYS,
+  createEmptyMarkerFilterState,
+} from '@/lib/definitions';
 
 /**
  * Client-safe dictionary functions that use API routes instead of direct database access.
@@ -45,7 +51,7 @@ export async function searchDictionary(
   } catch {
     return {
       results: [],
-      metadata: { categories: [], styles: [], origins: [] },
+      metadata: { categories: [], origins: [], markers: createEmptyMarkerFilterState() },
       pagination: { page: 1, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
     };
   }
@@ -62,7 +68,7 @@ export async function getSearchMetadata(): Promise<SearchMetadata> {
     const result = await response.json();
     return result.data.metadata;
   } catch {
-    return { categories: [], styles: [], origins: [] };
+    return { categories: [], origins: [], markers: createEmptyMarkerFilterState() };
   }
 }
 
@@ -72,9 +78,14 @@ function buildFilterParams(filters: SearchFilters): URLSearchParams {
   const query = filters.query?.trim();
   if (query) params.append('q', query);
   if (filters.categories?.length) params.append('categories', filters.categories.join(','));
-  if (filters.styles?.length) params.append('styles', filters.styles.join(','));
   if (filters.origins?.length) params.append('origins', filters.origins.join(','));
   if (filters.letters?.length) params.append('letters', filters.letters.join(','));
+  for (const key of MEANING_MARKER_KEYS) {
+    const values = filters[key];
+    if (values?.length) {
+      params.append(key, values.join(','));
+    }
+  }
   return params;
 }
 
@@ -91,7 +102,7 @@ async function fetchSearchResults(params: URLSearchParams, page: number, limit: 
   } catch {
     return {
       results: [],
-      metadata: { categories: [], styles: [], origins: [] },
+      metadata: { categories: [], origins: [], markers: createEmptyMarkerFilterState() },
       pagination: {
         page,
         limit,
