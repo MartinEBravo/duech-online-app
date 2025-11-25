@@ -50,7 +50,12 @@ export async function searchDictionary(
   } catch {
     return {
       results: [],
-      metadata: { categories: [], origins: [], markers: createEmptyMarkerFilterState() },
+      metadata: {
+        categories: [],
+        origins: [],
+        dictionaries: [],
+        markers: createEmptyMarkerFilterState(),
+      },
       pagination: { page: 1, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
     };
   }
@@ -87,7 +92,12 @@ async function fetchSearchResults(params: URLSearchParams, page: number, limit: 
   } catch {
     return {
       results: [],
-      metadata: { categories: [], origins: [], markers: createEmptyMarkerFilterState() },
+      metadata: {
+        categories: [],
+        origins: [],
+        dictionaries: [],
+        markers: createEmptyMarkerFilterState(),
+      },
       pagination: {
         page,
         limit,

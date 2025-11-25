@@ -14,7 +14,6 @@ import { sql } from 'drizzle-orm';
 import { isEditorModeFromHeaders } from '@/lib/editor-mode-server';
 
 const MAX_QUERY_LENGTH = 100;
-const MAX_FILTER_OPTIONS = 10;
 const MAX_LIMIT = 1000;
 
 type SearchFilters = {
@@ -210,10 +209,6 @@ function parseMarkerFilters(searchParams: URLSearchParams): MarkerFilterState {
   }, {} as MarkerFilterState);
 }
 
-function hasExcessMarkerFilters(filters: MarkerFilterState): boolean {
-  return MEANING_MARKER_KEYS.some((key) => (filters[key]?.length ?? 0) > MAX_FILTER_OPTIONS);
-}
-
 function extractMarkerFilters(filters: MarkerFilterState): MarkerFilterState {
   return MEANING_MARKER_KEYS.reduce((acc, key) => {
     const values = filters[key];
@@ -235,8 +230,3 @@ function parseList(value: string | null): string[] {
     .filter(Boolean);
 }
 
-function parseInteger(input: string | null, fallback: number): number {
-  if (!input) return fallback;
-  const parsed = parseInt(input, 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
-}
