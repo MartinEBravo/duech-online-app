@@ -92,7 +92,7 @@ export type SearchFilters = {
 
 export type MarkerMetadata = Record<MeaningMarkerKey, string[]>;
 
-export interface SearchMetadata {
+interface SearchMetadata {
   categories: string[];
   origins: string[];
   markers: MarkerMetadata;
@@ -141,40 +141,40 @@ export const GRAMMATICAL_CATEGORIES: Record<string, string> = {
   tr: 'Verbo transitivo',
 };
 
-export const SOCIAL_VALUATIONS: Record<string, string> = {
+const SOCIAL_VALUATIONS: Record<string, string> = {
   vulgar: 'Vulgar',
   euf: 'Eufemismo',
 };
 
-export const GEOGRAPHICAL_MARKERS: Record<string, string> = {
+const GEOGRAPHICAL_MARKERS: Record<string, string> = {
   norte: 'Norte',
   centro: 'Centro',
   sur: 'Sur',
   austral: 'Zona Austral',
 };
 
-export const SOCIAL_STRATUM_MARKERS: Record<string, string> = {
+const SOCIAL_STRATUM_MARKERS: Record<string, string> = {
   pop: 'Popular',
   cult: 'Culto',
 };
 
-export const STYLE_MARKERS: Record<string, string> = {
+const STYLE_MARKERS: Record<string, string> = {
   espon: 'Espontáneo',
   esm: 'Esmerado',
 };
 
-export const INTENTIONALITY_MARKERS: Record<string, string> = {
+const INTENTIONALITY_MARKERS: Record<string, string> = {
   fest: 'Festivo',
   desp: 'Despectivo',
   afect: 'Afectivo',
 };
 
-export const CRONOLOGICAL_MARKERS: Record<string, string> = {
+const CRONOLOGICAL_MARKERS: Record<string, string> = {
   hist: 'Histórico',
   obsol: 'Obsolescente',
 };
 
-export const FREQUENCY_MARKERS: Record<string, string> = {
+const FREQUENCY_MARKERS: Record<string, string> = {
   'p. us': 'Poco usado',
 };
 
@@ -269,6 +269,12 @@ export const ORIGINS: Record<string, string> = {
   romané: 'Romané',
   selknam: "Selk'nam",
   taíno: 'Taíno',
+};
+
+
+export const DICCIONARIES: Record<string, string> = {
+  difruech: 'DIFRUECh',
+  duech: 'DUECh',
 };
 
 function sortKeysByLabel(source: Record<string, string>): string[] {
