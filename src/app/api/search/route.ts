@@ -43,7 +43,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const parsed = parseSearchParams(searchParams);
-    const editorMode = isEditorModeFromHeaders(request.headers);
+    // Determine editor mode from middleware header or explicit query param fallback.
+    // Middleware may set x-editor-mode, but for API requests the header can be missing,
+    // so allow client to pass editorMode=true as a query param.
+    const editorMode =
+      isEditorModeFromHeaders(request.headers) || searchParams.get('editorMode') === 'true';
 
     if ('errorResponse' in parsed) {
       return parsed.errorResponse;
