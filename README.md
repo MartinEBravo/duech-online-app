@@ -1,4 +1,4 @@
-# DUECh Online - Dictionary of Chilean Spanish
+# DUECh en línea - Dictionary of Chilean Spanish
 
 Web application for the Dictionary of Chilean Spanish Usage (DUECh).
 

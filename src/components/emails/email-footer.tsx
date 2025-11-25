@@ -11,7 +11,7 @@ export function EmailFooter() {
       <Text className="px-[5%] text-sm leading-relaxed text-gray-600">
         Saludos,
         <br />
-        El equipo de DUECh Online
+        El equipo de DUECh en línea
       </Text>
     </Tailwind>
   );

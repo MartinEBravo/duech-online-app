@@ -222,12 +222,12 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                 </NavLink>
                 {editorMode && user && (user.role === 'admin' || user.role === 'superadmin') && (
                   <NavLink href={buildHref('/usuarios')} icon={UsersIcon} onClick={closeMenu}>
-                    Gestión de Usuarios
+                    Gestión de usuarios
                   </NavLink>
                 )}
                 {editorMode && (
                   <NavLink href={buildHref('/redactadas')} icon={BookOpenIcon} onClick={closeMenu}>
-                    Palabras Redactadas
+                    Palabras redactadas
                   </NavLink>
                 )}
                 {editorMode && (
@@ -238,7 +238,7 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                     style={{ color: '#ffffff' }}
                   >
                     <GlobeIcon className="h-5 w-5" />
-                    <span className="hover:text-yellow-300">Diccionario Público</span>
+                    <span className="hover:text-yellow-300">Diccionario público</span>
                   </a>
                 )}
               </div>
