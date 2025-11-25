@@ -520,7 +520,11 @@ export async function getRedactedWords() {
   return db.query.words.findMany({
     where: (table, { eq }) => eq(table.status, 'redacted'),
     with: {
-      notes: true,
+      notes: {
+        with: {
+          user: true,
+        },
+      },
       meanings: {
         orderBy: (meanings, { asc }) => [asc(meanings.number)],
       },

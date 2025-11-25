@@ -10,7 +10,7 @@ interface RedactedWord {
   meanings?: Meaning[];
   notes?: Array<{
     note: string | null;
-    user?: string | null;
+    user?: { username: string } | null;
   }> | null;
 }
 
@@ -297,7 +297,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     for (const note of notes) {
       ensureSpace(3);
-      const username = note.user ? `@${note.user}` : 'Anónimo';
+      const username = note.user?.username?.trim() || 'Anónimo';
 
       drawLine(`• ${username}:`, marginLeft + 25, {
         size: 10,
