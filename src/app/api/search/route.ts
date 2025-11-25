@@ -229,4 +229,3 @@ function parseList(value: string | null): string[] {
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
-
