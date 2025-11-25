@@ -3,13 +3,14 @@ import type { PDFFont, Color as PDFLibColor } from 'pdf-lib';
 import { formatSpanishDate } from '@/lib/date-utils';
 import { Meaning, GRAMMATICAL_CATEGORIES, USAGE_STYLES } from '@/lib/definitions';
 
-interface RedactedWord {
+export interface RedactedWord {
   lemma: string;
   root?: string | null;
   letter: string;
   meanings?: Meaning[];
   notes?: Array<{
     note: string | null;
+    date: string | null;
     user?: string | null;
   }> | null;
 }
@@ -231,7 +232,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
   // Header
   const drawHeader = () => {
-    const title = 'REPORTE DE PALABRAS REDACTADAS';
+    const title = 'Reporte de palabras redactadas';
     const titleSize = 16;
     const titleWidth = fontTitle.widthOfTextAtSize(title, titleSize);
     const titleX = marginLeft + (contentWidth - titleWidth) / 2;
@@ -298,8 +299,10 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
     for (const note of notes) {
       ensureSpace(3);
       const username = note.user ? `@${note.user}` : 'Anónimo';
+      const noteDate = note.date ? formatSpanishDate(new Date(note.date)) : null;
+      const noteLabel = noteDate ? `${username} (${noteDate})` : username;
 
-      drawLine(`• ${username}:`, marginLeft + 25, {
+      drawLine(`• ${noteLabel}:`, marginLeft + 25, {
         size: 10,
         markdown: true,
         lineStep: lineHeight - 2,
@@ -466,7 +469,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     // Root
     if (word.root && word.root !== word.lemma) {
-      drawLine(`Raíz: ${word.root}`, marginLeft + 15, {
+      drawLine(`Palabra base: ${word.root}`, marginLeft + 15, {
         size: 9,
         font: fontText,
         color: rgb(0.4, 0.4, 0.4),

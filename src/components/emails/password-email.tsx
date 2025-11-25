@@ -22,11 +22,11 @@ export interface PasswordEmailProps {
 
 const variantConfig = {
   welcome: {
-    preview: 'Bienvenido a DUECh Online - Tu cuenta ha sido creada',
-    title: 'Bienvenido a DUECh Online',
+    preview: 'Bienvenido a DUECh en línea - Tu cuenta ha sido creada',
+    title: 'Bienvenido a DUECh en línea',
   },
   reset: {
-    preview: 'Restablece tu contraseña de DUECh Online',
+    preview: 'Restablece tu contraseña de DUECh en línea',
     title: 'Restablecer contraseña',
   },
   changed: {

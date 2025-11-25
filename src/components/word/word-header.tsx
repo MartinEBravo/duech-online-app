@@ -118,20 +118,24 @@ export function WordHeader({
             />
           </h1>
           <div className="flex items-center gap-2">
-            <span className="text-lg text-gray-700">Palabra base:</span>
-            <span className="text-duech-blue font-semibold">
-              <InlineEditable
-                value={root}
-                onChange={onRootChange}
-                editorMode={canActuallyEdit}
-                editing={editingRoot}
-                onStart={onStartEditRoot}
-                onCancel={onCancelEditRoot}
-                saveStrategy="manual"
-                placeholder="Palabra base"
-                addLabel="+ Añadir palabra base"
-              />
-            </span>
+            {root && root !== lemma && (
+              <>
+                <span className="text-lg text-gray-700">Palabra base:</span>
+                <span className="text-duech-blue font-semibold">
+                  <InlineEditable
+                    value={root}
+                    onChange={onRootChange}
+                    editorMode={canActuallyEdit}
+                    editing={editingRoot}
+                    onStart={onStartEditRoot}
+                    onCancel={onCancelEditRoot}
+                    saveStrategy="manual"
+                    placeholder="Palabra base"
+                    addLabel="+ Añadir palabra base"
+                  />
+                </span>
+              </>
+            )}
           </div>
         </div>
 

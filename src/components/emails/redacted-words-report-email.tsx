@@ -9,8 +9,8 @@ interface RedactedWordsReportEmailProps {
 
 const RedactedWordsReportEmail = ({ username, dateStr }: RedactedWordsReportEmailProps) => (
   <BaseEmail
-    preview="Reporte de Palabras Redactadas - DUECh Online"
-    title="Reporte de Palabras Redactadas"
+    preview="Reporte de palabras redactadas - DUECh en línea"
+    title="Reporte de palabras redactadas"
   >
     <Text className="mb-[3%] px-[5%] text-base leading-relaxed text-gray-800">
       Estimado/a {username},
@@ -35,7 +35,7 @@ const RedactedWordsReportEmail = ({ username, dateStr }: RedactedWordsReportEmai
     <Text className="mb-[3%] px-[5%] text-base leading-relaxed text-gray-800">
       Saludos cordiales,
       <br />
-      <strong>Equipo DUECh Online</strong>
+      <strong>Equipo DUECh en línea</strong>
     </Text>
   </BaseEmail>
 );

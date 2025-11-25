@@ -14,14 +14,6 @@ export function parseListParam(value: string | null): string[] {
 }
 
 /**
- * Check if two arrays are equal (same length and same values in order)
- */
-function arraysEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  return a.every((value, index) => value === b[index]);
-}
-
-/**
  * Local type for filters with required arrays (used in search-page component)
  */
 export type LocalSearchFilters = {
