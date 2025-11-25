@@ -95,7 +95,7 @@ const PASSWORD_EMAIL_CONFIGS: Record<
   }
 > = {
   welcome: {
-    subject: 'Bienvenido a DUECh Online',
+    subject: 'Bienvenido a DUECh en línea',
     needsButton: true,
     getButtonText: () => 'Establecer mi contraseña',
     getParagraphs: () => [
@@ -108,12 +108,12 @@ const PASSWORD_EMAIL_CONFIGS: Record<
     ],
   },
   reset: {
-    subject: 'Restablece tu contraseña de DUECh Online',
+    subject: 'Restablece tu contraseña de DUECh en línea',
     needsButton: true,
     getButtonText: () => 'Restablecer contraseña',
     getParagraphs: () => [
       createEmailParagraph(
-        'Hemos recibido una solicitud para restablecer tu contraseña en DUECh Online.'
+        'Hemos recibido una solicitud para restablecer tu contraseña en DUECh en línea.'
       ),
       createEmailParagraph('Haz clic en el botón de abajo para establecer una nueva contraseña:'),
     ],
@@ -171,9 +171,9 @@ async function sendPasswordEmailWithVariant(
     paragraphs: config.getParagraphs(resetLink),
     ...(config.needsButton &&
       resetLink && {
-        buttonText: config.getButtonText?.(),
-        buttonLink: resetLink,
-      }),
+      buttonText: config.getButtonText?.(),
+      buttonLink: resetLink,
+    }),
     ...(config.showInfoBox && {
       showInfoBox: true,
       infoBoxContent: config.getInfoBoxContent?.(),
@@ -241,7 +241,7 @@ export async function sendRedactedWordsReport(
 
   return sendEmail(
     email,
-    'Reporte de Palabras Redactadas - DUECh Online',
+    'Reporte de Palabras Redactadas - DUECh en línea',
     emailHtml,
     'redacted words report',
     [{ filename: `reporte_redactadas_${now.toISOString().split('T')[0]}.pdf`, content: pdfBuffer }]
