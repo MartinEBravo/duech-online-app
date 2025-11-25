@@ -6,7 +6,13 @@ import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
 import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
-import { Word, SearchResult, WordNote } from '@/lib/definitions';
+import {
+  Word,
+  SearchResult,
+  WordNote,
+  MarkerFilterState,
+  MEANING_MARKER_KEYS,
+} from '@/lib/definitions';
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
 /**
@@ -86,31 +92,54 @@ export async function getWordByLemma(
   };
 }
 
-export async function searchWords(params: {
+const MARKER_COLUMN_MAP = {
+  socialValuations: meanings.socialValuations,
+  socialStratumMarkers: meanings.socialStratumMarkers,
+  styleMarkers: meanings.styleMarkers,
+  intentionalityMarkers: meanings.intentionalityMarkers,
+  geographicalMarkers: meanings.geographicalMarkers,
+  chronologicalMarkers: meanings.chronologicalMarkers,
+  frequencyMarkers: meanings.frequencyMarkers,
+} as const;
+
+type SearchWordsParams = {
   query?: string;
   categories?: string[];
-  styles?: string[];
   origins?: string[];
   letters?: string[];
+  dictionaries?: string[];
   status?: string;
   assignedTo?: string[];
   editorMode?: boolean;
   limit?: number;
   page?: number;
   pageSize?: number;
-}): Promise<{ results: SearchResult[]; total: number }> {
+} & MarkerFilterState;
+
+export async function searchWords(params: SearchWordsParams): Promise<{
+  results: SearchResult[];
+  total: number;
+}> {
   const {
     query,
     categories,
-    styles,
     origins,
     letters,
+    dictionaries,
     status,
     assignedTo,
     editorMode,
     page = 1,
     pageSize = 25,
   } = params;
+
+  const markerFilters = MEANING_MARKER_KEYS.reduce((acc, key) => {
+    const values = params[key];
+    if (values && values.length > 0) {
+      acc[key] = values;
+    }
+    return acc;
+  }, {} as MarkerFilterState);
 
   const conditions: SQL[] = [];
 
@@ -158,12 +187,20 @@ export async function searchWords(params: {
     conditions.push(or(...origins.map((origin) => ilike(meanings.origin, `%${origin}%`)))!);
   }
 
-  if (categories && categories.length > 0) {
-    conditions.push(or(...categories.map((cat) => sql`${cat} = ANY(${meanings.categories})`))!);
+  if (dictionaries && dictionaries.length > 0) {
+    conditions.push(or(...dictionaries.map((dict) => eq(meanings.dictionary, dict)))!);
   }
 
-  if (styles && styles.length > 0) {
-    conditions.push(or(...styles.map((style) => sql`${style} = ANY(${meanings.styles})`))!);
+  if (categories && categories.length > 0) {
+    conditions.push(or(...categories.map((cat) => eq(meanings.grammarCategory, cat)))!);
+  }
+
+  for (const key of MEANING_MARKER_KEYS) {
+    const values = markerFilters[key];
+    if (values && values.length > 0) {
+      const column = MARKER_COLUMN_MAP[key];
+      conditions.push(or(...values.map((value) => eq(column, value)))!);
+    }
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

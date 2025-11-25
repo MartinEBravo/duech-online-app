@@ -8,7 +8,8 @@ import {
 } from '@/lib/editor-mutations';
 import { applyRateLimit } from '@/lib/rate-limiting';
 import { getSessionUser } from '@/lib/auth';
-import type { Word, WordDefinition, WordNote } from '@/lib/definitions';
+import type { Word, Meaning, WordNote, MeaningMarkerValues, Example } from '@/lib/definitions';
+import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
 export async function GET(
   request: NextRequest,
@@ -64,7 +65,7 @@ interface CreateWordPayload {
   createdBy?: unknown;
 }
 
-function normalizeWordDefinitions(input: unknown): WordDefinition[] {
+function normalizeMeanings(input: unknown): Meaning[] {
   if (!Array.isArray(input)) {
     return [];
   }
@@ -78,27 +79,52 @@ function normalizeWordDefinitions(input: unknown): WordDefinition[] {
           ? def.meaning
           : `Definición ${number}`;
 
-      const exampleValue: WordDefinition['example'] =
-        Array.isArray(def.example) || typeof def.example === 'object'
-          ? (def.example as WordDefinition['example'])
-          : ([] as WordDefinition['example']);
+      const markerValues = extractMarkerValues(def);
+      const examples = extractExamples(def);
 
       return {
         number,
         meaning,
         origin: typeof def.origin === 'string' ? def.origin : null,
-        categories: Array.isArray(def.categories)
-          ? (def.categories.filter((cat): cat is string => typeof cat === 'string') as string[])
-          : [],
+        grammarCategory: typeof def.grammarCategory === 'string' ? def.grammarCategory : null,
         remission: typeof def.remission === 'string' ? def.remission : null,
-        styles: Array.isArray(def.styles)
-          ? (def.styles.filter((style): style is string => typeof style === 'string') as string[])
-          : null,
         observation: typeof def.observation === 'string' ? def.observation : null,
-        example: exampleValue,
+        examples: examples.length > 0 ? examples : null,
         variant: typeof def.variant === 'string' ? def.variant : null,
+        ...markerValues,
       };
     });
+}
+
+function extractMarkerValues(source: Record<string, unknown>): MeaningMarkerValues {
+  return MEANING_MARKER_KEYS.reduce((acc, key) => {
+    const rawValue = source[key];
+    if (typeof rawValue === 'string') {
+      acc[key] = rawValue;
+    } else {
+      acc[key] = null;
+    }
+    return acc;
+  }, {} as MeaningMarkerValues);
+}
+
+function extractExamples(source: Record<string, unknown>): Example[] {
+  const legacyExample = source.example;
+  const newExamples = source.examples;
+
+  if (Array.isArray(newExamples)) {
+    return newExamples as Example[];
+  }
+
+  if (Array.isArray(legacyExample)) {
+    return legacyExample as Example[];
+  }
+
+  if (legacyExample && typeof legacyExample === 'object') {
+    return [legacyExample as Example];
+  }
+
+  return [];
 }
 
 function resolveAssignedTo(rawValue: unknown): number | null {
@@ -139,7 +165,7 @@ export async function POST(request: NextRequest) {
     const letter = typeof payload.letter === 'string' ? payload.letter.trim() : null;
     const assignedTo = resolveAssignedTo(payload.assignedTo);
     const status = typeof payload.status === 'string' ? payload.status : undefined;
-    const values = normalizeWordDefinitions(payload.values);
+    const values = normalizeMeanings(payload.values);
     const createdBy = resolveAssignedTo(payload.createdBy);
     const finalValues =
       values.length > 0
@@ -151,10 +177,10 @@ export async function POST(request: NextRequest) {
               origin: null,
               categories: [],
               remission: null,
-              styles: null,
               observation: null,
-              example: [],
+              examples: null,
               variant: null,
+              ...createEmptyMarkerValues(),
             },
           ];
 
@@ -191,6 +217,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function createEmptyMarkerValues(): MeaningMarkerValues {
+  return MEANING_MARKER_KEYS.reduce((acc, key) => {
+    acc[key] = null;
+    return acc;
+  }, {} as MeaningMarkerValues);
 }
 
 /**

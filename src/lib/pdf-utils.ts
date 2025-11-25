@@ -1,7 +1,12 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import type { PDFFont, Color as PDFLibColor } from 'pdf-lib';
 import { formatSpanishDate } from '@/lib/date-utils';
-import { Meaning, GRAMMATICAL_CATEGORIES, USAGE_STYLES } from '@/lib/definitions';
+import {
+  Meaning,
+  GRAMMATICAL_CATEGORIES,
+  MEANING_MARKER_GROUPS,
+  MEANING_MARKER_KEYS,
+} from '@/lib/definitions';
 
 export interface RedactedWord {
   lemma: string;
@@ -339,9 +344,9 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
     }
 
     // Categories
-    if (meaning.categories && meaning.categories.length > 0) {
-      const cats = meaning.categories.map((c) => `"${GRAMMATICAL_CATEGORIES[c] || c}"`).join(', ');
-      drawWrapped(`Categorías: ${cats}`, marginLeft + 25, 9, 100, {
+    if (meaning.grammarCategory) {
+      const cat = `"${GRAMMATICAL_CATEGORIES[meaning.grammarCategory] || meaning.grammarCategory}"`;
+      drawWrapped(`Categoría: ${cat}`, marginLeft + 25, 9, 100, {
         markdown: true,
         color: rgb(0.3, 0.3, 0.3),
       });
@@ -349,9 +354,15 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
     // Meaning with markdown
     drawWrapped(meaning.meaning, marginLeft + 25, 10, 100, { markdown: true });
-    if (meaning.styles && meaning.styles.length > 0) {
-      const styles = meaning.styles.map((s) => USAGE_STYLES[s] || s).join(', ');
-      drawLine(`Estilos: ${styles}`, marginLeft + 25, {
+    const markerDescriptions = MEANING_MARKER_KEYS.flatMap((markerKey) => {
+      const value = meaning[markerKey] as string | null | undefined;
+      if (!value) return [];
+      const label = MEANING_MARKER_GROUPS[markerKey].labels[value] || value;
+      return [`${MEANING_MARKER_GROUPS[markerKey].label}: ${label}`];
+    });
+
+    for (const markerLine of markerDescriptions) {
+      drawLine(markerLine, marginLeft + 25, {
         size: 9,
         font: fontText,
         color: rgb(0.3, 0.3, 0.3),

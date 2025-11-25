@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/common/button';
 
 /**
- * Selector múltiple genérico para opciones (categorías, estilos, etc.)
+ * Selector genérico para opciones (categorías, estilos, etc.)
+ * Soporta selección única (maxSelections=1) o múltiple
  */
 interface MultiSelectorProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface MultiSelectorProps {
   options: Record<string, string>;
   maxWidth?: 'lg' | '2xl';
   columns?: 2 | 3;
+  maxSelections?: number;
 }
 
 export function MultiSelector({
@@ -26,14 +28,23 @@ export function MultiSelector({
   options,
   maxWidth = '2xl',
   columns = 2,
+  maxSelections,
 }: MultiSelectorProps) {
   const [selected, setSelected] = useState<string[]>(selectedItems);
 
   if (!isOpen) return null;
 
+  const isSingleSelect = maxSelections === 1;
+
   const toggleItem = (item: string) => {
     if (selected.includes(item)) {
       setSelected(selected.filter((i) => i !== item));
+    } else if (isSingleSelect) {
+      // Single selection mode: replace the current selection
+      setSelected([item]);
+    } else if (maxSelections && selected.length >= maxSelections) {
+      // Max selections reached, don't add more
+      return;
     } else {
       setSelected([...selected, item]);
     }
@@ -61,7 +72,8 @@ export function MultiSelector({
           {Object.entries(options).map(([key, label]) => (
             <label key={key} className="flex cursor-pointer items-center gap-2">
               <input
-                type="checkbox"
+                type={isSingleSelect ? 'radio' : 'checkbox'}
+                name={isSingleSelect ? 'selector-option' : undefined}
                 checked={selected.includes(key)}
                 onChange={() => toggleItem(key)}
                 className="h-4 w-4 text-blue-600"

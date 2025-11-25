@@ -2,41 +2,50 @@
  * Transformation functions to convert between DB format and frontend format
  */
 
-import { DBWord, Meaning, Word, WordDefinition, Example } from '@/lib/definitions';
+import {
+  DBWord,
+  Meaning,
+  Word,
+  Example,
+  MEANING_MARKER_KEYS,
+  MeaningMarkerKey,
+} from '@/lib/definitions';
 
 /**
  * Transform a DBWord (from database) to Word (frontend format)
  */
 export function dbWordToWord(dbWord: DBWord): Word {
-  const wordDefinitions: WordDefinition[] =
-    dbWord.meanings?.map((meaning) => meaningToWordDefinition(meaning)) || [];
+  const normalizedMeanings: Meaning[] =
+    dbWord.meanings?.map((meaning) => normalizeMeaning(meaning)) || [];
 
   return {
     lemma: dbWord.lemma,
     root: dbWord.root || dbWord.lemma,
-    values: wordDefinitions,
+    values: normalizedMeanings,
   };
 }
 
-/**
- * Transform a Meaning (from database) to WordDefinition (frontend format)
- */
-function meaningToWordDefinition(meaning: Meaning): WordDefinition {
-  // Normalize examples to match frontend format
-  // Frontend expects Example | Example[], but DB always has Example[]
-  const examples = meaning.examples || [];
-  const example = examples.length === 1 ? examples[0] : examples;
+function normalizeMeaning(meaning: Meaning): Meaning {
+  const markerValues = MEANING_MARKER_KEYS.reduce(
+    (acc, key) => {
+      acc[key] = meaning[key] ?? null;
+      return acc;
+    },
+    {} as Record<MeaningMarkerKey, string | null>
+  );
+
+  const normalizedExamples: Example[] | null =
+    meaning.examples && meaning.examples.length > 0 ? meaning.examples : null;
 
   return {
-    number: meaning.number,
+    ...meaning,
+    ...markerValues,
+    grammarCategory: meaning.grammarCategory || null,
     origin: meaning.origin || null,
-    categories: meaning.categories || [],
     remission: meaning.remission || null,
-    meaning: meaning.meaning,
-    styles: meaning.styles || null,
     observation: meaning.observation || null,
-    example: example as Example | Example[],
-    variant: null, // Variant is stored at word level, not meaning level
+    dictionary: meaning.dictionary || null,
+    examples: normalizedExamples,
   };
 }
 

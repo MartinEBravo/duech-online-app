@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LocalSearchFilters } from '@/lib/search-utils';
+import { LocalSearchFilters, createEmptyLocalFilters } from '@/lib/search-utils';
 import {
   setEditorSearchFilters,
   getEditorSearchFilters,
@@ -11,8 +11,10 @@ import {
   setPublicSearchFilters,
   getPublicSearchFilters,
   clearPublicSearchFilters,
+  type MarkerSelectionState,
 } from '@/lib/cookies';
 import { UrlSearchParams } from '@/hooks/useUrlSearchParams';
+import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
 export interface SearchState {
   query: string;
@@ -23,12 +25,7 @@ export interface SearchState {
 
 const createDefaultSearchState = (): SearchState => ({
   query: '',
-  filters: {
-    categories: [],
-    styles: [],
-    origins: [],
-    letters: [],
-  },
+  filters: createEmptyLocalFilters(),
   status: '',
   assignedTo: [],
 });
@@ -45,9 +42,10 @@ const createEditorSearchStateFromCookies = (): SearchState => {
     query: savedFilters.query,
     filters: {
       categories: savedFilters.selectedCategories,
-      styles: savedFilters.selectedStyles,
       origins: savedFilters.selectedOrigins,
       letters: savedFilters.selectedLetters,
+      dictionaries: savedFilters.selectedDictionaries,
+      ...savedFilters.markers,
     },
     status: savedFilters.selectedStatus,
     assignedTo: savedFilters.selectedAssignedTo,
@@ -61,9 +59,10 @@ const createPublicSearchStateFromCookies = (): SearchState => {
     query: savedFilters.query,
     filters: {
       categories: savedFilters.selectedCategories,
-      styles: savedFilters.selectedStyles,
       origins: savedFilters.selectedOrigins,
       letters: savedFilters.selectedLetters,
+      dictionaries: savedFilters.selectedDictionaries,
+      ...savedFilters.markers,
     },
     status: '',
     assignedTo: [],
@@ -73,18 +72,18 @@ const createPublicSearchStateFromCookies = (): SearchState => {
 const hasUrlSearchCriteria = (params: UrlSearchParams): boolean =>
   Boolean(params.trimmedQuery) ||
   params.categories.length > 0 ||
-  params.styles.length > 0 ||
   params.origins.length > 0 ||
   params.letters.length > 0 ||
   params.status.length > 0 ||
-  params.assignedTo.length > 0;
+  params.assignedTo.length > 0 ||
+  MEANING_MARKER_KEYS.some((key) => params[key].length > 0);
 
 const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean): boolean =>
   state.query.length > 0 ||
   state.filters.categories.length > 0 ||
-  state.filters.styles.length > 0 ||
   state.filters.origins.length > 0 ||
   state.filters.letters.length > 0 ||
+  MEANING_MARKER_KEYS.some((key) => state.filters[key].length > 0) ||
   (includeEditorFields && (state.status.length > 0 || state.assignedTo.length > 0));
 
 /**
@@ -92,7 +91,7 @@ const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean
  */
 export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions) {
   const urlHasCriteria = hasUrlSearchCriteria(urlParams);
-  const { trimmedQuery, categories, styles, origins, letters, status, assignedTo } = urlParams;
+  const { trimmedQuery, categories, origins, letters, status, assignedTo } = urlParams;
   const cookieFallbackState = editorMode ? null : createPublicSearchStateFromCookies();
   const cookieHasCriteria = cookieFallbackState
     ? hasSearchStateCriteria(cookieFallbackState, false)
@@ -103,14 +102,17 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
       return createEditorSearchStateFromCookies();
     }
     if (urlHasCriteria) {
+      const urlFilters: LocalSearchFilters = {
+        categories,
+        origins,
+        letters,
+      } as LocalSearchFilters;
+      for (const key of MEANING_MARKER_KEYS) {
+        urlFilters[key] = [...urlParams[key]];
+      }
       return {
         query: trimmedQuery,
-        filters: {
-          categories,
-          styles,
-          origins,
-          letters,
-        },
+        filters: urlFilters,
         status,
         assignedTo: [...assignedTo],
       };
@@ -120,12 +122,7 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     }
     return {
       query: '',
-      filters: {
-        categories: [],
-        styles: [],
-        origins: [],
-        letters: [],
-      },
+      filters: createEmptyLocalFilters(),
       status: '',
       assignedTo: [],
     };
@@ -141,14 +138,18 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     }
 
     if (urlHasCriteria) {
+      const nextFilters: LocalSearchFilters = {
+        categories: [...categories],
+        origins: [...origins],
+        letters: [...letters],
+      } as LocalSearchFilters;
+      for (const key of MEANING_MARKER_KEYS) {
+        nextFilters[key] = [...urlParams[key]];
+      }
+
       setSearchState({
         query: trimmedQuery,
-        filters: {
-          categories: [...categories],
-          styles: [...styles],
-          origins: [...origins],
-          letters: [...letters],
-        },
+        filters: nextFilters,
         status,
         assignedTo: [...assignedTo],
       });
@@ -159,11 +160,11 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     urlHasCriteria,
     trimmedQuery,
     categories,
-    styles,
     origins,
     letters,
     status,
     assignedTo,
+    urlParams,
   ]);
 
   // Save filters to cookies for editor mode
@@ -177,11 +178,12 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
         setEditorSearchFilters({
           query: snapshot.query,
           selectedCategories: snapshot.filters.categories,
-          selectedStyles: snapshot.filters.styles,
           selectedOrigins: snapshot.filters.origins,
           selectedLetters: snapshot.filters.letters,
+          selectedDictionaries: snapshot.filters.dictionaries,
           selectedStatus: snapshot.status,
           selectedAssignedTo: snapshot.assignedTo,
+          markers: buildMarkerSnapshot(snapshot.filters),
         });
         return;
       }
@@ -189,9 +191,10 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
       setPublicSearchFilters({
         query: snapshot.query,
         selectedCategories: snapshot.filters.categories,
-        selectedStyles: snapshot.filters.styles,
         selectedOrigins: snapshot.filters.origins,
         selectedLetters: snapshot.filters.letters,
+        selectedDictionaries: snapshot.filters.dictionaries,
+        markers: buildMarkerSnapshot(snapshot.filters),
       });
     },
     [editorMode, searchState]
@@ -220,4 +223,12 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
     clearAll,
     isInitialized: isInitializedRef.current,
   };
+}
+
+function buildMarkerSnapshot(filters: LocalSearchFilters): MarkerSelectionState {
+  const snapshot = {} as MarkerSelectionState;
+  for (const key of MEANING_MARKER_KEYS) {
+    snapshot[key] = [...filters[key]];
+  }
+  return snapshot;
 }

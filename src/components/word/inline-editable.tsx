@@ -85,15 +85,15 @@ export default function InlineEditable({
       const content = renderDisplay ? renderDisplay(displayValue) : displayValue;
       const wrappedContent = renderWrapper ? renderWrapper(content) : content;
       return (
-        <div className="flex items-center gap-2">
+        <div className="group flex items-center gap-2">
           {wrappedContent}
           <Button
             onClick={begin}
-            className="text-duech-blue inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-blue-100"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 opacity-60 transition-opacity group-hover:opacity-100 hover:bg-blue-200 hover:opacity-100"
             aria-label={`Editar ${placeholder.toLowerCase()}`}
             title={`Editar ${placeholder.toLowerCase()}`}
           >
-            <PencilIcon className="h-5 w-5" />
+            <PencilIcon className="h-5 w-5 stroke-blue-700" />
           </Button>
         </div>
       );

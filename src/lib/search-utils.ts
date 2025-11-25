@@ -13,15 +13,21 @@ export function parseListParam(value: string | null): string[] {
     .filter(Boolean);
 }
 
+import {
+  MEANING_MARKER_KEYS,
+  MeaningMarkerKey,
+  createEmptyMarkerFilterState,
+} from '@/lib/definitions';
+
 /**
  * Local type for filters with required arrays (used in search-page component)
  */
 export type LocalSearchFilters = {
   categories: string[];
-  styles: string[];
   origins: string[];
   letters: string[];
-};
+  dictionaries: string[];
+} & Record<MeaningMarkerKey, string[]>;
 
 /**
  * Check if search filters have changed by comparing each filter array
@@ -30,28 +36,49 @@ export function filtersChanged(
   prevFilters: LocalSearchFilters,
   newFilters: LocalSearchFilters
 ): boolean {
-  return (
-    prevFilters.categories.length !== newFilters.categories.length ||
-    prevFilters.categories.some((cat, idx) => cat !== newFilters.categories[idx]) ||
-    prevFilters.styles.length !== newFilters.styles.length ||
-    prevFilters.styles.some((style, idx) => style !== newFilters.styles[idx]) ||
-    prevFilters.origins.length !== newFilters.origins.length ||
-    prevFilters.origins.some((origin, idx) => origin !== newFilters.origins[idx]) ||
-    prevFilters.letters.length !== newFilters.letters.length ||
-    prevFilters.letters.some((letter, idx) => letter !== newFilters.letters[idx])
-  );
+  if (arraysDiffer(prevFilters.categories, newFilters.categories)) return true;
+  if (arraysDiffer(prevFilters.origins, newFilters.origins)) return true;
+  if (arraysDiffer(prevFilters.letters, newFilters.letters)) return true;
+  if (arraysDiffer(prevFilters.dictionaries, newFilters.dictionaries)) return true;
+
+  return MEANING_MARKER_KEYS.some((key) => arraysDiffer(prevFilters[key], newFilters[key]));
 }
 
 /**
  * Create a deep copy of search filters
  */
 export function cloneFilters(filters: LocalSearchFilters): LocalSearchFilters {
-  return {
+  const base = {
     categories: [...filters.categories],
-    styles: [...filters.styles],
     origins: [...filters.origins],
     letters: [...filters.letters],
+    dictionaries: [...filters.dictionaries],
+    ...createEmptyMarkerFilterState(),
   };
+
+  for (const key of MEANING_MARKER_KEYS) {
+    base[key] = [...filters[key]];
+  }
+
+  return base;
+}
+
+export function createEmptyLocalFilters(): LocalSearchFilters {
+  const markerDefaults = createEmptyMarkerFilterState();
+  const base = {
+    categories: [] as string[],
+    origins: [] as string[],
+    letters: [] as string[],
+    dictionaries: [] as string[],
+    ...markerDefaults,
+  };
+
+  return base;
+}
+
+function arraysDiffer(a: string[] = [], b: string[] = []): boolean {
+  if (a.length !== b.length) return true;
+  return a.some((value, index) => value !== b[index]);
 }
 
 /**
