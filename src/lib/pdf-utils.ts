@@ -3,7 +3,7 @@ import type { PDFFont, Color as PDFLibColor } from 'pdf-lib';
 import { formatSpanishDate } from '@/lib/date-utils';
 import { Meaning, GRAMMATICAL_CATEGORIES, USAGE_STYLES } from '@/lib/definitions';
 
-interface RedactedWord {
+export interface RedactedWord {
   lemma: string;
   root?: string | null;
   letter: string;

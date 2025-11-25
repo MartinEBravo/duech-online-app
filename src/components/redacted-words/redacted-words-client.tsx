@@ -75,7 +75,7 @@ export function RedactedWordsClient({ initialWords, userEmail }: RedactedWordsCl
       {/* Action Buttons */}
       <div className="mb-6 flex flex-wrap gap-3">
         <Button
-          href="/api/words/reporte-redactadas"
+          href="/api/words/report"
           className="bg-duech-blue text-white hover:bg-blue-700"
         >
           Descargar PDF

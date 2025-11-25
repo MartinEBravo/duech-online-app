@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { sendRedactedWordsReport } from '@/lib/email';
-import { authenticateAndFetchRedactedWords } from '@/lib/redacted-words-utils';
+import {
+  authenticateAndFetchRedactedWords,
+  mapRedactedWordsToPdf,
+} from '@/lib/redacted-words-utils';
 import { generateRedactedWordsPDF } from '@/lib/pdf-utils';
 
 export async function POST() {
@@ -10,7 +13,8 @@ export async function POST() {
     if (!result.success) return result.response;
 
     // Generate PDF
-    const pdfBytes = await generateRedactedWordsPDF(result.words);
+    const pdfReadyWords = mapRedactedWordsToPdf(result.words);
+    const pdfBytes = await generateRedactedWordsPDF(pdfReadyWords);
     const pdfBuffer = Buffer.from(pdfBytes);
 
     // Send email with PDF attachment
