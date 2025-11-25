@@ -30,14 +30,16 @@ import {
   type User,
 } from '@/lib/search-utils';
 
-const buildUrlSignature = (params: {
-  trimmedQuery: string;
-  categories: string[];
-  origins: string[];
-  letters: string[];
-  status: string;
-  assignedTo: string[];
-} & Record<MeaningMarkerKey, string[]>): string => {
+const buildUrlSignature = (
+  params: {
+    trimmedQuery: string;
+    categories: string[];
+    origins: string[];
+    letters: string[];
+    status: string;
+    assignedTo: string[];
+  } & Record<MeaningMarkerKey, string[]>
+): string => {
   const markerSegment = MEANING_MARKER_KEYS.map((key) => params[key].join(',')).join('|');
   return [
     params.trimmedQuery,
@@ -328,16 +330,16 @@ export function SearchPage({
       ? searchState.filters
       : urlHasCriteria
         ? (() => {
-          const snapshot = {
-            categories: [...urlParams.categories],
-            origins: [...urlParams.origins],
-            letters: [...urlParams.letters],
-          } as LocalSearchFilters;
-          for (const key of MEANING_MARKER_KEYS) {
-            snapshot[key] = [...urlParams[key]];
-          }
-          return snapshot;
-        })()
+            const snapshot = {
+              categories: [...urlParams.categories],
+              origins: [...urlParams.origins],
+              letters: [...urlParams.letters],
+            } as LocalSearchFilters;
+            for (const key of MEANING_MARKER_KEYS) {
+              snapshot[key] = [...urlParams[key]];
+            }
+            return snapshot;
+          })()
         : searchState.filters;
 
     void executeSearch({
@@ -353,6 +355,7 @@ export function SearchPage({
     searchState.filters,
     searchState.query,
     urlHasCriteria,
+    urlParams,
     urlSignature,
   ]);
 
@@ -462,15 +465,15 @@ export function SearchPage({
     () =>
       editorMode
         ? {
-          hasActive: hasEditorFilters,
-          onClear: clearAdditionalFilters,
-          render: () => (
-            <>
-              {statusFilter}
-              {assignedFilter}
-            </>
-          ),
-        }
+            hasActive: hasEditorFilters,
+            onClear: clearAdditionalFilters,
+            render: () => (
+              <>
+                {statusFilter}
+                {assignedFilter}
+              </>
+            ),
+          }
         : undefined,
     [editorMode, clearAdditionalFilters, hasEditorFilters, statusFilter, assignedFilter]
   );

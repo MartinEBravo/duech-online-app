@@ -14,7 +14,7 @@ import {
   type MarkerSelectionState,
 } from '@/lib/cookies';
 import { UrlSearchParams } from '@/hooks/useUrlSearchParams';
-import { MEANING_MARKER_KEYS, type MeaningMarkerKey } from '@/lib/definitions';
+import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
 export interface SearchState {
   query: string;

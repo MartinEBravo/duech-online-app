@@ -3,12 +3,6 @@
 import React from 'react';
 import { Button } from '@/components/common/button';
 import { PlusIcon, DeleteIcon } from '@/components/icons';
-import {
-  MEANING_MARKER_KEYS,
-  MEANING_MARKER_GROUPS,
-  type MeaningMarkerKey,
-  type Meaning,
-} from '@/lib/definitions';
 
 // Color variants for different marker types
 export type MarkerColorVariant =

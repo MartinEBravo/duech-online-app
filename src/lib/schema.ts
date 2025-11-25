@@ -52,7 +52,7 @@ export const meanings = pgTable('meanings', {
   meaning: text('meaning').notNull(),
   observation: text('observation'),
   remission: text('remission'), // Cross-reference to another word
-  grammarCategory: text('grammar_categ'), 
+  grammarCategory: text('grammar_categ'),
   socialValuations: text('social_valuation'),
   socialStratumMarkers: text('social_mark'),
   styleMarkers: text('style_mark'),

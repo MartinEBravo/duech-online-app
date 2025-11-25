@@ -57,8 +57,11 @@ export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null
 }
 
 function parseMarkerParams(params: ReadonlyURLSearchParams | URLSearchParams) {
-  return MEANING_MARKER_KEYS.reduce((acc, key) => {
-    acc[key] = parseListParam(params.get(key));
-    return acc;
-  }, {} as Record<MeaningMarkerKey, string[]>);
+  return MEANING_MARKER_KEYS.reduce(
+    (acc, key) => {
+      acc[key] = parseListParam(params.get(key));
+      return acc;
+    },
+    {} as Record<MeaningMarkerKey, string[]>
+  );
 }

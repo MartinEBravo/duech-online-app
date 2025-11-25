@@ -62,8 +62,6 @@ export interface Meaning extends MeaningMarkerValues {
   updatedAt?: Date;
 }
 
-
-
 export interface Word {
   lemma: string;
   root: string;

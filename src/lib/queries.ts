@@ -11,7 +11,6 @@ import {
   SearchResult,
   WordNote,
   MarkerFilterState,
-  MeaningMarkerKey,
   MEANING_MARKER_KEYS,
 } from '@/lib/definitions';
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
@@ -85,9 +84,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-            id: note.user.id,
-            username: note.user.username,
-          }
+              id: note.user.id,
+              username: note.user.username,
+            }
           : null,
       })) ?? [],
   };
@@ -130,7 +129,6 @@ export async function searchWords(params: SearchWordsParams): Promise<{
     editorMode,
     page = 1,
     pageSize = 25,
-    limit,
   } = params;
 
   const markerFilters = MEANING_MARKER_KEYS.reduce((acc, key) => {
@@ -188,9 +186,7 @@ export async function searchWords(params: SearchWordsParams): Promise<{
   }
 
   if (categories && categories.length > 0) {
-    conditions.push(
-      or(...categories.map((cat) => eq(meanings.grammarCategory, cat)))!
-    );
+    conditions.push(or(...categories.map((cat) => eq(meanings.grammarCategory, cat)))!);
   }
 
   for (const key of MEANING_MARKER_KEYS) {

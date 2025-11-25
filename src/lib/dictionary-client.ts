@@ -1,6 +1,5 @@
 import {
   SearchFilters,
-  SearchMetadata,
   SearchResponse,
   MEANING_MARKER_KEYS,
   createEmptyMarkerFilterState,
@@ -54,21 +53,6 @@ export async function searchDictionary(
       metadata: { categories: [], origins: [], markers: createEmptyMarkerFilterState() },
       pagination: { page: 1, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
     };
-  }
-}
-
-export async function getSearchMetadata(): Promise<SearchMetadata> {
-  try {
-    const response = await fetch('/api/search?metaOnly=true');
-
-    if (!response.ok) {
-      throw new Error('Failed to get search metadata');
-    }
-
-    const result = await response.json();
-    return result.data.metadata;
-  } catch {
-    return { categories: [], origins: [], markers: createEmptyMarkerFilterState() };
   }
 }
 

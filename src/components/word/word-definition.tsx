@@ -12,6 +12,7 @@ import {
   GRAMMATICAL_CATEGORIES,
   MEANING_MARKER_GROUPS,
   MEANING_MARKER_KEYS,
+  ORIGINS,
   type Example,
   type Meaning,
   type MeaningMarkerKey,
@@ -63,7 +64,7 @@ export function DefinitionSection({
   // Gather all chips (category + markers) into a single list
   const allChips = useMemo(() => {
     const chips: ChipItem[] = [];
-    
+
     // Add grammar category
     if (def.grammarCategory) {
       chips.push({
@@ -73,7 +74,7 @@ export function DefinitionSection({
         variant: 'category',
       });
     }
-    
+
     // Add all markers
     for (const markerKey of MEANING_MARKER_KEYS) {
       const value = def[markerKey] as string | null | undefined;
@@ -87,7 +88,7 @@ export function DefinitionSection({
         });
       }
     }
-    
+
     return chips;
   }, [def]);
 
@@ -116,22 +117,29 @@ export function DefinitionSection({
         <div className="flex-1">
           {/* Origin */}
           <div className="mb-2">
-            <InlineEditable
-              value={def.origin ?? null}
-              onChange={(v) => onPatchDefinition({ origin: v })}
-              editorMode={editorMode}
-              editing={isEditing(`def:${defIndex}:origin`)}
-              onStart={() => onToggleEdit(`def:${defIndex}:origin`)}
-              onCancel={() => onToggleEdit(`def:${defIndex}:origin`)}
-              saveStrategy="manual"
-              placeholder="Origen de la palabra"
-              addLabel="+ Añadir origen"
-              renderDisplay={(value: string) => (
+            {editorMode ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-600">Origen:</span>
+                <select
+                  value={def.origin ?? ''}
+                  onChange={(e) => onPatchDefinition({ origin: e.target.value || null })}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                >
+                  <option value="">Sin origen</option>
+                  {Object.entries(ORIGINS).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              def.origin && (
                 <span className="text-sm text-gray-600">
-                  <span className="font-medium">Origen:</span> {value}
+                  <span className="font-medium">Origen:</span> {ORIGINS[def.origin] || def.origin}
                 </span>
-              )}
-            />
+              )
+            )}
           </div>
           {/* Categories and Markers - unified chip display */}
           <div className="mb-3">
@@ -165,7 +173,7 @@ export function DefinitionSection({
                       <Button
                         key={markerKey}
                         onClick={() => onSetEditingMarker(markerKey)}
-                        className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-gray-300 bg-white px-3 py-1 text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50"
+                        className="inline-flex items-center gap-1 rounded-full border-2 border-dashed border-gray-300 bg-white px-3 py-1 text-xs text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
                         title={markerGroup.addLabel}
                       >
                         <PlusIcon className="h-4 w-4" />
@@ -258,7 +266,9 @@ export function DefinitionSection({
                   Ejemplo{def.examples && def.examples.length > 1 ? 's' : ''}:
                 </h3>
               </div>
-              <div className="space-y-8">{renderExample(def.examples ?? null, defIndex, editorMode)}</div>
+              <div className="space-y-8">
+                {renderExample(def.examples ?? null, defIndex, editorMode)}
+              </div>
             </div>
           )}
           {/* Variant */}

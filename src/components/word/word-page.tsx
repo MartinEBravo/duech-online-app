@@ -126,7 +126,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -524,7 +524,11 @@ export function WordDisplay({
             // Only take the first selected category since it's now a single string
             patchDefLocal(editingCategories, { grammarCategory: cats[0] ?? null });
           }}
-          selectedItems={word.values[editingCategories].grammarCategory ? [word.values[editingCategories].grammarCategory] : []}
+          selectedItems={
+            word.values[editingCategories].grammarCategory
+              ? [word.values[editingCategories].grammarCategory]
+              : []
+          }
           title="Seleccionar categoría gramatical"
           options={GRAMMATICAL_CATEGORIES}
           maxWidth="2xl"
@@ -533,10 +537,14 @@ export function WordDisplay({
         />
       )}
 
-      {editorMode && editingMarker !== null && (
+      {editorMode &&
+        editingMarker !== null &&
         (() => {
           const markerMeta = MEANING_MARKER_GROUPS[editingMarker.markerKey];
-          const currentValue = word.values[editingMarker.defIndex][editingMarker.markerKey] as string | null | undefined;
+          const currentValue = word.values[editingMarker.defIndex][editingMarker.markerKey] as
+            | string
+            | null
+            | undefined;
           const selectedItems = currentValue ? [currentValue] : [];
           return (
             <MultiSelector
@@ -556,8 +564,7 @@ export function WordDisplay({
               maxSelections={1}
             />
           );
-        })()
-      )}
+        })()}
 
       {/* Example editor modal */}
       <ExampleEditorModal

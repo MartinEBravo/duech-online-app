@@ -11,17 +11,18 @@ import React, {
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { MultiSelectDropdown } from '@/components/common/dropdown';
-import { getSearchMetadata } from '@/lib/dictionary-client';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import {
   GRAMMATICAL_CATEGORIES,
+  ORIGINS,
+  PREDEFINED_GRAMMATICAL_CATEGORY_FILTERS,
+  PREDEFINED_ORIGIN_FILTERS,
   SearchFilters,
   MEANING_MARKER_KEYS,
   MEANING_MARKER_GROUPS,
   createEmptyMarkerFilterState,
   MeaningMarkerKey,
-  MarkerMetadata,
 } from '@/lib/definitions';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
@@ -69,8 +70,6 @@ const MARKER_ENTRIES = MEANING_MARKER_KEYS.map((key) => ({
   key,
   config: MEANING_MARKER_GROUPS[key],
 }));
-
-const EMPTY_MARKER_METADATA = createEmptyMarkerFilterState();
 
 function createEmptyFilters(): InternalFilters {
   const markerDefaults = createEmptyMarkerFilterState();
@@ -155,11 +154,7 @@ export default function SearchBar({
 
   const [query, setQuery] = useState(initialValue);
   const [filters, setFilters] = useState<InternalFilters>(normalizedInitialFilters);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const [availableOrigins, setAvailableOrigins] = useState<string[]>([]);
-  const [availableMarkers, setAvailableMarkers] = useState<MarkerMetadata>(EMPTY_MARKER_METADATA);
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(initialAdvancedOpen);
-  const [metadataLoaded, setMetadataLoaded] = useState(false);
 
   const defaultSearchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchPath = customSearchPath ?? defaultSearchPath;
@@ -235,31 +230,6 @@ export default function SearchBar({
   }, [extraFiltersActive]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadMetadata = async () => {
-      try {
-        const metadata = await getSearchMetadata();
-        if (!isMounted) return;
-        setAvailableCategories(metadata.categories);
-        setAvailableOrigins(metadata.origins);
-        setAvailableMarkers(metadata.markers);
-        setMetadataLoaded(true);
-      } catch {
-        if (isMounted) {
-          setMetadataLoaded(true);
-        }
-      }
-    };
-
-    loadMetadata();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -269,29 +239,36 @@ export default function SearchBar({
 
   const categoryOptions = useMemo(
     () =>
-      availableCategories.map((category) => ({
+      PREDEFINED_GRAMMATICAL_CATEGORY_FILTERS.map((category) => ({
         value: category,
         label: GRAMMATICAL_CATEGORIES[category] || category,
       })),
-    [availableCategories]
+    []
   );
 
   const originOptions = useMemo(
-    () => availableOrigins.map((origin) => ({ value: origin, label: origin })),
-    [availableOrigins]
+    () =>
+      PREDEFINED_ORIGIN_FILTERS.map((origin) => ({
+        value: origin,
+        label: ORIGINS[origin] || origin,
+      })),
+    []
   );
 
   const markerOptions = useMemo(() => {
     const entries = MARKER_ENTRIES.map(({ key, config }) => {
-      const values = availableMarkers[key] ?? [];
+      const values = Object.keys(config.labels);
       const options = values.map((value) => ({
         value,
         label: config.labels[value] || value,
       }));
       return [key, options];
     });
-    return Object.fromEntries(entries) as Record<MeaningMarkerKey, { value: string; label: string }[]>;
-  }, [availableMarkers]);
+    return Object.fromEntries(entries) as Record<
+      MeaningMarkerKey,
+      { value: string; label: string }[]
+    >;
+  }, []);
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -404,14 +381,15 @@ export default function SearchBar({
             key={`${pill.key}-${pill.value}`}
             type="button"
             onClick={() => removeFilterValue(pill.key, pill.value)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${pill.variant === 'category'
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${
+              pill.variant === 'category'
                 ? 'border-blue-300 bg-blue-100 text-blue-800'
                 : pill.variant === 'origin'
                   ? 'border-purple-300 bg-purple-100 text-purple-800'
                   : pill.variant === 'letter'
                     ? 'border-orange-300 bg-orange-100 text-orange-800'
                     : 'border-green-300 bg-green-100 text-green-800'
-              } `}
+            } `}
           >
             <span>{pill.label}</span>
             <CloseIcon className="h-3 w-3" />
@@ -476,56 +454,48 @@ export default function SearchBar({
 
       {advancedOpen && (
         <div className="border-duech-blue/20 mt-4 rounded-xl border bg-white p-6 shadow-sm">
-          {!metadataLoaded ? (
-            <div className="h-24 animate-pulse rounded bg-gray-100" />
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* Row 1 */}
+              <MultiSelectDropdown
+                label="Letras"
+                options={LETTER_OPTIONS}
+                selectedValues={filters.letters}
+                onChange={(values) => updateFilters('letters', values)}
+                placeholder="Seleccionar letras"
+              />
+              <MultiSelectDropdown
+                label="Orígenes"
+                options={originOptions}
+                selectedValues={filters.origins}
+                onChange={(values) => updateFilters('origins', values)}
+                placeholder="Seleccionar orígenes"
+              />
+
+              {/* Row 2 */}
+              <MultiSelectDropdown
+                label="Categorías gramaticales"
+                options={categoryOptions}
+                selectedValues={filters.categories}
+                onChange={(values) => updateFilters('categories', values)}
+                placeholder="Seleccionar categorías"
+              />
+              {/* Markers - rows 2-5 */}
+              {MARKER_ENTRIES.map(({ key, config }) => (
                 <MultiSelectDropdown
-                  label="Letras"
-                  options={LETTER_OPTIONS}
-                  selectedValues={filters.letters}
-                  onChange={(values) => updateFilters('letters', values)}
-                  placeholder="Seleccionar letras"
+                  key={key}
+                  label={config.label}
+                  options={markerOptions[key]}
+                  selectedValues={filters[key]}
+                  onChange={(values) => updateFilters(key, values)}
+                  placeholder={config.addLabel.replace('+ ', '')}
                 />
+              ))}
 
-                <MultiSelectDropdown
-                  label="Orígenes"
-                  options={originOptions}
-                  selectedValues={filters.origins}
-                  onChange={(values) => updateFilters('origins', values)}
-                  placeholder="Seleccionar orígenes"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <MultiSelectDropdown
-                  label="Categorías gramaticales"
-                  options={categoryOptions}
-                  selectedValues={filters.categories}
-                  onChange={(values) => updateFilters('categories', values)}
-                  placeholder="Seleccionar categorías"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {MARKER_ENTRIES.map(({ key, config }) => (
-                  <MultiSelectDropdown
-                    key={key}
-                    label={config.label}
-                    options={markerOptions[key]}
-                    selectedValues={filters[key]}
-                    onChange={(values) => updateFilters(key, values)}
-                    placeholder={config.addLabel.replace('+ ', '')}
-                  />
-                ))}
-              </div>
-
-              {additionalFiltersContent && (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{additionalFiltersContent}</div>
-              )}
+              {/* Additional filters if any */}
+              {additionalFiltersContent}
             </div>
-          )}
+          </div>
 
           {renderFilterPills()}
 

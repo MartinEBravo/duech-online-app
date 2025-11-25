@@ -26,14 +26,16 @@ export function dbWordToWord(dbWord: DBWord): Word {
 }
 
 function normalizeMeaning(meaning: Meaning): Meaning {
-  const markerValues = MEANING_MARKER_KEYS.reduce((acc, key) => {
-    acc[key] = meaning[key] ?? null;
-    return acc;
-  }, {} as Record<MeaningMarkerKey, string | null>);
+  const markerValues = MEANING_MARKER_KEYS.reduce(
+    (acc, key) => {
+      acc[key] = meaning[key] ?? null;
+      return acc;
+    },
+    {} as Record<MeaningMarkerKey, string | null>
+  );
 
-  const normalizedExamples: Example[] | null = meaning.examples && meaning.examples.length > 0
-    ? meaning.examples
-    : null;
+  const normalizedExamples: Example[] | null =
+    meaning.examples && meaning.examples.length > 0 ? meaning.examples : null;
 
   return {
     ...meaning,
