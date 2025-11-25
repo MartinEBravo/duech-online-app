@@ -8,7 +8,7 @@ import { SelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
 import { InformationCircleIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
-import type { Meaning } from '@/lib/definitions';
+import { DICCIONARIES, type Meaning } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
 import { getLexicographerByRole } from '@/lib/search-utils';
 import { getStatusByRole } from '@/lib/search-utils';
@@ -29,6 +29,9 @@ interface WordHeaderProps {
   editingRoot: boolean;
   onStartEditRoot: () => void;
   onCancelEditRoot: () => void;
+  // Dictionary field
+  dictionary: string | null;
+  onDictionaryChange: (value: string | null) => void;
   // Editor controls
   letter: string;
   onLetterChange: (value: string) => void;
@@ -61,6 +64,8 @@ export function WordHeader({
   editingRoot,
   onStartEditRoot,
   onCancelEditRoot,
+  dictionary,
+  onDictionaryChange,
   letter,
   onLetterChange,
   letterOptions,
@@ -138,11 +143,27 @@ export function WordHeader({
               </>
             )}
           </div>
+          {/* Show dictionary source in public mode */}
+          {!editorMode && dictionary && (
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">Fuente:</span> {dictionary}
+            </div>
+          )}
         </div>
 
         {/* Editor controls */}
         {editorMode && (
           <div className="flex flex-wrap items-end gap-3 text-sm">
+            <div className="w-32">
+              <SelectDropdown
+                label="Diccionario"
+                options={DICCIONARIES}
+                selectedValue={dictionary || ''}
+                onChange={(val) => onDictionaryChange(val || null)}
+                placeholder="Seleccionar"
+                disabled={!canActuallyEdit}
+              />
+            </div>
             <div className="w-24">
               <SelectDropdown
                 label="Letra"

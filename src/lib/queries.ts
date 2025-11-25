@@ -107,6 +107,7 @@ type SearchWordsParams = {
   categories?: string[];
   origins?: string[];
   letters?: string[];
+  dictionaries?: string[];
   status?: string;
   assignedTo?: string[];
   editorMode?: boolean;
@@ -124,6 +125,7 @@ export async function searchWords(params: SearchWordsParams): Promise<{
     categories,
     origins,
     letters,
+    dictionaries,
     status,
     assignedTo,
     editorMode,
@@ -183,6 +185,10 @@ export async function searchWords(params: SearchWordsParams): Promise<{
 
   if (origins && origins.length > 0) {
     conditions.push(or(...origins.map((origin) => ilike(meanings.origin, `%${origin}%`)))!);
+  }
+
+  if (dictionaries && dictionaries.length > 0) {
+    conditions.push(or(...dictionaries.map((dict) => eq(meanings.dictionary, dict)))!);
   }
 
   if (categories && categories.length > 0) {

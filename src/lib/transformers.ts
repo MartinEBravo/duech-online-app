@@ -44,6 +44,7 @@ function normalizeMeaning(meaning: Meaning): Meaning {
     origin: meaning.origin || null,
     remission: meaning.remission || null,
     observation: meaning.observation || null,
+    dictionary: meaning.dictionary || null,
     examples: normalizedExamples,
   };
 }

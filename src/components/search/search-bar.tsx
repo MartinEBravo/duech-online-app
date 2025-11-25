@@ -16,6 +16,7 @@ import { Button } from '@/components/common/button';
 import {
   GRAMMATICAL_CATEGORIES,
   ORIGINS,
+  DICCIONARIES,
   PREDEFINED_GRAMMATICAL_CATEGORY_FILTERS,
   PREDEFINED_ORIGIN_FILTERS,
   SearchFilters,
@@ -51,9 +52,10 @@ type InternalFilters = {
   categories: string[];
   origins: string[];
   letters: string[];
+  dictionaries: string[];
 } & MarkerSelections;
 
-type FilterVariant = 'category' | 'origin' | 'letter' | 'marker';
+type FilterVariant = 'category' | 'origin' | 'letter' | 'marker' | 'dictionary';
 
 interface AdditionalFiltersConfig {
   hasActive: boolean;
@@ -77,6 +79,7 @@ function createEmptyFilters(): InternalFilters {
     categories: [] as string[],
     origins: [] as string[],
     letters: [] as string[],
+    dictionaries: [] as string[],
     ...markerDefaults,
   };
 
@@ -92,6 +95,7 @@ function mergeInitialFilters(initial?: Partial<SearchFilters>): InternalFilters 
   filters.categories = initial.categories ?? [];
   filters.origins = initial.origins ?? [];
   filters.letters = initial.letters ?? [];
+  filters.dictionaries = initial.dictionaries ?? [];
 
   for (const key of MEANING_MARKER_KEYS) {
     filters[key] = initial[key] ?? [];
@@ -113,6 +117,7 @@ function filtersEqual(a: InternalFilters, b: InternalFilters): boolean {
   if (!arraysEqual(a.categories, b.categories)) return false;
   if (!arraysEqual(a.origins, b.origins)) return false;
   if (!arraysEqual(a.letters, b.letters)) return false;
+  if (!arraysEqual(a.dictionaries, b.dictionaries)) return false;
 
   return !MEANING_MARKER_KEYS.some((key) => !arraysEqual(a[key], b[key]));
 }
@@ -173,6 +178,7 @@ export default function SearchBar({
       filters.categories.length > 0 ||
       filters.origins.length > 0 ||
       filters.letters.length > 0 ||
+      filters.dictionaries.length > 0 ||
       MEANING_MARKER_KEYS.some((key) => filters[key].length > 0),
     [filters]
   );
@@ -293,6 +299,7 @@ export default function SearchBar({
           selectedCategories: [...filters.categories],
           selectedOrigins: [...filters.origins],
           selectedLetters: [...filters.letters],
+          selectedDictionaries: [...filters.dictionaries],
           selectedStatus: existing.selectedStatus,
           selectedAssignedTo: [...existing.selectedAssignedTo],
           markers: markerSnapshot,
@@ -307,6 +314,7 @@ export default function SearchBar({
         selectedCategories: [...filters.categories],
         selectedOrigins: [...filters.origins],
         selectedLetters: [...filters.letters],
+        selectedDictionaries: [...filters.dictionaries],
         markers: markerSnapshot,
       });
 
@@ -358,6 +366,10 @@ export default function SearchBar({
       pills.push({ key: 'letters', value: letter, label: letter.toUpperCase(), variant: 'letter' });
     });
 
+    filters.dictionaries.forEach((dict) => {
+      pills.push({ key: 'dictionaries', value: dict, label: dict, variant: 'dictionary' });
+    });
+
     MEANING_MARKER_KEYS.forEach((markerKey) => {
       const config = MEANING_MARKER_GROUPS[markerKey];
       filters[markerKey].forEach((marker) => {
@@ -388,7 +400,9 @@ export default function SearchBar({
                   ? 'border-purple-300 bg-purple-100 text-purple-800'
                   : pill.variant === 'letter'
                     ? 'border-orange-300 bg-orange-100 text-orange-800'
-                    : 'border-green-300 bg-green-100 text-green-800'
+                    : pill.variant === 'dictionary'
+                      ? 'border-teal-300 bg-teal-100 text-teal-800'
+                      : 'border-green-300 bg-green-100 text-green-800'
             } `}
           >
             <span>{pill.label}</span>
@@ -470,6 +484,14 @@ export default function SearchBar({
                 selectedValues={filters.origins}
                 onChange={(values) => updateFilters('origins', values)}
                 placeholder="Seleccionar orígenes"
+              />
+
+              <MultiSelectDropdown
+                label="Diccionarios"
+                options={DICCIONARIES}
+                selectedValues={filters.dictionaries}
+                onChange={(values) => updateFilters('dictionaries', values)}
+                placeholder="Seleccionar diccionarios"
               />
 
               {/* Row 2 */}

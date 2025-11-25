@@ -36,6 +36,7 @@ const buildUrlSignature = (
     categories: string[];
     origins: string[];
     letters: string[];
+    dictionaries: string[];
     status: string;
     assignedTo: string[];
   } & Record<MeaningMarkerKey, string[]>
@@ -46,6 +47,7 @@ const buildUrlSignature = (
     params.categories.join(','),
     params.origins.join(','),
     params.letters.join(','),
+    params.dictionaries.join(','),
     markerSegment,
     params.status,
     params.assignedTo.join(','),
@@ -57,6 +59,7 @@ const stateHasCriteria = (state: SearchState, includeEditorFilters: boolean): bo
   state.filters.categories.length > 0 ||
   state.filters.origins.length > 0 ||
   state.filters.letters.length > 0 ||
+  state.filters.dictionaries.length > 0 ||
   MEANING_MARKER_KEYS.some((key) => state.filters[key].length > 0) ||
   (includeEditorFilters && (state.status.length > 0 || state.assignedTo.length > 0));
 

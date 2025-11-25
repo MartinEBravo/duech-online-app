@@ -13,6 +13,7 @@ export type UrlSearchParams = {
   categories: string[];
   origins: string[];
   letters: string[];
+  dictionaries: string[];
   status: string;
   assignedTo: string[];
   hasUrlCriteria: boolean;
@@ -28,6 +29,7 @@ export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null
     const categories = parseListParam(params.get('categories'));
     const origins = parseListParam(params.get('origins'));
     const letters = parseListParam(params.get('letters'));
+    const dictionaries = parseListParam(params.get('dictionaries'));
     const status = (params.get('status') || '').trim();
     const assignedTo = parseListParam(params.get('assignedTo'));
     const markerFilters = parseMarkerParams(params);
@@ -38,6 +40,7 @@ export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null
       categories.length > 0 ||
       origins.length > 0 ||
       letters.length > 0 ||
+      dictionaries.length > 0 ||
       status.length > 0 ||
       assignedTo.length > 0 ||
       MEANING_MARKER_KEYS.some((key) => markerFilters[key].length > 0);
@@ -48,6 +51,7 @@ export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null
       categories,
       origins,
       letters,
+      dictionaries,
       status,
       assignedTo,
       hasUrlCriteria,

@@ -22,6 +22,7 @@ type SearchFilters = {
   categories: string[];
   origins: string[];
   letters: string[];
+  dictionaries: string[];
   status: string | undefined;
   assignedTo: string[];
 } & MarkerFilterState;
@@ -99,6 +100,7 @@ export async function GET(request: NextRequest) {
         categories: filters.categories.length > 0 ? filters.categories : undefined,
         origins: filters.origins.length > 0 ? filters.origins : undefined,
         letters: filters.letters.length > 0 ? filters.letters : undefined,
+        dictionaries: filters.dictionaries.length > 0 ? filters.dictionaries : undefined,
         status: filters.status || undefined,
         assignedTo: filters.assignedTo.length > 0 ? filters.assignedTo : undefined,
         editorMode,
@@ -146,47 +148,30 @@ function parseSearchParams(searchParams: URLSearchParams): ParseResult {
   const categories = parseList(searchParams.get('categories'));
   const origins = parseList(searchParams.get('origins'));
   const letters = parseList(searchParams.get('letters'));
+  const dictionaries = parseList(searchParams.get('dictionaries'));
   const markerFilters = parseMarkerFilters(searchParams);
   const statusParam = searchParams.get('status');
-  // If status is explicitly provided (even as empty), use it. Otherwise undefined means show all.
-  const status = statusParam !== null ? statusParam : undefined;
   const assignedTo = parseList(searchParams.get('assignedTo'));
 
-  if (
-    categories.length > MAX_FILTER_OPTIONS ||
-    origins.length > MAX_FILTER_OPTIONS ||
-    letters.length > MAX_FILTER_OPTIONS ||
-    assignedTo.length > MAX_FILTER_OPTIONS ||
-    hasExcessMarkerFilters(markerFilters)
-  ) {
-    return {
-      errorResponse: NextResponse.json({ error: 'Too many filter options' }, { status: 400 }),
-    };
-  }
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
+  const metaOnly = searchParams.get('meta') === 'true';
 
-  const metaOnlyParam = searchParams.get('metaOnly');
-  const metaOnly = metaOnlyParam === 'true' || metaOnlyParam === '1';
-
-  const page = Math.max(parseInteger(searchParams.get('page'), 1), 1);
-  const limit = Math.max(Math.min(parseInteger(searchParams.get('limit'), 20), MAX_LIMIT), 1);
-
-  if (!Number.isFinite(page) || !Number.isFinite(limit)) {
-    return {
-      errorResponse: NextResponse.json({ error: 'Invalid pagination parameters' }, { status: 400 }),
-    };
-  }
-
-  const filters: SearchFilters = {
-    query,
-    categories,
-    origins,
-    letters,
-    status,
-    assignedTo,
-    ...markerFilters,
+  return {
+    filters: {
+      query,
+      categories,
+      origins,
+      letters,
+      dictionaries,
+      status: statusParam || undefined,
+      assignedTo,
+      ...markerFilters,
+    },
+    page,
+    limit,
+    metaOnly,
   };
-
-  return { filters, page, limit, metaOnly };
 }
 
 const MARKER_COLUMN_NAMES: Record<MeaningMarkerKey, string> = {

@@ -13,6 +13,7 @@ interface EditorSearchFilters {
   selectedCategories: string[];
   selectedOrigins: string[];
   selectedLetters: string[];
+  selectedDictionaries: string[];
   selectedStatus: string;
   selectedAssignedTo: string[];
   markers: MarkerSelectionState;
@@ -23,6 +24,7 @@ interface PublicSearchFilters {
   selectedCategories: string[];
   selectedOrigins: string[];
   selectedLetters: string[];
+  selectedDictionaries: string[];
   markers: MarkerSelectionState;
 }
 
@@ -30,22 +32,46 @@ const COOKIE_NAME = 'duech_editor_filters';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 const PUBLIC_COOKIE_NAME = 'duech_public_filters';
 
-export function setEditorSearchFilters(filters: EditorSearchFilters): void {
+function setCookieData(cookieName: string, data: unknown): void {
   try {
-    const serializedFilters = JSON.stringify(filters);
-    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(serializedFilters)}; max-age=${COOKIE_MAX_AGE}; path=/; samesite=lax`;
+    const serialized = JSON.stringify(data);
+    document.cookie = `${cookieName}=${encodeURIComponent(serialized)}; max-age=${COOKIE_MAX_AGE}; path=/; samesite=lax`;
   } catch {
     // Silent fail
   }
 }
 
-export function setPublicSearchFilters(filters: PublicSearchFilters): void {
+function getCookieData<T>(cookieName: string): T | null {
   try {
-    const serializedFilters = JSON.stringify(filters);
-    document.cookie = `${PUBLIC_COOKIE_NAME}=${encodeURIComponent(serializedFilters)}; max-age=${COOKIE_MAX_AGE}; path=/; samesite=lax`;
+    if (typeof document === 'undefined') {
+      return null;
+    }
+
+    const cookies = document.cookie.split(';');
+    const filterCookie = cookies.find((cookie) => cookie.trim().startsWith(`${cookieName}=`));
+
+    if (!filterCookie) {
+      return null;
+    }
+
+    const cookieValue = filterCookie.split('=')[1];
+    if (!cookieValue) {
+      return null;
+    }
+
+    const decodedValue = decodeURIComponent(cookieValue);
+    return JSON.parse(decodedValue) as T;
   } catch {
-    // Silent fail
+    return null;
   }
+}
+
+export function setEditorSearchFilters(filters: EditorSearchFilters): void {
+  setCookieData(COOKIE_NAME, filters);
+}
+
+export function setPublicSearchFilters(filters: PublicSearchFilters): void {
+  setCookieData(PUBLIC_COOKIE_NAME, filters);
 }
 
 export function getEditorSearchFilters(): EditorSearchFilters {
@@ -54,50 +80,33 @@ export function getEditorSearchFilters(): EditorSearchFilters {
     selectedCategories: [],
     selectedOrigins: [],
     selectedLetters: [],
+    selectedDictionaries: [],
     selectedStatus: '',
     selectedAssignedTo: [],
     markers: createEmptyMarkerFilterState(),
   };
 
-  try {
-    if (typeof document === 'undefined') {
-      return defaultFilters;
-    }
+  const parsedFilters = getCookieData<EditorSearchFilters>(COOKIE_NAME);
 
-    const cookies = document.cookie.split(';');
-    const filterCookie = cookies.find((cookie) => cookie.trim().startsWith(`${COOKIE_NAME}=`));
-
-    if (!filterCookie) {
-      return defaultFilters;
-    }
-
-    const cookieValue = filterCookie.split('=')[1];
-    if (!cookieValue) {
-      return defaultFilters;
-    }
-
-    const decodedValue = decodeURIComponent(cookieValue);
-    const parsedFilters = JSON.parse(decodedValue) as EditorSearchFilters;
-
-    // Validate the structure
-    if (
-      typeof parsedFilters.query === 'string' &&
-      typeof parsedFilters.selectedStatus === 'string' &&
-      Array.isArray(parsedFilters.selectedCategories) &&
-      Array.isArray(parsedFilters.selectedOrigins) &&
-      Array.isArray(parsedFilters.selectedLetters) &&
-      Array.isArray(parsedFilters.selectedAssignedTo)
-    ) {
-      return {
-        ...parsedFilters,
-        markers: sanitizeMarkerState(parsedFilters.markers),
-      };
-    }
-
-    return defaultFilters;
-  } catch {
-    return defaultFilters;
+  if (
+    parsedFilters &&
+    typeof parsedFilters.query === 'string' &&
+    typeof parsedFilters.selectedStatus === 'string' &&
+    Array.isArray(parsedFilters.selectedCategories) &&
+    Array.isArray(parsedFilters.selectedOrigins) &&
+    Array.isArray(parsedFilters.selectedLetters) &&
+    Array.isArray(parsedFilters.selectedAssignedTo)
+  ) {
+    return {
+      ...parsedFilters,
+      selectedDictionaries: Array.isArray(parsedFilters.selectedDictionaries)
+        ? parsedFilters.selectedDictionaries
+        : [],
+      markers: sanitizeMarkerState(parsedFilters.markers),
+    };
   }
+
+  return defaultFilters;
 }
 
 export function clearEditorSearchFilters(): void {
@@ -114,47 +123,29 @@ export function getPublicSearchFilters(): PublicSearchFilters {
     selectedCategories: [],
     selectedOrigins: [],
     selectedLetters: [],
+    selectedDictionaries: [],
     markers: createEmptyMarkerFilterState(),
   };
 
-  try {
-    if (typeof document === 'undefined') {
-      return defaultFilters;
-    }
+  const parsedFilters = getCookieData<PublicSearchFilters>(PUBLIC_COOKIE_NAME);
 
-    const cookies = document.cookie.split(';');
-    const filterCookie = cookies.find((cookie) =>
-      cookie.trim().startsWith(`${PUBLIC_COOKIE_NAME}=`)
-    );
-
-    if (!filterCookie) {
-      return defaultFilters;
-    }
-
-    const cookieValue = filterCookie.split('=')[1];
-    if (!cookieValue) {
-      return defaultFilters;
-    }
-
-    const decodedValue = decodeURIComponent(cookieValue);
-    const parsedFilters = JSON.parse(decodedValue) as PublicSearchFilters;
-
-    if (
-      typeof parsedFilters.query === 'string' &&
-      Array.isArray(parsedFilters.selectedCategories) &&
-      Array.isArray(parsedFilters.selectedOrigins) &&
-      Array.isArray(parsedFilters.selectedLetters)
-    ) {
-      return {
-        ...parsedFilters,
-        markers: sanitizeMarkerState(parsedFilters.markers),
-      };
-    }
-
-    return defaultFilters;
-  } catch {
-    return defaultFilters;
+  if (
+    parsedFilters &&
+    typeof parsedFilters.query === 'string' &&
+    Array.isArray(parsedFilters.selectedCategories) &&
+    Array.isArray(parsedFilters.selectedOrigins) &&
+    Array.isArray(parsedFilters.selectedLetters)
+  ) {
+    return {
+      ...parsedFilters,
+      selectedDictionaries: Array.isArray(parsedFilters.selectedDictionaries)
+        ? parsedFilters.selectedDictionaries
+        : [],
+      markers: sanitizeMarkerState(parsedFilters.markers),
+    };
   }
+
+  return defaultFilters;
 }
 
 function sanitizeMarkerState(state: unknown): MarkerSelectionState {

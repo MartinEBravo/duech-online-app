@@ -327,9 +327,17 @@ export function WordDisplay({
     }
   };
 
+  const handleDictionaryChange = (value: string | null) => {
+    setWord((prev) => ({
+      ...prev,
+      values: prev.values.map((def) => ({ ...def, dictionary: value })),
+    }));
+  };
+
   const handleAddDefinition = (insertIndex?: number) => {
     const baseNumber = insertIndex !== undefined ? insertIndex + 1 : word.values.length + 1;
     const markerDefaults = createEmptyMeaningMarkerValues();
+    const currentDictionary = word.values[0]?.dictionary || null;
     const newDef: Meaning = {
       number: baseNumber,
       origin: null,
@@ -339,6 +347,7 @@ export function WordDisplay({
       observation: null,
       examples: [emptyExample()],
       variant: null,
+      dictionary: currentDictionary,
       ...markerDefaults,
     };
 
@@ -464,6 +473,8 @@ export function WordDisplay({
         canActuallyEdit={canActuallyEdit}
         canAsigned={canAsigned}
         canChangeStatus={canChangeStatus}
+        dictionary={word.values[0]?.dictionary || null}
+        onDictionaryChange={handleDictionaryChange}
       />
 
       <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">

@@ -26,6 +26,7 @@ export type LocalSearchFilters = {
   categories: string[];
   origins: string[];
   letters: string[];
+  dictionaries: string[];
 } & Record<MeaningMarkerKey, string[]>;
 
 /**
@@ -38,6 +39,7 @@ export function filtersChanged(
   if (arraysDiffer(prevFilters.categories, newFilters.categories)) return true;
   if (arraysDiffer(prevFilters.origins, newFilters.origins)) return true;
   if (arraysDiffer(prevFilters.letters, newFilters.letters)) return true;
+  if (arraysDiffer(prevFilters.dictionaries, newFilters.dictionaries)) return true;
 
   return MEANING_MARKER_KEYS.some((key) => arraysDiffer(prevFilters[key], newFilters[key]));
 }
@@ -50,7 +52,9 @@ export function cloneFilters(filters: LocalSearchFilters): LocalSearchFilters {
     categories: [...filters.categories],
     origins: [...filters.origins],
     letters: [...filters.letters],
-  } as LocalSearchFilters;
+    dictionaries: [...filters.dictionaries],
+    ...createEmptyMarkerFilterState(),
+  };
 
   for (const key of MEANING_MARKER_KEYS) {
     base[key] = [...filters[key]];
@@ -65,6 +69,7 @@ export function createEmptyLocalFilters(): LocalSearchFilters {
     categories: [] as string[],
     origins: [] as string[],
     letters: [] as string[],
+    dictionaries: [] as string[],
     ...markerDefaults,
   };
 

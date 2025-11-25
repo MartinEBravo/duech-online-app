@@ -56,6 +56,7 @@ export interface Meaning extends MeaningMarkerValues {
   observation?: string | null;
   remission?: string | null;
   grammarCategory?: string | null; // grammar_categ column
+  dictionary?: string | null; // dictionary column
   examples?: Example[] | null; // JSONB field
   variant?: string | null;
   createdAt?: Date;
@@ -88,6 +89,7 @@ export type SearchFilters = {
   categories?: string[];
   origins?: string[];
   letters?: string[];
+  dictionaries?: string[];
 } & MarkerFilterState;
 
 export type MarkerMetadata = Record<MeaningMarkerKey, string[]>;
@@ -95,6 +97,7 @@ export type MarkerMetadata = Record<MeaningMarkerKey, string[]>;
 interface SearchMetadata {
   categories: string[];
   origins: string[];
+  dictionaries: string[];
   markers: MarkerMetadata;
 }
 
@@ -271,11 +274,13 @@ export const ORIGINS: Record<string, string> = {
   taíno: 'Taíno',
 };
 
-
-export const DICCIONARIES: Record<string, string> = {
-  difruech: 'DIFRUECh',
-  duech: 'DUECh',
-};
+export const DICCIONARIES = [
+  { value: 'duech', label: 'DUECh' },
+  { value: 'difruech', label: 'DIFRUECh' },
+  { value: 'dfp', label: 'DFP' },
+  { value: 'damer', label: 'Damer' },
+  { value: 'm2015', label: 'María Moliner 2015' },
+];
 
 function sortKeysByLabel(source: Record<string, string>): string[] {
   return Object.entries(source)

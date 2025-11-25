@@ -64,6 +64,7 @@ function buildFilterParams(filters: SearchFilters): URLSearchParams {
   if (filters.categories?.length) params.append('categories', filters.categories.join(','));
   if (filters.origins?.length) params.append('origins', filters.origins.join(','));
   if (filters.letters?.length) params.append('letters', filters.letters.join(','));
+  if (filters.dictionaries?.length) params.append('dictionaries', filters.dictionaries.join(','));
   for (const key of MEANING_MARKER_KEYS) {
     const values = filters[key];
     if (values?.length) {
