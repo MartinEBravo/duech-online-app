@@ -53,7 +53,7 @@ export function RedactedWordsClient({ initialWords, userEmail }: RedactedWordsCl
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">Palabras Redactadas</h1>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Palabras redactadas</h1>
         <p className="text-gray-600">
           Total de palabras en estado redactada: <strong>{initialWords.length}</strong>
         </p>

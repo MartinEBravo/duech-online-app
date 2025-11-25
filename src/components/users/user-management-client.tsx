@@ -49,7 +49,7 @@ export default function UserManagementClient({
   return (
     <div>
       <div className="mb-6 flex justify-end">
-        <Button onClick={() => setIsCreateModalOpen(true)}>Agregar Usuario</Button>
+        <Button onClick={() => setIsCreateModalOpen(true)}>Agregar usuario</Button>
       </div>
 
       <UserTable

@@ -94,7 +94,7 @@ export default function UserFormModal({
   return (
     <Modal isOpen={true} onClose={onClose} className="w-full max-w-md p-6">
       <h2 className="mb-4 text-2xl font-bold">
-        {mode === 'create' ? 'Agregar Usuario' : 'Editar Usuario'}
+        {mode === 'create' ? 'Agregar usuario' : 'Editar usuario'}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +102,7 @@ export default function UserFormModal({
 
         <div>
           <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-            Nombre de Usuario
+            Nombre de usuario
           </label>
           <input
             type="text"
@@ -118,7 +118,7 @@ export default function UserFormModal({
 
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-            Correo Electrónico
+            Correo electrónico
           </label>
           <input
             type="email"
@@ -158,7 +158,7 @@ export default function UserFormModal({
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" loading={isSubmitting} className="flex-1">
-            {mode === 'create' ? 'Crear Usuario' : 'Guardar Cambios'}
+            {mode === 'create' ? 'Crear usuario' : 'Guardar cambios'}
           </Button>
           <Button
             type="button"
