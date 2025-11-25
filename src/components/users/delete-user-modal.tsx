@@ -29,7 +29,7 @@ export default function DeleteUserModal({ user, onClose, onSuccess }: DeleteUser
 
   return (
     <DeleteConfirmationModal
-      title="Eliminar Usuario"
+      title="Eliminar usuario"
       itemName={user.username}
       itemType="al usuario"
       warningMessage="Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al usuario."
