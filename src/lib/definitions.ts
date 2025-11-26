@@ -298,6 +298,7 @@ export const STATUS_OPTIONS = [
   { value: 'included', label: 'Incorporado' },
   { value: 'preredacted', label: 'Prerredactada' },
   { value: 'redacted', label: 'Redactado' },
+  { value: 'reviewedLex', label: 'Revisado por lexicógrafos' },
   { value: 'reviewed', label: 'Revisado por comisión' },
   { value: 'published', label: 'Publicado' },
   { value: 'archaic', label: 'Arcaico' },
