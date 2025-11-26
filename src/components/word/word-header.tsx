@@ -1,3 +1,12 @@
+/**
+ * Word header component with metadata and editor controls.
+ *
+ * Displays lemma, root word, and in editor mode provides controls
+ * for letter, status, assignment, and dictionary selection.
+ *
+ * @module components/word/word-header
+ */
+
 'use client';
 
 import React from 'react';
@@ -12,7 +21,11 @@ import { DICCIONARIES, type Meaning } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
 import { getLexicographerByRole } from '@/lib/search-utils';
 import { getStatusByRole } from '@/lib/search-utils';
-interface WordHeaderProps {
+
+/**
+ * Props for the WordHeader component.
+ */
+export interface WordHeaderProps {
   lemma: string;
   onLemmaChange: (value: string | null) => void;
   editorMode: boolean;
@@ -49,6 +62,23 @@ interface WordHeaderProps {
   userRole?: string;
 }
 
+/**
+ * Header section for word pages.
+ *
+ * Renders breadcrumb navigation, word title (lemma), root word,
+ * and editor controls for managing word metadata.
+ *
+ * @example
+ * ```tsx
+ * <WordHeader
+ *   lemma="chilenismo"
+ *   onLemmaChange={setLemma}
+ *   editorMode={true}
+ *   canActuallyEdit={true}
+ *   // ... other props
+ * />
+ * ```
+ */
 export function WordHeader({
   lemma,
   onLemmaChange,

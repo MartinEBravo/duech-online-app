@@ -1,9 +1,26 @@
+/**
+ * Icon components for the application.
+ *
+ * Provides a set of SVG icon components with consistent styling.
+ * All icons extend IconProps for uniform configuration.
+ *
+ * @module components/icons
+ */
+
 import React from 'react';
-// Base icon component to reduce duplication
-interface IconProps extends React.SVGProps<SVGSVGElement> {
+
+/**
+ * Base props for all icon components.
+ */
+export interface IconProps extends React.SVGProps<SVGSVGElement> {
+  /** Stroke width for the icon lines (default: 2) */
   strokeWidth?: number;
 }
 
+/**
+ * @internal
+ * Base icon component providing consistent SVG wrapper.
+ */
 function Icon({ strokeWidth = 2, children, ...props }: IconProps & { children: React.ReactNode }) {
   return (
     <svg

@@ -1,9 +1,18 @@
+/**
+ * Current user API endpoint.
+ *
+ * @module app/api/auth/me
+ */
+
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
 
 /**
- * GET /api/auth/me
- * Returns the current authenticated user's session data
+ * GET /api/auth/me - Get current authenticated user
+ *
+ * Returns the session data for the currently authenticated user.
+ *
+ * @returns User object with id, email, name, and role, or 401 if not authenticated
  */
 export async function GET() {
   const user = await getSessionUser();

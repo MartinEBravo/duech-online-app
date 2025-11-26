@@ -1,13 +1,21 @@
+/**
+ * Multi-selector modal component.
+ *
+ * Generic selector for choosing from a list of options.
+ * Supports single selection (maxSelections=1) or multiple selection.
+ *
+ * @module components/word/multi-selector-modal
+ */
+
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/common/button';
 
 /**
- * Selector genérico para opciones (categorías, estilos, etc.)
- * Soporta selección única (maxSelections=1) o múltiple
+ * Props for the MultiSelector component.
  */
-interface MultiSelectorProps {
+export interface MultiSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (items: string[]) => void;
@@ -19,6 +27,25 @@ interface MultiSelectorProps {
   maxSelections?: number;
 }
 
+/**
+ * Modal for selecting one or multiple items from a list.
+ *
+ * Displays options in a grid with checkboxes (multi-select) or
+ * radio buttons (single-select when maxSelections=1).
+ *
+ * @example
+ * ```tsx
+ * <MultiSelector
+ *   isOpen={showModal}
+ *   onClose={() => setShowModal(false)}
+ *   onSave={(items) => setSelected(items)}
+ *   selectedItems={selected}
+ *   title="Select category"
+ *   options={{ noun: "Sustantivo", verb: "Verbo" }}
+ *   maxSelections={1}
+ * />
+ * ```
+ */
 export function MultiSelector({
   isOpen,
   onClose,

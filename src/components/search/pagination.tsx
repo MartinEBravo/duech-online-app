@@ -1,13 +1,46 @@
+/**
+ * Pagination component for search results.
+ *
+ * Displays page numbers with ellipsis for large page counts.
+ *
+ * @module components/search/pagination
+ */
+
 'use client';
 
-interface PaginationProps {
+/**
+ * Props for the Pagination component.
+ */
+export interface PaginationProps {
+  /** Current active page (1-indexed) */
   currentPage: number;
+  /** Total number of pages */
   totalPages: number;
+  /** Callback when page changes */
   onPageChange: (page: number) => void;
+  /** Whether there is a next page */
   hasNext: boolean;
+  /** Whether there is a previous page */
   hasPrev: boolean;
 }
 
+/**
+ * Pagination controls with numbered pages and prev/next buttons.
+ *
+ * Shows up to 7 page numbers with ellipsis for larger page counts.
+ * Returns null if there's only one page.
+ *
+ * @example
+ * ```tsx
+ * <Pagination
+ *   currentPage={currentPage}
+ *   totalPages={totalPages}
+ *   hasNext={currentPage < totalPages}
+ *   hasPrev={currentPage > 1}
+ *   onPageChange={setCurrentPage}
+ * />
+ * ```
+ */
 export function Pagination({
   currentPage,
   totalPages,

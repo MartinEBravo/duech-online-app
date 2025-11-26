@@ -1,3 +1,12 @@
+/**
+ * Word warning component for missing fields.
+ *
+ * Displays warnings for definitions that are missing required fields,
+ * helping editors identify incomplete entries.
+ *
+ * @module components/word/word-warning
+ */
+
 'use client';
 
 import React, { useMemo } from 'react';
@@ -5,7 +14,10 @@ import type { Meaning, Example } from '@/lib/definitions';
 import { ChipList } from '@/components/common/chip';
 import { ExclamationCircleIcon } from '@/components/icons';
 
-type DefinitionField =
+/**
+ * Fields that can be checked for completeness in a definition.
+ */
+export type DefinitionField =
   | 'origin'
   | 'categories'
   | 'remission'
@@ -15,9 +27,15 @@ type DefinitionField =
   | 'examples'
   | 'variant';
 
-interface WordWarningProps {
+/**
+ * Props for the WordWarning component.
+ */
+export interface WordWarningProps {
+  /** Definition(s) to check for missing fields */
   definitions: Meaning | Meaning[];
+  /** Fields that should be present (defaults to all) */
   requiredFields?: DefinitionField[];
+  /** Additional CSS classes */
   className?: string;
 }
 
@@ -79,6 +97,21 @@ function collectMissing(def: Meaning, fields: DefinitionField[]): DefinitionFiel
   return missing;
 }
 
+/**
+ * Displays warnings for definitions with missing required fields.
+ *
+ * Checks each definition against the required fields and shows
+ * a summary of what's missing for each definition number.
+ *
+ * @example
+ * ```tsx
+ * <WordWarning
+ *   definitions={word.values}
+ *   requiredFields={['meaning', 'examples']}
+ *   className="mb-4"
+ * />
+ * ```
+ */
 export default function WordWarning({
   definitions,
   requiredFields = [

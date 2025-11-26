@@ -1,22 +1,48 @@
+/**
+ * User table component.
+ *
+ * Displays users in a table with edit, delete, and password reset actions.
+ *
+ * @module components/users/user-table
+ */
+
 'use client';
 
-interface User {
+/**
+ * User data for table display.
+ */
+export interface UserTableUser {
+  /** User ID */
   id: number;
+  /** Username */
   username: string;
+  /** User email */
   email: string | null;
+  /** User role */
   role: string;
+  /** Account creation date */
   createdAt: Date;
 }
 
-interface UserTableProps {
-  users: User[];
+/**
+ * Props for the UserTable component.
+ */
+export interface UserTableProps {
+  /** List of users to display */
+  users: UserTableUser[];
+  /** Current user's ID (for highlighting) */
   currentUserId: string;
+  /** Current user's role (for permission checks) */
   currentUserRole?: string;
-  onEdit: (user: User) => void;
-  onDelete: (user: User) => void;
-  onResetPassword: (user: User) => void;
+  /** Callback when edit clicked */
+  onEdit: (user: UserTableUser) => void;
+  /** Callback when delete clicked */
+  onDelete: (user: UserTableUser) => void;
+  /** Callback when reset password clicked */
+  onResetPassword: (user: UserTableUser) => void;
 }
 
+/** @internal */
 const roleLabels: Record<string, string> = {
   admin: 'Administrador',
   superadmin: 'Super Administrador',
@@ -29,6 +55,24 @@ const roleColors: Record<string, string> = {
   lexicographer: 'bg-green-100 text-green-800',
 };
 
+/**
+ * Table displaying users with action buttons.
+ *
+ * Shows username, email, role, creation date, and action buttons.
+ * Disables certain actions for the current user.
+ *
+ * @example
+ * ```tsx
+ * <UserTable
+ *   users={users}
+ *   currentUserId={session.user.id}
+ *   currentUserRole={session.user.role}
+ *   onEdit={setEditingUser}
+ *   onDelete={setDeletingUser}
+ *   onResetPassword={setResettingUser}
+ * />
+ * ```
+ */
 export default function UserTable({
   users,
   currentUserId,

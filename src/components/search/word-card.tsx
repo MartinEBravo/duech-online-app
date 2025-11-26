@@ -1,3 +1,11 @@
+/**
+ * Word card component for search results.
+ *
+ * Displays a word entry with different layouts for public and editor modes.
+ *
+ * @module components/search/word-card
+ */
+
 'use client';
 
 import Link from 'next/link';
@@ -6,7 +14,10 @@ import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
 import { STATUS_OPTIONS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
-interface WordCardProps {
+/**
+ * Props for the WordCard component.
+ */
+export interface WordCardProps {
   lemma: string;
   letter: string;
   /** Editor mode: shows additional metadata like status, definitions count, etc */
@@ -25,6 +36,30 @@ interface WordCardProps {
   currentUserRole?: string | null;
 }
 
+/**
+ * Card displaying a word in search results.
+ *
+ * In public mode, shows a simple card linking to the word page.
+ * In editor mode, shows additional metadata (status, definitions count)
+ * and edit/view actions based on user permissions.
+ *
+ * @example
+ * ```tsx
+ * // Public mode
+ * <WordCard lemma="chilenismo" letter="c" />
+ *
+ * // Editor mode
+ * <WordCard
+ *   lemma="chilenismo"
+ *   letter="c"
+ *   editorMode={true}
+ *   status="draft"
+ *   definitionsCount={3}
+ *   currentUserId={user.id}
+ *   currentUserRole={user.role}
+ * />
+ * ```
+ */
 export function WordCard({
   lemma,
   letter,

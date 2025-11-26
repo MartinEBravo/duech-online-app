@@ -1,3 +1,12 @@
+/**
+ * Login form component.
+ *
+ * Handles user authentication with email and password.
+ * Supports redirect after successful login.
+ *
+ * @module components/auth/login-form
+ */
+
 'use client';
 
 import { dictionary } from '@/components/fonts';
@@ -7,6 +16,18 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AtSymbolIcon, KeyIcon, ArrowRightIcon } from '@/components/icons';
 
+/**
+ * Login form with email and password fields.
+ *
+ * Submits credentials to the login API and handles redirect
+ * on success. Shows error messages on failure.
+ *
+ * @example
+ * ```tsx
+ * // In a login page
+ * <LoginForm />
+ * ```
+ */
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo =

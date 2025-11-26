@@ -1,3 +1,12 @@
+/**
+ * Example display component for word definitions.
+ *
+ * Renders usage examples with metadata (author, title, source, date, page).
+ * Supports editing actions in editor mode.
+ *
+ * @module components/word/word-example
+ */
+
 'use client';
 
 import React from 'react';
@@ -6,15 +15,42 @@ import { Button } from '@/components/common/button';
 import { PencilIcon, PlusIcon, TrashIcon } from '@/components/icons';
 import { type Example } from '@/lib/definitions';
 
-interface ExampleDisplayProps {
+/**
+ * Props for the ExampleDisplay component.
+ */
+export interface ExampleDisplayProps {
+  /** Example or array of examples to display */
   example: Example | Example[];
+  /** Definition index for editing callbacks */
   defIndex?: number;
+  /** Enable edit/add/delete buttons */
   editorMode?: boolean;
+  /** Callback when edit button clicked */
   onEdit?: (exIndex: number) => void;
+  /** Callback when add button clicked */
   onAdd?: () => void;
+  /** Callback when delete button clicked */
   onDelete?: (exIndex: number) => void;
 }
 
+/**
+ * Displays word usage examples with optional editing.
+ *
+ * Renders example text with markdown support and shows metadata.
+ * In editor mode, provides edit, add, and delete buttons.
+ *
+ * @example
+ * ```tsx
+ * <ExampleDisplay
+ *   example={[{ value: "Example sentence", author: "Author" }]}
+ *   defIndex={0}
+ *   editorMode={true}
+ *   onEdit={(idx) => openEditor(idx)}
+ *   onAdd={addExample}
+ *   onDelete={(idx) => deleteExample(idx)}
+ * />
+ * ```
+ */
 export function ExampleDisplay({
   example,
   defIndex,

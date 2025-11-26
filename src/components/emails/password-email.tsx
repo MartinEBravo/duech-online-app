@@ -1,25 +1,54 @@
+/**
+ * Password-related email template component.
+ *
+ * Supports welcome, password reset, and password changed emails
+ * with customizable content sections.
+ *
+ * @module components/emails/password-email
+ */
+
 import { Button, Section, Text } from '@react-email/components';
 import * as React from 'react';
 import { BaseEmail } from '@/components/emails/base-email';
 
+/**
+ * Variant types for password emails.
+ */
 export type PasswordEmailVariant = 'welcome' | 'reset' | 'changed';
 
+/**
+ * Paragraph content for password emails.
+ */
 export interface PasswordEmailParagraph {
+  /** Paragraph text content */
   text: string;
+  /** Optional custom CSS classes */
   className?: string;
 }
 
+/**
+ * Props for the PasswordEmail component.
+ */
 export interface PasswordEmailProps {
+  /** Recipient's username */
   username: string;
+  /** Email variant type */
   variant: PasswordEmailVariant;
+  /** Array of paragraphs to display */
   paragraphs: PasswordEmailParagraph[];
+  /** Call-to-action button text */
   buttonText?: string;
+  /** Call-to-action button URL */
   buttonLink?: string;
+  /** Whether to show info box */
   showInfoBox?: boolean;
+  /** Info box content */
   infoBoxContent?: React.ReactNode;
+  /** Alert/warning box content */
   alertContent?: React.ReactNode;
 }
 
+/** @internal Configuration for each email variant */
 const variantConfig = {
   welcome: {
     preview: 'Bienvenido a DUECh en línea - Tu cuenta ha sido creada',

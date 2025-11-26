@@ -1,3 +1,12 @@
+/**
+ * Client-side cookie management for persisting search filter state.
+ *
+ * Stores user's search filter preferences in browser cookies so they
+ * persist across page reloads and sessions.
+ *
+ * @module lib/cookies
+ */
+
 'use client';
 
 import {
@@ -6,9 +15,15 @@ import {
   createEmptyMarkerFilterState,
 } from '@/lib/definitions';
 
+/**
+ * State for marker selections across all marker types.
+ */
 export type MarkerSelectionState = Record<MeaningMarkerKey, string[]>;
 
-interface EditorSearchFilters {
+/**
+ * Search filter state for editor mode (includes status and assignment filters).
+ */
+export interface EditorSearchFilters {
   query: string;
   selectedCategories: string[];
   selectedOrigins: string[];
@@ -19,7 +34,10 @@ interface EditorSearchFilters {
   markers: MarkerSelectionState;
 }
 
-interface PublicSearchFilters {
+/**
+ * Search filter state for public mode (no editorial filters).
+ */
+export interface PublicSearchFilters {
   query: string;
   selectedCategories: string[];
   selectedOrigins: string[];
@@ -28,10 +46,19 @@ interface PublicSearchFilters {
   markers: MarkerSelectionState;
 }
 
+/** Cookie name for editor filter persistence */
 const COOKIE_NAME = 'duech_editor_filters';
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
+/** Cookie expiration: 30 days */
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+/** Cookie name for public filter persistence */
 const PUBLIC_COOKIE_NAME = 'duech_public_filters';
 
+/**
+ * Serializes and stores data in a browser cookie.
+ * @internal
+ */
 function setCookieData(cookieName: string, data: unknown): void {
   try {
     const serialized = JSON.stringify(data);
@@ -41,6 +68,10 @@ function setCookieData(cookieName: string, data: unknown): void {
   }
 }
 
+/**
+ * Retrieves and parses data from a browser cookie.
+ * @internal
+ */
 function getCookieData<T>(cookieName: string): T | null {
   try {
     if (typeof document === 'undefined') {
@@ -66,14 +97,26 @@ function getCookieData<T>(cookieName: string): T | null {
   }
 }
 
+/**
+ * Saves editor search filters to a cookie.
+ * @param filters - The filter state to persist
+ */
 export function setEditorSearchFilters(filters: EditorSearchFilters): void {
   setCookieData(COOKIE_NAME, filters);
 }
 
+/**
+ * Saves public search filters to a cookie.
+ * @param filters - The filter state to persist
+ */
 export function setPublicSearchFilters(filters: PublicSearchFilters): void {
   setCookieData(PUBLIC_COOKIE_NAME, filters);
 }
 
+/**
+ * Retrieves editor search filters from cookie.
+ * Returns default empty filters if cookie doesn't exist or is invalid.
+ */
 export function getEditorSearchFilters(): EditorSearchFilters {
   const defaultFilters: EditorSearchFilters = {
     query: '',
@@ -109,6 +152,9 @@ export function getEditorSearchFilters(): EditorSearchFilters {
   return defaultFilters;
 }
 
+/**
+ * Clears editor search filters cookie.
+ */
 export function clearEditorSearchFilters(): void {
   try {
     document.cookie = `${COOKIE_NAME}=; max-age=0; path=/; samesite=lax`;
@@ -117,6 +163,10 @@ export function clearEditorSearchFilters(): void {
   }
 }
 
+/**
+ * Retrieves public search filters from cookie.
+ * Returns default empty filters if cookie doesn't exist or is invalid.
+ */
 export function getPublicSearchFilters(): PublicSearchFilters {
   const defaultFilters: PublicSearchFilters = {
     query: '',
@@ -148,6 +198,11 @@ export function getPublicSearchFilters(): PublicSearchFilters {
   return defaultFilters;
 }
 
+/**
+ * Sanitizes and validates marker state from cookie data.
+ * Ensures all marker keys exist with valid array values.
+ * @internal
+ */
 function sanitizeMarkerState(state: unknown): MarkerSelectionState {
   const base = createEmptyMarkerFilterState();
   if (!state || typeof state !== 'object') {
@@ -166,6 +221,9 @@ function sanitizeMarkerState(state: unknown): MarkerSelectionState {
   return Object.fromEntries(entries) as MarkerSelectionState;
 }
 
+/**
+ * Clears public search filters cookie.
+ */
 export function clearPublicSearchFilters(): void {
   try {
     document.cookie = `${PUBLIC_COOKIE_NAME}=; max-age=0; path=/; samesite=lax`;

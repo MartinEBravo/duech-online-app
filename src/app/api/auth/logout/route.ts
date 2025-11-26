@@ -1,10 +1,22 @@
+/**
+ * Logout API endpoint for ending user sessions.
+ *
+ * @module app/api/auth/logout
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { clearSessionCookie, getSessionUser } from '@/lib/auth';
 import { updateUser } from '@/lib/queries';
 
 /**
- * POST /api/logout
- * Clears the session cookie and logs the user out
+ * POST /api/auth/logout - Log out the current user
+ *
+ * Clears the session cookie and invalidates the session ID in the database.
+ *
+ * Query parameters:
+ * - redirect: URL to redirect to after logout (default: '/login')
+ *
+ * @returns Success with redirectTo URL
  */
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);

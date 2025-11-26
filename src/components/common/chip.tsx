@@ -1,10 +1,22 @@
+/**
+ * Chip components for displaying tags and markers.
+ *
+ * Provides Chip and ChipList components with color variants
+ * for different marker types used in the dictionary.
+ *
+ * @module components/common/chip
+ */
+
 'use client';
 
 import React from 'react';
 import { Button } from '@/components/common/button';
 import { PlusIcon, DeleteIcon } from '@/components/icons';
 
-// Color variants for different marker types
+/**
+ * Color variants for different marker types.
+ * Maps to specific Tailwind color schemes.
+ */
 export type MarkerColorVariant =
   | 'category'
   | 'socialValuations'
@@ -16,12 +28,21 @@ export type MarkerColorVariant =
   | 'frequencyMarkers'
   | 'warning';
 
-interface ChipProps {
+/**
+ * Props for the Chip component.
+ */
+export interface ChipProps {
+  /** Unique code for the chip */
   code: string;
+  /** Display label */
   label: string;
+  /** Callback when remove button clicked */
   onRemove?: (code: string) => void;
+  /** Additional CSS classes */
   className?: string;
+  /** Color variant based on marker type */
   variant?: MarkerColorVariant;
+  /** Enable interactive/editing mode */
   editorMode?: boolean;
 }
 
@@ -118,13 +139,23 @@ export function Chip({
   );
 }
 
-interface ChipListProps {
+/**
+ * Props for the ChipList component.
+ */
+export interface ChipListProps {
+  /** Array of item codes to display */
   items: string[];
+  /** Map of codes to display labels */
   labels: Record<string, string>;
+  /** Color variant for all chips */
   variant: MarkerColorVariant;
+  /** Enable editing mode */
   editorMode: boolean;
+  /** Label for add button */
   addLabel?: string;
+  /** Callback when add button clicked */
   onAdd?: () => void;
+  /** Callback when chip removed */
   onRemove?: (index: number) => void;
 }
 

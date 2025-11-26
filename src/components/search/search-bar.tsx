@@ -1,3 +1,12 @@
+/**
+ * Search bar component with advanced filtering options.
+ *
+ * Provides full-text search with expandable advanced filters for categories,
+ * origins, letters, dictionaries, and meaning markers.
+ *
+ * @module components/search/search-bar
+ */
+
 'use client';
 
 import React, {
@@ -32,7 +41,10 @@ import {
   setPublicSearchFilters,
 } from '@/lib/cookies';
 
-interface SearchBarProps {
+/**
+ * Props for the SearchBar component.
+ */
+export interface SearchBarProps {
   placeholder?: string;
   className?: string;
   initialValue?: string;
@@ -46,18 +58,28 @@ interface SearchBarProps {
   editorMode?: boolean;
 }
 
-type MarkerSelections = Record<MeaningMarkerKey, string[]>;
+/**
+ * Selection state for meaning marker filters.
+ */
+export type MarkerSelections = Record<MeaningMarkerKey, string[]>;
 
-type InternalFilters = {
+/**
+ * Internal filter state for search bar.
+ */
+export type InternalFilters = {
   categories: string[];
   origins: string[];
   letters: string[];
   dictionaries: string[];
 } & MarkerSelections;
 
+/** @internal */
 type FilterVariant = 'category' | 'origin' | 'letter' | 'marker' | 'dictionary';
 
-interface AdditionalFiltersConfig {
+/**
+ * Configuration for additional filters section.
+ */
+export interface AdditionalFiltersConfig {
   hasActive: boolean;
   onClear?: () => void;
   render: () => ReactNode;
@@ -133,6 +155,23 @@ function buildMarkerSignature(filters: InternalFilters): string {
   return MEANING_MARKER_KEYS.map((key) => filters[key].join('|')).join(';');
 }
 
+/**
+ * Advanced search bar with filtering capabilities.
+ *
+ * Features debounced search, expandable advanced filters panel,
+ * filter pills for active selections, and cookie/URL state persistence.
+ *
+ * @example
+ * ```tsx
+ * <SearchBar
+ *   placeholder="Buscar palabra..."
+ *   initialValue={query}
+ *   initialFilters={filters}
+ *   onSearch={handleSearch}
+ *   editorMode={true}
+ * />
+ * ```
+ */
 export default function SearchBar({
   placeholder = 'Buscar palabra...',
   className = '',

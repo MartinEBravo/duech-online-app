@@ -1,9 +1,21 @@
+/**
+ * Example editor modal component.
+ *
+ * Modal form for creating or editing word usage examples
+ * with fields for text, author, title, source, date, and page.
+ *
+ * @module components/word/word-example-editor-modal
+ */
+
 'use client';
 
 import React from 'react';
 import { Button } from '@/components/common/button';
 
-// Helper component for form input fields
+/**
+ * @internal
+ * Helper component for form input fields.
+ */
 function FormInput({
   label,
   value,
@@ -29,24 +41,59 @@ function FormInput({
   );
 }
 
+/**
+ * Draft state for an example being edited.
+ */
 type ExampleDraft = {
+  /** Example text content */
   value: string;
+  /** Example author */
   author: string;
+  /** Work title */
   title: string;
+  /** Source publication */
   source: string;
+  /** Publication date */
   date: string;
+  /** Page number */
   page: string;
 };
 
-interface ExampleEditorModalProps {
+/**
+ * Props for the ExampleEditorModal component.
+ */
+export interface ExampleEditorModalProps {
+  /** Whether the modal is visible */
   isOpen: boolean;
+  /** Whether this is a new example (vs editing existing) */
   isNew: boolean;
+  /** Current draft state */
   draft: ExampleDraft;
+  /** Callback to update draft */
   onDraftChange: (draft: ExampleDraft) => void;
+  /** Callback when save button clicked */
   onSave: () => void;
+  /** Callback when cancel button clicked */
   onCancel: () => void;
 }
 
+/**
+ * Modal form for editing word examples.
+ *
+ * Provides fields for all example metadata and save/cancel buttons.
+ *
+ * @example
+ * ```tsx
+ * <ExampleEditorModal
+ *   isOpen={showModal}
+ *   isNew={true}
+ *   draft={exampleDraft}
+ *   onDraftChange={setExampleDraft}
+ *   onSave={handleSave}
+ *   onCancel={() => setShowModal(false)}
+ * />
+ * ```
+ */
 export function ExampleEditorModal({
   isOpen,
   isNew,

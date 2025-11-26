@@ -1,3 +1,12 @@
+/**
+ * Client-side dictionary API functions.
+ *
+ * Provides functions for searching the dictionary from client components.
+ * Uses API routes instead of direct database access for security.
+ *
+ * @module lib/dictionary-client
+ */
+
 import {
   SearchFilters,
   SearchResponse,
@@ -6,10 +15,18 @@ import {
 } from '@/lib/definitions';
 
 /**
- * Client-safe dictionary functions that use API routes instead of direct database access.
- * These functions can be safely imported in client components.
+ * Searches the dictionary using the API.
+ *
+ * Handles both public and editor mode searches with different filter options.
+ *
+ * @param filters - Search filters (query, categories, origins, etc.)
+ * @param page - Page number (1-indexed)
+ * @param limit - Results per page
+ * @param status - Status filter (editor mode only)
+ * @param assignedTo - Assigned user filter (editor mode only)
+ * @param editorMode - Whether to include non-published words
+ * @returns Search response with results, metadata, and pagination
  */
-
 export async function searchDictionary(
   filters: SearchFilters,
   page: number = 1,
@@ -61,6 +78,10 @@ export async function searchDictionary(
   }
 }
 
+/**
+ * Builds URL search params from filter object.
+ * @internal
+ */
 function buildFilterParams(filters: SearchFilters): URLSearchParams {
   const params = new URLSearchParams();
 
@@ -79,6 +100,10 @@ function buildFilterParams(filters: SearchFilters): URLSearchParams {
   return params;
 }
 
+/**
+ * Fetches search results from the API endpoint.
+ * @internal
+ */
 async function fetchSearchResults(params: URLSearchParams, page: number, limit: number) {
   try {
     const queryString = params.toString();

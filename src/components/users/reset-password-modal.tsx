@@ -1,3 +1,11 @@
+/**
+ * Reset password modal component.
+ *
+ * Modal for sending password reset email to a user.
+ *
+ * @module components/users/reset-password-modal
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -6,18 +14,43 @@ import { Button } from '@/components/common/button';
 import { Modal } from '@/components/common/modal';
 import { Alert } from '@/components/common/alert';
 
-interface User {
+/**
+ * User data for password reset.
+ */
+export interface ResetPasswordModalUser {
+  /** User ID */
   id: number;
+  /** Username */
   username: string;
+  /** User email (required for sending reset) */
   email: string | null;
+  /** User role */
   role: string;
 }
 
-interface ResetPasswordModalProps {
-  user: User;
+/**
+ * Props for the ResetPasswordModal component.
+ */
+export interface ResetPasswordModalProps {
+  /** User whose password to reset */
+  user: ResetPasswordModalUser;
+  /** Callback to close modal */
   onClose: () => void;
 }
 
+/**
+ * Modal for sending password reset email.
+ *
+ * Shows confirmation and success states, sends email via server action.
+ *
+ * @example
+ * ```tsx
+ * <ResetPasswordModal
+ *   user={selectedUser}
+ *   onClose={() => setShowModal(false)}
+ * />
+ * ```
+ */
 export default function ResetPasswordModal({ user, onClose }: ResetPasswordModalProps) {
   const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState('');

@@ -1,17 +1,42 @@
+/**
+ * Base email template component.
+ *
+ * Provides common structure for all email templates including
+ * Tailwind styling, preview text, and optional footer.
+ *
+ * @module components/emails/base-email
+ */
+
 import { Body, Container, Head, Heading, Html, Preview, Tailwind } from '@react-email/components';
 import * as React from 'react';
 import { EmailFooter } from '@/components/emails/email-footer';
 
-interface BaseEmailProps {
+/**
+ * Props for the BaseEmail component.
+ */
+export interface BaseEmailProps {
+  /** Preview text shown in email clients */
   preview: string;
+  /** Email heading/title */
   title: string;
+  /** Email body content */
   children: React.ReactNode;
+  /** Whether to show the standard footer (default: true) */
   showFooter?: boolean;
 }
 
 /**
- * Base email template with common structure
- * All emails should extend this component to maintain consistency
+ * Base email template with common structure.
+ *
+ * All emails should use this component for consistency.
+ * Includes Tailwind CSS, preview text, title, and footer.
+ *
+ * @example
+ * ```tsx
+ * <BaseEmail preview="Welcome!" title="Hello">
+ *   <Text>Email content here</Text>
+ * </BaseEmail>
+ * ```
  */
 export function BaseEmail({ preview, title, children, showFooter = true }: BaseEmailProps) {
   return (

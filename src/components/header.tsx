@@ -1,3 +1,12 @@
+/**
+ * Main application header component.
+ *
+ * Displays logo, navigation menu, and user controls.
+ * Supports both public and editor modes.
+ *
+ * @module components/header
+ */
+
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -17,7 +26,10 @@ import {
   BookOpenIcon,
 } from '@/components/icons';
 
-// Navigation link component with icon
+/**
+ * @internal
+ * Navigation link component with icon.
+ */
 function NavLink({
   href,
   icon: Icon,
@@ -42,11 +54,27 @@ function NavLink({
   );
 }
 
-interface HeaderProps {
+/**
+ * Props for the Header component.
+ */
+export interface HeaderProps {
+  /** Whether in editor mode (shows additional nav items) */
   editorMode: boolean;
+  /** Initial user data for display */
   initialUser?: { id: string; name?: string; email: string; role?: string } | null;
 }
 
+/**
+ * Application header with navigation and user controls.
+ *
+ * Displays the DUECh logo, hamburger menu with navigation links,
+ * and user info with logout button in editor mode.
+ *
+ * @example
+ * ```tsx
+ * <Header editorMode={true} initialUser={session?.user} />
+ * ```
+ */
 export default function Header({ editorMode, initialUser = null }: HeaderProps) {
   const pathname = usePathname();
   const editorBasePath = editorMode && pathname.startsWith('/editor') ? '/editor' : '';

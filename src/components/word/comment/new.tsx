@@ -1,3 +1,12 @@
+/**
+ * New comment input component.
+ *
+ * Shows an "Add comment" button that expands to an input field
+ * for entering new editorial comments.
+ *
+ * @module components/word/comment/new
+ */
+
 'use client';
 
 import React, { useState } from 'react';
@@ -5,15 +14,26 @@ import { Button } from '@/components/common/button';
 import { PlusIcon } from '@/components/icons';
 import EditableInput from '@/components/word/editable-input';
 
-type NewCommentProps = {
+/**
+ * Props for the NewComment component.
+ */
+export type NewCommentProps = {
+  /** Callback to add a new comment */
   onAdd: (text: string) => Promise<void> | void;
+  /** Enable the add button (defaults to true) */
   editorMode?: boolean;
 };
 
 /**
- * NewComment
- * Renders a button to add a new comment. When clicked, shows an EditableInput
- * to enter the comment text. Calls `onAdd` with the new text.
+ * Button/input for adding new comments.
+ *
+ * Shows a button that expands to an input field when clicked.
+ * Submits the comment and collapses on Enter or blur.
+ *
+ * @example
+ * ```tsx
+ * <NewComment onAdd={async (text) => await saveComment(text)} editorMode={true} />
+ * ```
  */
 export default function NewComment({ onAdd, editorMode = true }: NewCommentProps) {
   const [adding, setAdding] = useState(false);

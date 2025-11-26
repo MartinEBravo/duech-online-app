@@ -1,14 +1,31 @@
+/**
+ * Dropdown components for single and multi-select inputs.
+ *
+ * Provides SelectDropdown for single selection and MultiSelectDropdown
+ * for multiple selection with search filtering.
+ *
+ * @module components/common/dropdown
+ */
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@/components/icons';
 
-interface Option {
+/**
+ * Option item for dropdown menus.
+ */
+export interface Option {
+  /** Option value (stored/submitted) */
   value: string;
+  /** Option label (displayed to user) */
   label: string;
 }
 
-// Common dropdown button component
+/**
+ * @internal
+ * Shared button component for dropdown triggers.
+ */
 function DropdownButton({
   onClick,
   isOpen,
@@ -52,6 +69,10 @@ function DropdownButton({
   );
 }
 
+/**
+ * @internal
+ * Hook to close dropdown when clicking outside.
+ */
 function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,6 +90,21 @@ function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void
   return ref;
 }
 
+/**
+ * Single-select dropdown component.
+ *
+ * Displays a list of options and allows selecting one value.
+ *
+ * @example
+ * ```tsx
+ * <SelectDropdown
+ *   label="Estado"
+ *   options={[{ value: 'draft', label: 'Borrador' }]}
+ *   selectedValue={status}
+ *   onChange={setStatus}
+ * />
+ * ```
+ */
 export function SelectDropdown({
   label,
   options,
@@ -77,11 +113,17 @@ export function SelectDropdown({
   placeholder = 'Seleccionar...',
   disabled,
 }: {
+  /** Field label */
   label: string;
+  /** Available options */
   options: Option[];
+  /** Currently selected value */
   selectedValue: string;
+  /** Callback when selection changes */
   onChange: (value: string) => void;
+  /** Placeholder when no selection */
   placeholder?: string;
+  /** Disables the dropdown */
   disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -129,6 +171,23 @@ export function SelectDropdown({
   );
 }
 
+/**
+ * Multi-select dropdown with search filtering.
+ *
+ * Allows selecting multiple options with checkboxes. Includes search
+ * filtering and select/deselect all functionality.
+ *
+ * @example
+ * ```tsx
+ * <MultiSelectDropdown
+ *   label="Categorías"
+ *   options={categoryOptions}
+ *   selectedValues={selectedCategories}
+ *   onChange={setSelectedCategories}
+ *   maxDisplay={2}
+ * />
+ * ```
+ */
 export function MultiSelectDropdown({
   label,
   options,
@@ -138,12 +197,19 @@ export function MultiSelectDropdown({
   maxDisplay = 3,
   disabled,
 }: {
+  /** Field label */
   label: string;
+  /** Available options */
   options: Option[];
+  /** Currently selected values */
   selectedValues: string[];
+  /** Callback when selection changes */
   onChange: (values: string[]) => void;
+  /** Placeholder when no selection */
   placeholder?: string;
+  /** Max items to show in button before truncating */
   maxDisplay?: number;
+  /** Disables the dropdown */
   disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);

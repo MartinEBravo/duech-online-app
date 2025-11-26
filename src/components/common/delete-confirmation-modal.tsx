@@ -1,3 +1,12 @@
+/**
+ * Delete confirmation modal with optional text confirmation.
+ *
+ * A dangerous action confirmation dialog that can optionally require
+ * the user to type the item name to confirm deletion.
+ *
+ * @module components/common/delete-confirmation-modal
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -5,16 +14,45 @@ import { Button } from '@/components/common/button';
 import { Modal } from '@/components/common/modal';
 import { Alert } from '@/components/common/alert';
 
-interface DeleteConfirmationModalProps {
+/**
+ * Props for the DeleteConfirmationModal component.
+ */
+export interface DeleteConfirmationModalProps {
+  /** Modal title (e.g., "Eliminar palabra") */
   title: string;
+  /** Name of the item being deleted */
   itemName: string;
+  /** Type descriptor for the item (e.g., "la palabra", "el usuario") */
   itemType: string;
+  /** Warning message about consequences of deletion */
   warningMessage: string;
+  /** Async callback executed when deletion is confirmed */
   onDelete: () => Promise<void>;
+  /** Callback to close the modal */
   onClose: () => void;
-  requireConfirmText?: boolean; // If true, user must type itemName to confirm
+  /** If true, user must type itemName to confirm deletion */
+  requireConfirmText?: boolean;
 }
 
+/**
+ * Confirmation modal for destructive delete operations.
+ *
+ * Displays a warning and optionally requires the user to type the item name
+ * to confirm. Shows loading state during deletion and handles errors.
+ *
+ * @example
+ * ```tsx
+ * <DeleteConfirmationModal
+ *   title="Eliminar palabra"
+ *   itemName="chilenismo"
+ *   itemType="la palabra"
+ *   warningMessage="Esta acción no se puede deshacer."
+ *   onDelete={async () => await deleteWord(lemma)}
+ *   onClose={() => setShowModal(false)}
+ *   requireConfirmText={true}
+ * />
+ * ```
+ */
 export function DeleteConfirmationModal({
   title,
   itemName,

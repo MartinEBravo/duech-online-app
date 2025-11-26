@@ -1,8 +1,19 @@
+/**
+ * Server-side editor mode detection utilities.
+ *
+ * These functions check request headers set by the middleware to determine
+ * if the current request is in editor mode (authenticated workspace).
+ *
+ * @module lib/editor-mode-server
+ */
+
 import { headers } from 'next/headers';
 
 /**
- * Check if current request is in editor mode (server components).
- * Relies on the middleware adding the x-editor-mode header.
+ * Checks if the current request is in editor mode.
+ * Uses the x-editor-mode header set by middleware.
+ *
+ * @returns True if in editor mode, false otherwise
  */
 export async function isEditorMode(): Promise<boolean> {
   const headersList = await headers();
@@ -11,15 +22,21 @@ export async function isEditorMode(): Promise<boolean> {
 }
 
 /**
- * Check if current request is in editor mode from provided headers.
+ * Checks if in editor mode using provided headers object.
+ * Useful when headers are already available.
+ *
+ * @param headersList - The headers object to check
+ * @returns True if in editor mode, false otherwise
  */
 export function isEditorModeFromHeaders(headersList: Headers): boolean {
   return headersList.get('x-editor-mode') === 'true';
 }
 
 /**
- * Retrieve the editor base path for the current request, if any.
- * Returns an empty string when not using the /editor prefix.
+ * Gets the editor base path prefix for the current request.
+ * Returns empty string when not using the /editor prefix.
+ *
+ * @returns The editor base path or empty string
  */
 export async function getEditorBasePath(): Promise<string> {
   const headersList = await headers();

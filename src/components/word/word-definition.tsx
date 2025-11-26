@@ -1,3 +1,12 @@
+/**
+ * Word definition section component.
+ *
+ * Renders a single word meaning with all its metadata, markers,
+ * examples, and inline editing capabilities.
+ *
+ * @module components/word/word-definition
+ */
+
 'use client';
 
 import React, { useMemo } from 'react';
@@ -18,7 +27,7 @@ import {
   type MeaningMarkerKey,
 } from '@/lib/definitions';
 
-// Type for unified chip item
+/** @internal */
 interface ChipItem {
   type: 'category' | MeaningMarkerKey;
   code: string;
@@ -26,7 +35,10 @@ interface ChipItem {
   variant: MarkerColorVariant;
 }
 
-interface DefinitionSectionProps {
+/**
+ * Props for the DefinitionSection component.
+ */
+export interface DefinitionSectionProps {
   definition: Meaning;
   defIndex: number;
   editorMode: boolean;
@@ -44,6 +56,29 @@ interface DefinitionSectionProps {
   ) => React.ReactNode;
 }
 
+/**
+ * Renders a single word definition with all its fields.
+ *
+ * Displays origin, grammar category, markers, meaning, observation,
+ * examples, and variant. Supports inline editing in editor mode.
+ *
+ * @example
+ * ```tsx
+ * <DefinitionSection
+ *   definition={meaning}
+ *   defIndex={0}
+ *   editorMode={true}
+ *   editingKey={editingKey}
+ *   onToggleEdit={toggle}
+ *   onPatchDefinition={patch}
+ *   onSetEditingCategories={() => setEditing(true)}
+ *   onSetEditingMarker={(key) => setMarker(key)}
+ *   onAddDefinition={addDef}
+ *   onDeleteDefinition={deleteDef}
+ *   renderExample={renderEx}
+ * />
+ * ```
+ */
 export function DefinitionSection({
   definition: def,
   defIndex,

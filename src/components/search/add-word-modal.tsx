@@ -1,3 +1,12 @@
+/**
+ * Modal for adding new words to the dictionary.
+ *
+ * Allows editors to create new word entries with lemma, root word,
+ * letter classification, and user assignment.
+ *
+ * @module components/search/add-word-modal
+ */
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,15 +16,32 @@ import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdow
 import { Button } from '@/components/common/button';
 import { getLexicographerByRole, type User } from '@/lib/search-utils';
 import { useUserRole } from '@/hooks/useUserRole';
-interface AddWordModalProps {
+
+/**
+ * Props for the AddWordModal component.
+ */
+export interface AddWordModalProps {
+  /** List of users available for assignment */
   availableUsers: User[];
 }
 
+/** @internal */
 const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => ({
   value: letter,
   label: letter.toUpperCase(),
 }));
 
+/**
+ * Modal dialog for creating new dictionary words.
+ *
+ * Provides form fields for word details and handles API submission.
+ * On success, navigates to the newly created word's edit page.
+ *
+ * @example
+ * ```tsx
+ * <AddWordModal availableUsers={users} />
+ * ```
+ */
 export function AddWordModal({ availableUsers }: AddWordModalProps) {
   const router = useRouter();
   const pathname = usePathname();

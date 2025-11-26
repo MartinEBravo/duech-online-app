@@ -1,12 +1,29 @@
+/**
+ * Server-side dictionary utilities.
+ *
+ * Provides functions for dictionary features that require direct database access,
+ * such as the "Word of the Day" feature.
+ *
+ * @module lib/dictionary
+ */
+
 import { Word, SearchResult } from '@/lib/definitions';
 import { getWordByLemma, searchWords } from '@/lib/queries';
 
+/** Spanish alphabet including ñ */
 const LETTERS = 'abcdefghijklmnñopqrstuvwxyz'.split('');
+
+/** Cache for word of the day to avoid repeated queries */
 const wordOfTheDayCache = new Map<string, { word: Word; letter: string }>();
 
 /**
- * Get a random word for "Word of the Day"
- * Server-only function that directly queries the database.
+ * Gets a random word for the "Word of the Day" feature.
+ *
+ * Uses a deterministic selection based on the date so the same word
+ * is shown to all users on the same day. Results are cached.
+ *
+ * @param date - The date to get the word for (defaults to today)
+ * @returns Word and letter, or null if no words found
  */
 export async function getWordOfTheDay(
   date: Date = new Date()
@@ -73,6 +90,11 @@ export async function getWordOfTheDay(
   }
 }
 
+/**
+ * Creates a deterministic hash from a string seed.
+ * Used for reproducible random selection based on date.
+ * @internal
+ */
 function hashSeed(seed: string): number {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) {

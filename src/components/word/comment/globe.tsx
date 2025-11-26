@@ -1,9 +1,22 @@
+/**
+ * Comment bubble (globe) component.
+ *
+ * Displays a single comment with user avatar, name, date,
+ * and styled bubble with color based on user identity.
+ *
+ * @module components/word/comment/globe
+ */
+
 import React from 'react';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import type { WordNote } from '@/lib/definitions';
 
+/**
+ * Word comment type alias for WordNote.
+ */
 export type WordComment = WordNote;
 
+/** @internal Color palette for user-based styling */
 const COLOR_PALETTE = [
   {
     avatarBg: 'bg-blue-500/15',
@@ -111,6 +124,17 @@ const formatDateTime = (date: Date) => {
   return `${day}-${month}-${year}, ${hours}:${minutes} ${period}`;
 };
 
+/**
+ * Comment bubble displaying a single editorial comment.
+ *
+ * Shows user avatar with initials, username, timestamp,
+ * and comment content with markdown rendering.
+ *
+ * @example
+ * ```tsx
+ * <Globe comment={{ id: 1, note: "Comment text", user: { username: "John" }, createdAt: "..." }} />
+ * ```
+ */
 export default function Globe({ comment }: { comment: WordComment }) {
   const createdAt = new Date(comment.createdAt);
   const formattedDate = formatDateTime(createdAt);

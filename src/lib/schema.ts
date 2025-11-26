@@ -1,11 +1,25 @@
 /**
- * Drizzle ORM Schema for DUECh PostgreSQL Database
+ * Drizzle ORM Schema for DUECh PostgreSQL Database.
+ *
+ * This module defines all database tables and their relationships using Drizzle ORM.
+ * The schema supports a complete dictionary management system with:
+ * - User authentication and role-based access control
+ * - Dictionary words with multiple meanings
+ * - Editorial notes and comments
+ * - Password reset functionality
+ *
+ * @module lib/schema
  */
 
 import { pgTable, serial, text, timestamp, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// Users table
+/**
+ * Users table for authentication and authorization.
+ *
+ * Supports role-based access control with roles: lexicographer, editor, admin, superadmin.
+ * Tracks active sessions to prevent concurrent logins from multiple devices.
+ */
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
@@ -17,7 +31,12 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Password Reset Tokens table
+/**
+ * Password reset tokens table for secure password recovery.
+ *
+ * Tokens are generated when users request password resets and are consumed
+ * when the password is successfully changed. Cascades delete when user is removed.
+ */
 export const passwordResetTokens = pgTable('password_reset_tokens', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
@@ -27,7 +46,15 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// Words table
+/**
+ * Words table - main dictionary entries.
+ *
+ * Each word has a lemma (the dictionary form), optional root word,
+ * letter for alphabetical indexing, and status for editorial workflow.
+ *
+ * Status values: draft, in_review, reviewed, rejected, published, imported,
+ * included, preredacted, redacted, archaic, quarantined
+ */
 export const words = pgTable('words', {
   id: serial('id').primaryKey(),
   lemma: text('lemma').notNull(),
@@ -41,7 +68,22 @@ export const words = pgTable('words', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Meanings table (definitions of words)
+/**
+ * Meanings table - word definitions and linguistic metadata.
+ *
+ * Each meaning belongs to a word and contains the definition text,
+ * grammatical category, origin, usage markers, and examples.
+ * A word can have multiple numbered meanings (acepciones).
+ *
+ * Marker fields store linguistic classification:
+ * - socialValuations: Social value (e.g., vulgar, euphemism)
+ * - socialStratumMarkers: Social stratum (e.g., popular, cultured)
+ * - styleMarkers: Style (e.g., spontaneous, refined)
+ * - intentionalityMarkers: Intent (e.g., festive, derogatory, affective)
+ * - geographicalMarkers: Geographic region (e.g., north, south, central)
+ * - chronologicalMarkers: Time period (e.g., historical, obsolescent)
+ * - frequencyMarkers: Usage frequency (e.g., rarely used)
+ */
 export const meanings = pgTable('meanings', {
   id: serial('id').primaryKey(),
   wordId: integer('word_id')
@@ -75,7 +117,13 @@ export const meanings = pgTable('meanings', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// Notes table (editorial comments)
+/**
+ * Notes table - editorial comments on words.
+ *
+ * Allows editors to leave comments and feedback on dictionary entries.
+ * Notes can be marked as resolved when the feedback has been addressed.
+ * Cascades delete when the associated word is removed.
+ */
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
   wordId: integer('word_id')
@@ -87,7 +135,9 @@ export const notes = pgTable('notes', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// Relations
+/**
+ * Word relations - defines how words connect to meanings, notes, and users.
+ */
 export const wordsRelations = relations(words, ({ many, one }) => ({
   meanings: many(meanings),
   notes: many(notes),
@@ -101,6 +151,9 @@ export const wordsRelations = relations(words, ({ many, one }) => ({
   }),
 }));
 
+/**
+ * Meaning relations - connects meanings back to their parent word.
+ */
 export const meaningsRelations = relations(meanings, ({ one }) => ({
   word: one(words, {
     fields: [meanings.wordId],
@@ -108,6 +161,9 @@ export const meaningsRelations = relations(meanings, ({ one }) => ({
   }),
 }));
 
+/**
+ * Note relations - connects notes to their word and author.
+ */
 export const notesRelations = relations(notes, ({ one }) => ({
   word: one(words, {
     fields: [notes.wordId],
@@ -119,12 +175,18 @@ export const notesRelations = relations(notes, ({ one }) => ({
   }),
 }));
 
+/**
+ * User relations - connects users to their created words, notes, and password reset tokens.
+ */
 export const usersRelations = relations(users, ({ many }) => ({
   createdWords: many(words),
   notes: many(notes),
   passwordResetTokens: many(passwordResetTokens),
 }));
 
+/**
+ * Password reset token relations - connects tokens to their user.
+ */
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
   user: one(users, {
     fields: [passwordResetTokens.userId],

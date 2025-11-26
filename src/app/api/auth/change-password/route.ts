@@ -1,3 +1,11 @@
+/**
+ * Password change API endpoint.
+ *
+ * Allows users to change their password using a reset token.
+ *
+ * @module app/api/auth/change-password
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getPasswordResetToken,
@@ -8,7 +16,16 @@ import {
 import { sendPasswordChangeConfirmation } from '@/lib/email';
 
 /**
- * Password validation rules
+ * Validates password against security requirements.
+ *
+ * Requirements:
+ * - Minimum 8 characters
+ * - At least one lowercase letter
+ * - At least one uppercase letter
+ * - At least one number
+ *
+ * @param password - The password to validate
+ * @returns Validation result with error message if invalid
  */
 function validatePassword(password: string): { valid: boolean; error?: string } {
   if (password.length < 8) {
@@ -30,6 +47,15 @@ function validatePassword(password: string): { valid: boolean; error?: string } 
   return { valid: true };
 }
 
+/**
+ * POST /api/auth/change-password - Change password with reset token
+ *
+ * Request body:
+ * - token: Password reset token from email
+ * - newPassword: New password to set
+ *
+ * @returns Success message or error
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

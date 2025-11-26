@@ -1,17 +1,23 @@
-'use client';
-
 /**
- * InlineEditable
- * Higher-level component that shows a value and an edit control. When editing,
- * it delegates input behavior to `EditableInput` and handles save strategies.
+ * Inline editable field component.
+ *
+ * Shows a value with an edit button, and switches to an input field
+ * when editing. Supports both immediate save and manual save strategies.
+ *
+ * @module components/word/inline-editable
  */
+
+'use client';
 
 import React, { useState, ReactNode } from 'react';
 import { Button } from '@/components/common/button';
 import { PencilIcon } from '@/components/icons';
 import EditableInput from '@/components/word/editable-input';
 
-type InlineEditableProps = {
+/**
+ * Props for the InlineEditable component.
+ */
+export type InlineEditableProps = {
   value: string | null;
   onSave?: (v: string | null) => Promise<void> | void;
   onChange?: (v: string | null) => void;
@@ -29,6 +35,23 @@ type InlineEditableProps = {
   rows?: number;
 };
 
+/**
+ * Editable field that toggles between display and edit modes.
+ *
+ * In view mode, shows the value with an edit button. In edit mode,
+ * shows an input field. Can be controlled or uncontrolled.
+ *
+ * @example
+ * ```tsx
+ * <InlineEditable
+ *   value={title}
+ *   onChange={setTitle}
+ *   editorMode={true}
+ *   placeholder="Enter title"
+ *   saveStrategy="manual"
+ * />
+ * ```
+ */
 export default function InlineEditable({
   value,
   onSave,

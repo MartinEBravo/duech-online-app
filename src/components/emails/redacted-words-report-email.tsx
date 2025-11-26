@@ -1,12 +1,35 @@
+/**
+ * Redacted words report email template.
+ *
+ * Email sent with the redacted words report attachment.
+ *
+ * @module components/emails/redacted-words-report-email
+ */
+
 import { Section, Text } from '@react-email/components';
 import * as React from 'react';
 import { BaseEmail } from '@/components/emails/base-email';
 
-interface RedactedWordsReportEmailProps {
+/**
+ * Props for the RedactedWordsReportEmail component.
+ */
+export interface RedactedWordsReportEmailProps {
+  /** Recipient's username */
   username: string;
+  /** Formatted date string for the report */
   dateStr: string;
 }
 
+/**
+ * Email template for redacted words report delivery.
+ *
+ * Sent to editorial team with the redacted words report attachment.
+ *
+ * @example
+ * ```tsx
+ * <RedactedWordsReportEmail username="editor" dateStr="26 Nov 2025" />
+ * ```
+ */
 const RedactedWordsReportEmail = ({ username, dateStr }: RedactedWordsReportEmailProps) => (
   <BaseEmail
     preview="Reporte de palabras redactadas - DUECh en línea"

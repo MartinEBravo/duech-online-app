@@ -1,15 +1,45 @@
+/**
+ * Word comments section component.
+ *
+ * Displays editorial comments for a word and allows adding new ones.
+ * Handles loading, error states, and optimistic updates.
+ *
+ * @module components/word/comment/section
+ */
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import Globe, { WordComment } from '@/components/word/comment/globe';
 import NewComment from '@/components/word/comment/new';
 
-interface WordCommentSectionProps {
+/**
+ * Props for the WordCommentSection component.
+ */
+export interface WordCommentSectionProps {
+  /** Enable comment creation */
   editorMode: boolean;
+  /** Initial comments from server */
   initial?: WordComment[];
+  /** Word lemma for API calls */
   lemma: string;
 }
 
+/**
+ * Section displaying editorial comments for a word.
+ *
+ * Fetches and displays comments, handles adding new comments
+ * with optimistic updates, and shows loading/error states.
+ *
+ * @example
+ * ```tsx
+ * <WordCommentSection
+ *   editorMode={true}
+ *   initial={initialComments}
+ *   lemma={word.lemma}
+ * />
+ * ```
+ */
 export default function WordCommentSection({
   editorMode,
   initial = [],

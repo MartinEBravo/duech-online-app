@@ -1,3 +1,12 @@
+/**
+ * Word display and editing page component.
+ *
+ * Renders a complete word entry with definitions, examples, and editor controls.
+ * Supports both public viewing and editor editing modes with auto-save.
+ *
+ * @module components/word/word-page
+ */
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -23,7 +32,10 @@ import WordCommentSection from '@/components/word/comment/section';
 import type { WordComment } from '@/components/word/comment/globe';
 import { DeleteWordModal } from '@/components/word/delete-word-modal';
 
-interface WordDisplayProps {
+/**
+ * Props for the WordDisplay component.
+ */
+export interface WordDisplayProps {
   initialWord: Word;
   initialLetter: string;
   initialStatus?: string;
@@ -37,14 +49,39 @@ interface WordDisplayProps {
   currentUserRole: string | null;
 }
 
+/** @internal */
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+/** @internal */
 type ActiveExample = { defIndex: number; exIndex: number; isNew?: boolean };
 
+/** @internal */
 const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => ({
   value: letter,
   label: letter.toUpperCase(),
 }));
 
+/**
+ * Main word display component with editing capabilities.
+ *
+ * Displays word definitions, examples, and metadata. In editor mode,
+ * provides inline editing with debounced auto-save, modal selectors
+ * for categories/markers, and comment management.
+ *
+ * @example
+ * ```tsx
+ * <WordDisplay
+ *   initialWord={word}
+ *   initialLetter="c"
+ *   initialStatus="draft"
+ *   wordId={123}
+ *   initialComments={comments}
+ *   editorMode={true}
+ *   currentUserId={user.id}
+ *   currentUserRole={user.role}
+ * />
+ * ```
+ */
 export function WordDisplay({
   initialWord,
   initialLetter,

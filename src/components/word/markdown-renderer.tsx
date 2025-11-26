@@ -1,12 +1,37 @@
+/**
+ * Markdown renderer for word content.
+ *
+ * Renders markdown text with styled emphasis (bold, italic)
+ * using Tailwind CSS classes.
+ *
+ * @module components/word/markdown-renderer
+ */
+
 'use client';
 
 import ReactMarkdown from 'react-markdown';
 
-interface MarkdownRendererProps {
+/**
+ * Props for the MarkdownRenderer component.
+ */
+export interface MarkdownRendererProps {
+  /** Markdown content to render */
   content: string;
+  /** Additional CSS classes */
   className?: string;
 }
 
+/**
+ * Renders markdown content with custom styling.
+ *
+ * Supports bold (**text**), italic (*text*), and combined formatting.
+ * Renders paragraphs as inline spans for use in flowing text.
+ *
+ * @example
+ * ```tsx
+ * <MarkdownRenderer content="A **bold** and *italic* word" />
+ * ```
+ */
 export default function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
     <ReactMarkdown

@@ -1,13 +1,43 @@
+/**
+ * Delete word confirmation modal.
+ *
+ * Wraps DeleteConfirmationModal with word-specific logic
+ * including API call and redirect after deletion.
+ *
+ * @module components/word/delete-word-modal
+ */
+
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
 import { DeleteConfirmationModal } from '@/components/common/delete-confirmation-modal';
 
-interface DeleteWordModalProps {
+/**
+ * Props for the DeleteWordModal component.
+ */
+export interface DeleteWordModalProps {
+  /** Word lemma to delete */
   lemma: string;
+  /** Callback to close the modal */
   onClose: () => void;
 }
 
+/**
+ * Modal for confirming word deletion.
+ *
+ * Requires user to type the word lemma to confirm. On success,
+ * redirects to the search page.
+ *
+ * @example
+ * ```tsx
+ * {showDelete && (
+ *   <DeleteWordModal
+ *     lemma={word.lemma}
+ *     onClose={() => setShowDelete(false)}
+ *   />
+ * )}
+ * ```
+ */
 export function DeleteWordModal({ lemma, onClose }: DeleteWordModalProps) {
   const router = useRouter();
   const pathname = usePathname();

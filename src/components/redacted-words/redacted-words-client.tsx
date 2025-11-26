@@ -1,3 +1,12 @@
+/**
+ * Redacted words management client component.
+ *
+ * Displays list of words in "redactada" status with PDF export
+ * and email sending capabilities.
+ *
+ * @module components/redacted-words/redacted-words-client
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -5,20 +14,45 @@ import Link from 'next/link';
 import { Alert } from '@/components/common/alert';
 import { Button } from '@/components/common/button';
 
-interface RedactedWord {
+/**
+ * Redacted word data structure.
+ */
+export interface RedactedWord {
+  /** Word database ID */
   id: number;
+  /** Word lemma */
   lemma: string;
+  /** Associated editorial notes */
   notes?: Array<{
     id: number;
     note: string | null;
   }> | null;
 }
 
-interface RedactedWordsClientProps {
+/**
+ * Props for the RedactedWordsClient component.
+ */
+export interface RedactedWordsClientProps {
+  /** List of redacted words */
   initialWords: RedactedWord[];
+  /** Email address for sending report */
   userEmail: string;
 }
 
+/**
+ * Client component for managing redacted words.
+ *
+ * Shows a table of words in "redactada" status with their editorial
+ * comments. Provides actions to download PDF or email the report.
+ *
+ * @example
+ * ```tsx
+ * <RedactedWordsClient
+ *   initialWords={redactedWords}
+ *   userEmail={user.email}
+ * />
+ * ```
+ */
 export function RedactedWordsClient({ initialWords, userEmail }: RedactedWordsClientProps) {
   const [isSending, setIsSending] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

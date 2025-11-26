@@ -1,10 +1,26 @@
+/**
+ * Next.js middleware for authentication and editor mode routing.
+ *
+ * Handles session validation, editor subdomain/path detection,
+ * and admin-only route protection.
+ *
+ * @module middleware
+ */
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/** Editor host for subdomain-based access */
 const EDITOR_HOST = process.env.HOST_URL || 'editor.localhost';
+/** Path prefix for path-based editor access */
 const EDITOR_PATH_PREFIX = '/editor';
+/** Session cookie name */
 const SESSION_COOKIE = 'duech_session';
 
+/**
+ * @internal
+ * Determines if a path should bypass middleware checks.
+ */
 function shouldBypass(pathname: string): boolean {
   return (
     pathname.startsWith('/_next/') || // Next.js internals
@@ -32,6 +48,19 @@ function normalizeEditorPath(pathname: string): string {
   return pathname;
 }
 
+/**
+ * Main middleware function for request processing.
+ *
+ * Handles:
+ * - Static file and API bypass
+ * - Editor mode detection (subdomain or path-based)
+ * - Session validation and login redirects
+ * - Admin-only route protection
+ *
+ * Sets headers:
+ * - x-editor-mode: 'true' or 'false'
+ * - x-editor-base-path: '/editor' or ''
+ */
 export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host')?.split(':')[0];
   const originalPathname = request.nextUrl.pathname;
