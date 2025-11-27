@@ -32,6 +32,7 @@ interface WordDisplayProps {
   wordId: number;
   initialComments: WordComment[];
   editorMode: boolean;
+  initialUsers: Array<{ id: number; username: string; role: string }>;
   userRole?: string;
   craetedBy?: number;
   currentUserId: number | null;
@@ -55,6 +56,7 @@ export function WordDisplay({
   initialComments,
   craetedBy,
   editorMode,
+  initialUsers,
   userRole,
   currentUserId,
   currentUserRole,
@@ -67,7 +69,8 @@ export function WordDisplay({
   const [lastSavedLemma, setLastSavedLemma] = useState(initialWord.lemma);
   const [status, setStatus] = useState<string>(initialStatus || 'draft');
   const [assignedTo, setAssignedTo] = useState<number | null>(initialAssignedTo || null);
-  const [users, setUsers] = useState<Array<{ id: number; username: string; role: string }>>([]);
+  const [users, setUsers] =
+    useState<Array<{ id: number; username: string; role: string }>>(initialUsers);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const isFirstRender = useRef(true);
