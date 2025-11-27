@@ -135,9 +135,10 @@ export function DefinitionSection({
                         label: label,
                       })),
                     ]}
-                    selectedValue={def.origin ?? ''}
+                    value={def.origin ?? ''}
                     onChange={(value) => onPatchDefinition({ origin: value || null })}
                     placeholder="Seleccionar origen"
+                    searchable={true}
                   />
                 </div>
               </div>

@@ -130,9 +130,10 @@ export function ExampleEditorModal({
             <SelectDropdown
               label="Cargar datos desde Nómina (Opcional)"
               options={sourceOptions}
-              selectedValue=""
+              value=""
               onChange={handleSourceSelect}
               placeholder="Seleccionar fuente..."
+              searchable={true}
             />
           </div>
 

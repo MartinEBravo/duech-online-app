@@ -166,7 +166,7 @@ export function WordHeader({
               <SelectDropdown
                 label="Diccionario"
                 options={DICCIONARIES}
-                selectedValue={dictionary || ''}
+                value={dictionary || ''}
                 onChange={(val) => onDictionaryChange(val || null)}
                 placeholder="Seleccionar"
                 disabled={!canActuallyEdit}
@@ -176,7 +176,7 @@ export function WordHeader({
               <SelectDropdown
                 label="Letra"
                 options={letterOptions}
-                selectedValue={letter}
+                value={letter}
                 onChange={(value) => onLetterChange(value.toLowerCase())}
                 placeholder="Letra"
                 disabled={!canActuallyEdit}
@@ -187,7 +187,7 @@ export function WordHeader({
               <SelectDropdown
                 label="Asignado a"
                 options={userOptions}
-                selectedValue={assignedTo?.toString() ?? ''}
+                value={assignedTo?.toString() ?? ''}
                 onChange={(value) => onAssignedToChange(value ? Number(value) : null)}
                 placeholder="Sin asignar"
                 disabled={!(canAsigned || canActuallyEdit)}
@@ -198,7 +198,7 @@ export function WordHeader({
               <SelectDropdown
                 label="Estado"
                 options={statusFilters}
-                selectedValue={status}
+                value={status}
                 onChange={onStatusChange}
                 placeholder="Seleccionar estado"
                 disabled={!canActuallyEdit && !canChangeStatus}
@@ -223,9 +223,8 @@ export function WordHeader({
                 type="button"
                 onClick={onManualSave}
                 disabled={isSaving}
-                className={`rounded-md px-4 py-2 text-white transition-colors ${
-                  isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                className={`rounded-md px-4 py-2 text-white transition-colors ${isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 title="Guardar cambios"
               >
                 {isSaved ? 'Guardado' : 'Guardar cambios'}

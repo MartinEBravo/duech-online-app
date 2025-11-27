@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Popup from 'reactjs-popup';
-import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
+import { SelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
 import { getLexicographerByRole, type User } from '@/lib/search-utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -161,19 +161,20 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                 <SelectDropdown
                   label="Letra"
                   options={[{ value: '', label: 'Seleccionar letra' }, ...LETTER_OPTIONS]}
-                  selectedValue={selectedLetter}
+                  value={selectedLetter}
                   onChange={(value) => setNewWordLetter(value.toLowerCase())}
                   disabled={false}
                   placeholder="Seleccionar letra"
                 />
               </div>
             </div>
-            <MultiSelectDropdown
+            <SelectDropdown
               label="Asignado a"
               options={userOptions}
-              selectedValues={newWordAssignedTo}
+              value={newWordAssignedTo}
               disabled={false}
               onChange={setNewWordAssignedTo}
+              multiple={true}
             />
 
             <div className="mt-5 flex justify-end">

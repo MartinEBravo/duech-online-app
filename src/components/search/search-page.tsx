@@ -333,16 +333,16 @@ export function SearchPage({
       ? searchState.filters
       : urlHasCriteria
         ? (() => {
-            const snapshot = {
-              categories: [...urlParams.categories],
-              origins: [...urlParams.origins],
-              letters: [...urlParams.letters],
-            } as LocalSearchFilters;
-            for (const key of MEANING_MARKER_KEYS) {
-              snapshot[key] = [...urlParams[key]];
-            }
-            return snapshot;
-          })()
+          const snapshot = {
+            categories: [...urlParams.categories],
+            origins: [...urlParams.origins],
+            letters: [...urlParams.letters],
+          } as LocalSearchFilters;
+          for (const key of MEANING_MARKER_KEYS) {
+            snapshot[key] = [...urlParams[key]];
+          }
+          return snapshot;
+        })()
         : searchState.filters;
 
     void executeSearch({
@@ -441,9 +441,24 @@ export function SearchPage({
           key="status-filter"
           label="Estado"
           options={STATUS_OPTIONS}
-          selectedValue={searchState.status}
+          value={searchState.status}
           onChange={handleStatusChange}
           placeholder="Seleccionar estado"
+        />
+      ) : null,
+    [editorMode, searchState.status, handleStatusChange]
+  );
+
+  const assignedFilter = useMemo(
+    () =>
+      editorMode ? (
+        <SelectDropdown
+          key="assigned-filter"
+          label="Asignado a"
+          options={userOptions}
+          value={searchState.assignedTo}
+          onChange={handleAssignedChange}
+          multiple={true}
         />
       ) : null,
     [editorMode, searchState.status, handleStatusChange]
@@ -468,15 +483,15 @@ export function SearchPage({
     () =>
       editorMode
         ? {
-            hasActive: hasEditorFilters,
-            onClear: clearAdditionalFilters,
-            render: () => (
-              <>
-                {statusFilter}
-                {assignedFilter}
-              </>
-            ),
-          }
+          hasActive: hasEditorFilters,
+          onClear: clearAdditionalFilters,
+          render: () => (
+            <>
+              {statusFilter}
+              {assignedFilter}
+            </>
+          ),
+        }
         : undefined,
     [editorMode, clearAdditionalFilters, hasEditorFilters, statusFilter, assignedFilter]
   );
