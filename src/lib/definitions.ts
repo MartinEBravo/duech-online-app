@@ -9,22 +9,22 @@
 export interface Example {
   value: string;
   // Mandatory
-  author?: string;
-  year?: string;
-  publication?: string;
-  format?: string;
+  author?: string | null;
+  year?: string | null;
+  publication?: string | null;
+  format?: string | null;
   // Optional
-  title?: string;
-  date?: string;
-  city?: string;
-  editorial?: string;
-  volume?: string;
-  number?: string;
-  page?: string; // Replaces 'pages' to keep legacy compatibility and singular naming
-  doi?: string;
-  url?: string;
+  title?: string | null;
+  date?: string | null;
+  city?: string | null;
+  editorial?: string | null;
+  volume?: string | null;
+  number?: string | null;
+  page?: string | null; // Replaces 'pages' to keep legacy compatibility and singular naming
+  doi?: string | null;
+  url?: string | null;
   // Legacy
-  source?: string;
+  source?: string | null;
   // page?: string; // Removed duplicate legacy definition
 }
 

@@ -475,7 +475,7 @@ export default function SearchBar({
                 label="Letras"
                 options={LETTER_OPTIONS}
                 value={filters.letters}
-                onChange={(values) => updateFilters('letters', values)}
+                onChange={(values: string[]) => updateFilters('letters', values)}
                 placeholder="Seleccionar letras"
                 multiple={true}
               />
@@ -483,7 +483,7 @@ export default function SearchBar({
                 label="Orígenes"
                 options={originOptions}
                 value={filters.origins}
-                onChange={(values) => updateFilters('origins', values)}
+                onChange={(values: string[]) => updateFilters('origins', values)}
                 placeholder="Seleccionar orígenes"
                 multiple={true}
               />
@@ -492,7 +492,7 @@ export default function SearchBar({
                 label="Diccionarios"
                 options={DICCIONARIES}
                 value={filters.dictionaries}
-                onChange={(values) => updateFilters('dictionaries', values)}
+                onChange={(values: string[]) => updateFilters('dictionaries', values)}
                 placeholder="Seleccionar diccionarios"
                 multiple={true}
               />
@@ -502,7 +502,7 @@ export default function SearchBar({
                 label="Categorías gramaticales"
                 options={categoryOptions}
                 value={filters.categories}
-                onChange={(values) => updateFilters('categories', values)}
+                onChange={(values: string[]) => updateFilters('categories', values)}
                 placeholder="Seleccionar categorías"
                 multiple={true}
               />
@@ -513,7 +513,7 @@ export default function SearchBar({
                   label={config.label}
                   options={markerOptions[key]}
                   value={filters[key]}
-                  onChange={(values) => updateFilters(key, values)}
+                  onChange={(values: string[]) => updateFilters(key, values)}
                   placeholder={config.addLabel.replace('+ ', '')}
                   multiple={true}
                 />

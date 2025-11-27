@@ -136,7 +136,7 @@ export function DefinitionSection({
                       })),
                     ]}
                     value={def.origin ?? ''}
-                    onChange={(value) => onPatchDefinition({ origin: value || null })}
+                    onChange={(value: string) => onPatchDefinition({ origin: value || null })}
                     placeholder="Seleccionar origen"
                     searchable={true}
                   />

@@ -167,7 +167,7 @@ export function WordHeader({
                 label="Diccionario"
                 options={DICCIONARIES}
                 value={dictionary || ''}
-                onChange={(val) => onDictionaryChange(val || null)}
+                onChange={(val: string) => onDictionaryChange(val || null)}
                 placeholder="Seleccionar"
                 disabled={!canActuallyEdit}
               />
@@ -177,7 +177,7 @@ export function WordHeader({
                 label="Letra"
                 options={letterOptions}
                 value={letter}
-                onChange={(value) => onLetterChange(value.toLowerCase())}
+                onChange={(value: string) => onLetterChange(value.toLowerCase())}
                 placeholder="Letra"
                 disabled={!canActuallyEdit}
               />
@@ -188,7 +188,7 @@ export function WordHeader({
                 label="Asignado a"
                 options={userOptions}
                 value={assignedTo?.toString() ?? ''}
-                onChange={(value) => onAssignedToChange(value ? Number(value) : null)}
+                onChange={(value: string) => onAssignedToChange(value ? Number(value) : null)}
                 placeholder="Sin asignar"
                 disabled={!(canAsigned || canActuallyEdit)}
               />

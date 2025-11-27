@@ -162,7 +162,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                   label="Letra"
                   options={[{ value: '', label: 'Seleccionar letra' }, ...LETTER_OPTIONS]}
                   value={selectedLetter}
-                  onChange={(value) => setNewWordLetter(value.toLowerCase())}
+                  onChange={(value: string) => setNewWordLetter(value.toLowerCase())}
                   disabled={false}
                   placeholder="Seleccionar letra"
                 />
