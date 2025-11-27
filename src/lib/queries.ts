@@ -16,6 +16,34 @@ import {
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
 /**
+ * Common word columns for queries
+ */
+const WORD_COLUMNS = {
+  id: true,
+  lemma: true,
+  root: true,
+  letter: true,
+  variant: true,
+  status: true,
+  createdBy: true,
+  assignedTo: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+/**
+ * Common meanings relation config with examples
+ */
+const MEANINGS_WITH_EXAMPLES = {
+  meanings: {
+    orderBy: (meaningsTable: typeof meanings, { asc }: { asc: typeof import('drizzle-orm').asc }) => [asc(meaningsTable.number)],
+    with: {
+      examples: true,
+    },
+  },
+} as const;
+
+/**
  * Get a word by lemma with all its meanings
  * Returns in frontend-compatible format
  */
@@ -43,25 +71,9 @@ export async function getWordByLemma(
 
   const result = await db.query.words.findFirst({
     where: whereCondition,
-    columns: {
-      id: true,
-      lemma: true,
-      root: true,
-      letter: true,
-      variant: true,
-      status: true,
-      createdBy: true,
-      assignedTo: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    columns: WORD_COLUMNS,
     with: {
-      meanings: {
-        orderBy: (meanings, { asc }) => [asc(meanings.number)],
-        with: {
-          examples: true,
-        },
-      },
+      ...MEANINGS_WITH_EXAMPLES,
       notes: {
         orderBy: (notesTable, { desc }) => [desc(notesTable.createdAt)],
         with: {
@@ -87,9 +99,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-              id: note.user.id,
-              username: note.user.username,
-            }
+            id: note.user.id,
+            username: note.user.username,
+          }
           : null,
       })) ?? [],
   };
@@ -614,28 +626,10 @@ export async function getWordsBySource(publication: string): Promise<SearchResul
       wordIds.map((id) => sql`${id}`),
       sql`, `
     )})`,
-    columns: {
-      id: true,
-      lemma: true,
-      root: true,
-      letter: true,
-      variant: true,
-      status: true,
-      createdBy: true,
-      assignedTo: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    with: {
-      meanings: {
-        orderBy: (meanings, { asc }) => [asc(meanings.number)],
-        with: {
-          examples: true,
-        },
-      },
-    },
+    columns: WORD_COLUMNS,
+    with: MEANINGS_WITH_EXAMPLES,
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
 
-  return results.map(dbWordToSearchResult);
+  return results.map((result) => dbWordToSearchResult(result));
 }
