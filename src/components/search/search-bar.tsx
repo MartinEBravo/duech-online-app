@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { MultiSelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import {
@@ -471,46 +471,51 @@ export default function SearchBar({
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Row 1 */}
-              <MultiSelectDropdown
+              <Dropdown
                 label="Letras"
                 options={LETTER_OPTIONS}
-                selectedValues={filters.letters}
-                onChange={(values) => updateFilters('letters', values)}
+                value={filters.letters}
+                onChange={(values: string[]) => updateFilters('letters', values)}
                 placeholder="Seleccionar letras"
+                multiple={true}
               />
-              <MultiSelectDropdown
+              <Dropdown
                 label="Orígenes"
                 options={originOptions}
-                selectedValues={filters.origins}
-                onChange={(values) => updateFilters('origins', values)}
+                value={filters.origins}
+                onChange={(values: string[]) => updateFilters('origins', values)}
                 placeholder="Seleccionar orígenes"
+                multiple={true}
               />
 
-              <MultiSelectDropdown
+              <Dropdown
                 label="Diccionarios"
                 options={DICCIONARIES}
-                selectedValues={filters.dictionaries}
-                onChange={(values) => updateFilters('dictionaries', values)}
+                value={filters.dictionaries}
+                onChange={(values: string[]) => updateFilters('dictionaries', values)}
                 placeholder="Seleccionar diccionarios"
+                multiple={true}
               />
 
               {/* Row 2 */}
-              <MultiSelectDropdown
+              <Dropdown
                 label="Categorías gramaticales"
                 options={categoryOptions}
-                selectedValues={filters.categories}
-                onChange={(values) => updateFilters('categories', values)}
+                value={filters.categories}
+                onChange={(values: string[]) => updateFilters('categories', values)}
                 placeholder="Seleccionar categorías"
+                multiple={true}
               />
               {/* Markers - rows 2-5 */}
               {MARKER_ENTRIES.map(({ key, config }) => (
-                <MultiSelectDropdown
+                <Dropdown
                   key={key}
                   label={config.label}
                   options={markerOptions[key]}
-                  selectedValues={filters[key]}
-                  onChange={(values) => updateFilters(key, values)}
+                  value={filters[key]}
+                  onChange={(values: string[]) => updateFilters(key, values)}
                   placeholder={config.addLabel.replace('+ ', '')}
+                  multiple={true}
                 />
               ))}
 

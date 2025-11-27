@@ -2,7 +2,7 @@
  * Drizzle ORM Schema for DUECh PostgreSQL Database
  */
 
-import { pgTable, serial, text, timestamp, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Users table
@@ -61,25 +61,30 @@ export const meanings = pgTable('meanings', {
   chronologicalMarkers: text('chrono_mark'),
   frequencyMarkers: text('freq_mark'),
   dictionary: text('dictionary'), // difruech, duech, etc.
-  examples: jsonb('examples').$type<
-    Array<{
-      value: string;
-      author?: string;
-      year?: string;
-      publication?: string;
-      format?: string;
-      title?: string;
-      date?: string;
-      city?: string;
-      editorial?: string;
-      volume?: string;
-      number?: string;
-      page?: string;
-      doi?: string;
-      url?: string;
-      source?: string; // Legacy
-    }>
-  >(), // JSONB field with examples
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Examples table (normalized)
+export const examples = pgTable('examples', {
+  id: serial('id').primaryKey(),
+  meaningId: integer('meaning_id')
+    .notNull()
+    .references(() => meanings.id, { onDelete: 'cascade' }),
+  value: text('value').notNull(),
+  author: text('author'),
+  year: text('year'),
+  publication: text('publication'),
+  format: text('format'),
+  title: text('title'),
+  date: text('date'),
+  city: text('city'),
+  editorial: text('editorial'),
+  volume: text('volume'),
+  number: text('number'),
+  page: text('page'),
+  doi: text('doi'),
+  url: text('url'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -103,17 +108,27 @@ export const wordsRelations = relations(words, ({ many, one }) => ({
   creator: one(users, {
     fields: [words.createdBy],
     references: [users.id],
+    relationName: 'createdWords',
   }),
   assignee: one(users, {
     fields: [words.assignedTo],
     references: [users.id],
+    relationName: 'assignedWords',
   }),
 }));
 
-export const meaningsRelations = relations(meanings, ({ one }) => ({
+export const meaningsRelations = relations(meanings, ({ one, many }) => ({
   word: one(words, {
     fields: [meanings.wordId],
     references: [words.id],
+  }),
+  examples: many(examples),
+}));
+
+export const examplesRelations = relations(examples, ({ one }) => ({
+  meaning: one(meanings, {
+    fields: [examples.meaningId],
+    references: [meanings.id],
   }),
 }));
 

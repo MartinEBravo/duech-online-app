@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import SearchBar from '@/components/search/search-bar';
 import { searchDictionary } from '@/lib/dictionary-client';
 import {
@@ -437,11 +437,11 @@ export function SearchPage({
   const statusFilter = useMemo(
     () =>
       editorMode ? (
-        <SelectDropdown
+        <Dropdown
           key="status-filter"
           label="Estado"
           options={STATUS_OPTIONS}
-          selectedValue={searchState.status}
+          value={searchState.status}
           onChange={handleStatusChange}
           placeholder="Seleccionar estado"
         />
@@ -452,13 +452,14 @@ export function SearchPage({
   const assignedFilter = useMemo(
     () =>
       editorMode ? (
-        <MultiSelectDropdown
+        <Dropdown
           key="assigned-filter"
           label="Asignado a"
           options={userOptions}
-          selectedValues={searchState.assignedTo}
+          value={searchState.assignedTo}
           onChange={handleAssignedChange}
           placeholder="Seleccionar usuario"
+          multiple={true}
         />
       ) : null,
     [editorMode, searchState.assignedTo, userOptions, handleAssignedChange]
