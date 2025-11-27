@@ -29,10 +29,11 @@ function DropdownButton({
       type="button"
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${disabled
+      className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+        disabled
           ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-60'
           : 'focus:border-duech-blue cursor-pointer border-gray-300 bg-white hover:bg-gray-50 focus:outline-none'
-        } `}
+      } `}
     >
       <div className="flex items-center justify-between">
         <span className={`truncate ${isEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
@@ -115,9 +116,9 @@ export function Dropdown({
         selectedValues.length <= maxDisplay
           ? selectedOptions.map((o) => o.label).join(', ')
           : `${selectedOptions
-            .slice(0, maxDisplay)
-            .map((o) => o.label)
-            .join(', ')} +${selectedValues.length - maxDisplay} más`;
+              .slice(0, maxDisplay)
+              .map((o) => o.label)
+              .join(', ')} +${selectedValues.length - maxDisplay} más`;
     } else {
       const option = options.find((o) => o.value === selectedValues[0]);
       displayText = option ? option.label : placeholder;
@@ -194,10 +195,11 @@ export function Dropdown({
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`flex w-full items-center px-3 py-2 text-left transition-colors hover:bg-gray-50 ${isSelected && !multiple
+                  className={`flex w-full items-center px-3 py-2 text-left transition-colors hover:bg-gray-50 ${
+                    isSelected && !multiple
                       ? 'bg-duech-blue bg-opacity-10 text-duech-blue font-medium'
                       : 'text-gray-700'
-                    }`}
+                  }`}
                 >
                   {multiple && (
                     <input
