@@ -223,9 +223,8 @@ export function WordHeader({
                 type="button"
                 onClick={onManualSave}
                 disabled={isSaving}
-                className={`rounded-md px-4 py-2 text-white transition-colors ${
-                  isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                className={`rounded-md px-4 py-2 text-white transition-colors ${isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 title="Guardar cambios"
               >
                 {isSaved ? 'Guardado' : 'Guardar cambios'}
