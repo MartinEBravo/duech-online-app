@@ -74,11 +74,10 @@ export const meanings = pgTable('meanings', {
       editorial?: string;
       volume?: string;
       number?: string;
-      pages?: string;
+      page?: string;
       doi?: string;
       url?: string;
       source?: string; // Legacy
-      page?: string; // Legacy
     }>
   >(), // JSONB field with examples
   createdAt: timestamp('created_at').notNull().defaultNow(),

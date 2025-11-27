@@ -241,7 +241,7 @@ export function WordDisplay({
     editorial: undefined,
     volume: undefined,
     number: undefined,
-    pages: undefined,
+    page: undefined,
     doi: undefined,
     url: undefined,
   });
@@ -279,7 +279,7 @@ export function WordDisplay({
     editorial: example.editorial ?? '',
     volume: example.volume ?? '',
     number: example.number ?? '',
-    pages: example.pages ?? example.page ?? '', // Fallback to legacy page
+    page: example.page ?? '',
     doi: example.doi ?? '',
     url: example.url ?? '',
   });
@@ -301,7 +301,7 @@ export function WordDisplay({
       'editorial',
       'volume',
       'number',
-      'pages',
+      'page',
       'doi',
       'url',
     ];

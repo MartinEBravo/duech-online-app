@@ -21,12 +21,11 @@ function cleanExample(ex: Example) {
     ...(ex.editorial !== undefined && { editorial: ex.editorial }),
     ...(ex.volume !== undefined && { volume: ex.volume }),
     ...(ex.number !== undefined && { number: ex.number }),
-    ...(ex.pages !== undefined && { pages: ex.pages }),
+    ...(ex.page !== undefined && { page: ex.page }),
     ...(ex.doi !== undefined && { doi: ex.doi }),
     ...(ex.url !== undefined && { url: ex.url }),
     // Legacy fields
     ...(ex.source !== undefined && { source: ex.source }),
-    ...(ex.page !== undefined && { page: ex.page }),
   };
 }
 

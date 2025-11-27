@@ -53,9 +53,7 @@ export function ExampleDisplay({
                 {ex.editorial && <span className="ml-2">Editorial: {ex.editorial}</span>}
                 {ex.volume && <span className="ml-2">Vol: {ex.volume}</span>}
                 {ex.number && <span className="ml-2">Núm: {ex.number}</span>}
-                {(ex.pages || ex.page) && (
-                  <span className="ml-2">Páginas: {ex.pages || ex.page}</span>
-                )}
+                {ex.page && <span className="ml-2">Páginas: {ex.page}</span>}
                 {ex.doi && <span className="ml-2">DOI: {ex.doi}</span>}
                 {ex.url && (
                   <span className="ml-2">

@@ -43,7 +43,7 @@ type ExampleDraft = {
   editorial: string;
   volume: string;
   number: string;
-  pages: string;
+  page: string;
   doi: string;
   url: string;
 };
@@ -149,8 +149,8 @@ export function ExampleEditorModal({
               />
               <FormInput
                 label="Páginas"
-                value={draft.pages}
-                onChange={(value) => onDraftChange({ ...draft, pages: value })}
+                value={draft.page}
+                onChange={(value) => onDraftChange({ ...draft, page: value })}
               />
               <FormInput
                 label="DOI"

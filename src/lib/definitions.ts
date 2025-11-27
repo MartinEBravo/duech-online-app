@@ -20,12 +20,12 @@ export interface Example {
   editorial?: string;
   volume?: string;
   number?: string;
-  pages?: string;
+  page?: string; // Replaces 'pages' to keep legacy compatibility and singular naming
   doi?: string;
   url?: string;
   // Legacy
   source?: string;
-  page?: string;
+  // page?: string; // Removed duplicate legacy definition
 }
 
 export interface WordNote {
