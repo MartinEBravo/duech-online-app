@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { WordCard } from '@/components/search/word-card';
 import { fetchWordsBySource } from '@/lib/actions';
 import { type SearchResult } from '@/lib/definitions';
 import { ArrowLeftIcon, BookOpenIcon } from '@/components/icons';
+import {
+    SearchLoadingSkeleton,
+    NoResultsState,
+    WordResultsList,
+} from '@/components/search/search-results-components';
 
 export default function SourcePage() {
     const params = useParams();
@@ -65,12 +69,7 @@ export default function SourcePage() {
             </div>
 
             {/* Loading state */}
-            {isLoading && (
-                <div className="py-12 text-center">
-                    <div className="border-duech-blue mx-auto h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"></div>
-                    <p className="mt-4 text-gray-600">Cargando palabras...</p>
-                </div>
-            )}
+            {isLoading && <SearchLoadingSkeleton editorMode={false} count={3} />}
 
             {/* Error state */}
             {error && (
@@ -80,24 +79,10 @@ export default function SourcePage() {
             )}
 
             {/* Results */}
-            {!isLoading && !error && words.length === 0 && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center">
-                    <p className="text-gray-600">No se encontraron palabras con ejemplos de esta fuente.</p>
-                </div>
-            )}
+            {!isLoading && !error && words.length === 0 && <NoResultsState editorMode={false} />}
 
             {!isLoading && !error && words.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {words.map((word) => (
-                        <WordCard
-                            key={word.lemma}
-                            lemma={word.lemma}
-                            letter={word.letter}
-                            editorMode={false}
-                            dictionary={word.dictionary}
-                        />
-                    ))}
-                </div>
+                <WordResultsList results={words} editorMode={false} />
             )}
         </div>
     );

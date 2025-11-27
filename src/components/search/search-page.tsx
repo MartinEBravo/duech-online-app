@@ -11,7 +11,6 @@ import {
   SearchResult,
   STATUS_OPTIONS,
 } from '@/lib/definitions';
-import { WordCard } from '@/components/search/word-card';
 import { AddWordModal } from '@/components/search/add-word-modal';
 import { useUrlSearchParams } from '@/hooks/useUrlSearchParams';
 import { useSearchState, type SearchState } from '@/hooks/useSearchState';
@@ -20,6 +19,7 @@ import {
   EmptySearchState,
   NoResultsState,
   SearchResultsCount,
+  WordResultsList,
 } from '@/components/search/search-results-components';
 import { Pagination } from '@/components/search/pagination';
 import {
@@ -333,16 +333,16 @@ export function SearchPage({
       ? searchState.filters
       : urlHasCriteria
         ? (() => {
-            const snapshot = {
-              categories: [...urlParams.categories],
-              origins: [...urlParams.origins],
-              letters: [...urlParams.letters],
-            } as LocalSearchFilters;
-            for (const key of MEANING_MARKER_KEYS) {
-              snapshot[key] = [...urlParams[key]];
-            }
-            return snapshot;
-          })()
+          const snapshot = {
+            categories: [...urlParams.categories],
+            origins: [...urlParams.origins],
+            letters: [...urlParams.letters],
+          } as LocalSearchFilters;
+          for (const key of MEANING_MARKER_KEYS) {
+            snapshot[key] = [...urlParams[key]];
+          }
+          return snapshot;
+        })()
         : searchState.filters;
 
     void executeSearch({
@@ -469,15 +469,15 @@ export function SearchPage({
     () =>
       editorMode
         ? {
-            hasActive: hasEditorFilters,
-            onClear: clearAdditionalFilters,
-            render: () => (
-              <>
-                {statusFilter}
-                {assignedFilter}
-              </>
-            ),
-          }
+          hasActive: hasEditorFilters,
+          onClear: clearAdditionalFilters,
+          render: () => (
+            <>
+              {statusFilter}
+              {assignedFilter}
+            </>
+          ),
+        }
         : undefined,
     [editorMode, clearAdditionalFilters, hasEditorFilters, statusFilter, assignedFilter]
   );
@@ -531,26 +531,12 @@ export function SearchPage({
                 pageSize={RESULTS_PER_PAGE}
               />
               {/* Results list */}
-              <div className="space-y-4">
-                {searchResults.map((result, index) => {
-                  return (
-                    <WordCard
-                      key={`${result.word.lemma}-${index}`}
-                      lemma={result.word.lemma}
-                      letter={result.letter}
-                      editorMode={editorMode}
-                      root={editorMode ? result.word.root : undefined}
-                      status={editorMode ? result.status : undefined}
-                      createdBy={editorMode ? result.createdBy : undefined}
-                      definitionsCount={editorMode ? result.word.values.length : undefined}
-                      assignedTo={editorMode ? result.assignedTo : undefined}
-                      currentUserId={currentUserId}
-                      currentUserRole={currentUserRole}
-                      dictionary={result.word.values[0]?.dictionary}
-                    />
-                  );
-                })}
-              </div>
+              <WordResultsList
+                results={searchResults}
+                editorMode={editorMode}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+              />
 
               {/* Pagination */}
               <Pagination
