@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import { Button } from '@/components/common/button';
 import { PencilIcon, PlusIcon, TrashIcon } from '@/components/icons';
@@ -42,7 +43,19 @@ export function ExampleDisplay({
             {ex.year && <span className="mr-3">Año: {ex.year}</span>}
             {ex.title && <span className="mr-3">Título: &ldquo;{ex.title}&rdquo;</span>}
             {(ex.publication || ex.source) && (
-              <span className="mr-3 italic">Publicación: {ex.publication || ex.source}</span>
+              <span className="mr-3 italic">
+                Publicación:{' '}
+                {ex.publication ? (
+                  <Link
+                    href={`/fuente/${encodeURIComponent(ex.publication)}`}
+                    className="text-duech-blue hover:text-duech-gold underline transition-colors"
+                  >
+                    {ex.publication}
+                  </Link>
+                ) : (
+                  ex.source
+                )}
+              </span>
             )}
             {ex.date && <span className="mr-3">Fecha: {ex.date}</span>}
             {editorMode && (
