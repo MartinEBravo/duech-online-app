@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/common/button';
-import { PlusIcon, DeleteIcon } from '@/components/icons';
+import { PlusIcon, CloseIcon } from '@/components/icons';
 
 // Color variants for different marker types
 export type MarkerColorVariant =
@@ -30,49 +30,49 @@ const VARIANT_STYLES: Record<
   { chip: string; chipReadOnly: string; removeBtn: string }
 > = {
   category: {
-    chip: 'bg-duech-blue text-white hover:bg-[var(--color-primary-700)] cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary-400)]',
+    chip: 'bg-duech-blue text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary-400)]',
     chipReadOnly: 'bg-duech-blue text-white',
-    removeBtn: 'bg-white/20 hover:bg-white/30',
+    removeBtn: 'hover:bg-white/20',
   },
   socialValuations: {
-    chip: 'bg-rose-200 text-rose-900 hover:bg-rose-300 cursor-pointer',
+    chip: 'bg-rose-200 text-rose-900',
     chipReadOnly: 'bg-rose-200 text-rose-900',
-    removeBtn: 'bg-rose-300 hover:bg-rose-400',
+    removeBtn: 'hover:bg-rose-300',
   },
   socialStratumMarkers: {
-    chip: 'bg-violet-200 text-violet-900 hover:bg-violet-300 cursor-pointer',
+    chip: 'bg-violet-200 text-violet-900',
     chipReadOnly: 'bg-violet-200 text-violet-900',
-    removeBtn: 'bg-violet-300 hover:bg-violet-400',
+    removeBtn: 'hover:bg-violet-300',
   },
   styleMarkers: {
-    chip: 'bg-amber-200 text-amber-900 hover:bg-amber-300 cursor-pointer',
+    chip: 'bg-amber-200 text-amber-900',
     chipReadOnly: 'bg-amber-200 text-amber-900',
-    removeBtn: 'bg-amber-300 hover:bg-amber-400',
+    removeBtn: 'hover:bg-amber-300',
   },
   intentionalityMarkers: {
-    chip: 'bg-emerald-200 text-emerald-900 hover:bg-emerald-300 cursor-pointer',
+    chip: 'bg-emerald-200 text-emerald-900',
     chipReadOnly: 'bg-emerald-200 text-emerald-900',
-    removeBtn: 'bg-emerald-300 hover:bg-emerald-400',
+    removeBtn: 'hover:bg-emerald-300',
   },
   geographicalMarkers: {
-    chip: 'bg-sky-200 text-sky-900 hover:bg-sky-300 cursor-pointer',
+    chip: 'bg-sky-200 text-sky-900',
     chipReadOnly: 'bg-sky-200 text-sky-900',
-    removeBtn: 'bg-sky-300 hover:bg-sky-400',
+    removeBtn: 'hover:bg-sky-300',
   },
   chronologicalMarkers: {
-    chip: 'bg-orange-200 text-orange-900 hover:bg-orange-300 cursor-pointer',
+    chip: 'bg-orange-200 text-orange-900',
     chipReadOnly: 'bg-orange-200 text-orange-900',
-    removeBtn: 'bg-orange-300 hover:bg-orange-400',
+    removeBtn: 'hover:bg-orange-300',
   },
   frequencyMarkers: {
-    chip: 'bg-slate-200 text-slate-900 hover:bg-slate-300 cursor-pointer',
+    chip: 'bg-slate-200 text-slate-900',
     chipReadOnly: 'bg-slate-200 text-slate-900',
-    removeBtn: 'bg-slate-300 hover:bg-slate-400',
+    removeBtn: 'hover:bg-slate-300',
   },
   warning: {
-    chip: 'bg-red-100 text-red-800 border border-red-300 cursor-default shadow-sm hover:bg-red-200',
+    chip: 'bg-red-100 text-red-800 border border-red-300 shadow-sm',
     chipReadOnly: 'bg-red-100 text-red-800 border border-red-300 shadow-sm',
-    removeBtn: 'bg-red-200 hover:bg-red-300',
+    removeBtn: 'hover:bg-red-200',
   },
 };
 
@@ -104,15 +104,18 @@ export function Chip({
     >
       <span className="select-none">{label}</span>
       {editorMode && onRemove && (
-        <Button
+        <button
           type="button"
-          onClick={() => onRemove(code)}
-          className={`ml-2 grid h-0 w-0 place-items-center overflow-hidden rounded-full opacity-0 transition-all duration-200 group-hover:h-6 group-hover:w-6 group-hover:opacity-100 ${styles.removeBtn}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(code);
+          }}
+          className={`ml-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full transition-colors ${styles.removeBtn}`}
           aria-label={`Quitar ${label}`}
           title={`Quitar ${label}`}
         >
-          <DeleteIcon className="h-3 w-3 text-white" />
-        </Button>
+          <CloseIcon className="h-4 w-4" strokeWidth={3} />
+        </button>
       )}
     </div>
   );

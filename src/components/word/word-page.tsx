@@ -385,7 +385,20 @@ export function WordDisplay({
 
   // Render example helper
   const renderExample = (examples: Example[] | null, defIndex?: number, isEditable = false) => {
-    if (!examples || examples.length === 0) return null;
+    if (!examples || examples.length === 0) {
+      // Show "Add example" button in editor mode when no examples exist
+      if (isEditable && defIndex !== undefined) {
+        return (
+          <Button
+            onClick={() => handleAddExample(defIndex)}
+            className="hover:text-duech-blue text-sm text-gray-500 underline"
+          >
+            + Añadir ejemplo
+          </Button>
+        );
+      }
+      return null;
+    }
     const payload = examples.length === 1 ? examples[0] : examples;
     return (
       <ExampleDisplay

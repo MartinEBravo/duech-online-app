@@ -78,13 +78,13 @@ export default function EditableInput({
         placeholder={placeholder}
         className={classNames}
         onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             commit();
           }
           if (e.key === 'Escape') {
             e.preventDefault();
-            cancel();
+            commit();
           }
         }}
       />
@@ -101,7 +101,7 @@ export default function EditableInput({
       className={classNames}
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit();
-        if (e.key === 'Escape') cancel();
+        if (e.key === 'Escape') commit();
       }}
     />
   );

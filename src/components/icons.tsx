@@ -150,14 +150,6 @@ export function CloseIcon(props: IconProps) {
   );
 }
 
-export function DeleteIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m3 0V4a1 1 0 011-1h6a1 1 0 011 1v3M4 7h16M10 11v6m4-6v6" />
-    </Icon>
-  );
-}
-
 export function ArrowRightCircleIcon(props: IconProps) {
   return (
     <Icon {...props}>
