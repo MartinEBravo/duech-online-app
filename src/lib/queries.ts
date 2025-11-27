@@ -87,9 +87,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-              id: note.user.id,
-              username: note.user.username,
-            }
+            id: note.user.id,
+            username: note.user.username,
+          }
           : null,
       })) ?? [],
   };
@@ -589,4 +589,53 @@ export async function getUniqueSources() {
     .from(examples)
     .where(isNotNull(examples.publication))
     .orderBy(asc(examples.publication));
+}
+
+/**
+ * Get words that have examples from a specific publication/source
+ */
+export async function getWordsBySource(publication: string): Promise<SearchResult[]> {
+  // Find all word IDs that have examples with this publication
+  const wordIdsResult = await db
+    .selectDistinct({ wordId: meanings.wordId })
+    .from(examples)
+    .innerJoin(meanings, eq(examples.meaningId, meanings.id))
+    .where(eq(examples.publication, publication));
+
+  if (wordIdsResult.length === 0) {
+    return [];
+  }
+
+  const wordIds = wordIdsResult.map((r) => r.wordId);
+
+  // Fetch full word data for these IDs
+  const results = await db.query.words.findMany({
+    where: sql`${words.id} IN (${sql.join(
+      wordIds.map((id) => sql`${id}`),
+      sql`, `
+    )})`,
+    columns: {
+      id: true,
+      lemma: true,
+      root: true,
+      letter: true,
+      variant: true,
+      status: true,
+      createdBy: true,
+      assignedTo: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    with: {
+      meanings: {
+        orderBy: (meanings, { asc }) => [asc(meanings.number)],
+        with: {
+          examples: true,
+        },
+      },
+    },
+    orderBy: (table, { asc }) => [asc(table.lemma)],
+  });
+
+  return results.map(dbWordToSearchResult);
 }
