@@ -129,7 +129,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
