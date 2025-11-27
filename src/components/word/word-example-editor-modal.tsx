@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/common/button';
+import { SelectDropdown } from '@/components/common/dropdown';
+import { fetchUniqueSources } from '@/lib/actions';
 
 // Helper component for form input fields
 function FormInput({
@@ -65,6 +67,48 @@ export function ExampleEditorModal({
   onSave,
   onCancel,
 }: ExampleEditorModalProps) {
+  const [sources, setSources] = useState<
+    {
+      publication: string | null;
+      author: string | null;
+      year: string | null;
+      city: string | null;
+      editorial: string | null;
+      format: string | null;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUniqueSources().then((res) => {
+        if (res.success && res.data) {
+          setSources(res.data);
+        }
+      });
+    }
+  }, [isOpen]);
+
+  const handleSourceSelect = (indexStr: string) => {
+    const index = parseInt(indexStr, 10);
+    const source = sources[index];
+    if (source) {
+      onDraftChange({
+        ...draft,
+        publication: source.publication || '',
+        author: source.author || '',
+        year: source.year || '',
+        city: source.city || '',
+        editorial: source.editorial || '',
+        format: source.format || '',
+      });
+    }
+  };
+
+  const sourceOptions = sources.map((s, i) => ({
+    value: i.toString(),
+    label: `${s.publication || 'Sin título'} (${s.year || 's/f'}) - ${s.author || 'Anon'}`,
+  }));
+
   if (!isOpen) return null;
 
   return (
@@ -79,6 +123,16 @@ export function ExampleEditorModal({
               onChange={(e) => onDraftChange({ ...draft, value: e.target.value })}
               className="min-h-[100px] w-full rounded border p-2"
               placeholder="Texto del ejemplo"
+            />
+          </div>
+
+          <div className="rounded-lg bg-gray-50 p-4">
+            <SelectDropdown
+              label="Cargar datos desde Nómina (Opcional)"
+              options={sourceOptions}
+              selectedValue=""
+              onChange={handleSourceSelect}
+              placeholder="Seleccionar fuente..."
             />
           </div>
 

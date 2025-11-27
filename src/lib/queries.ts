@@ -2,10 +2,10 @@
  * Database query functions using Drizzle ORM
  */
 
-import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
+import { eq, ilike, or, and, sql, SQL, isNotNull, asc } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
-import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
+import { words, meanings, users, passwordResetTokens, examples } from '@/lib/schema';
 import {
   Word,
   SearchResult,
@@ -571,4 +571,22 @@ export async function getRedactedWords() {
     },
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
+}
+
+/**
+ * Get unique sources from examples for the bibliography dropdown
+ */
+export async function getUniqueSources() {
+  return await db
+    .selectDistinct({
+      publication: examples.publication,
+      author: examples.author,
+      year: examples.year,
+      city: examples.city,
+      editorial: examples.editorial,
+      format: examples.format,
+    })
+    .from(examples)
+    .where(isNotNull(examples.publication))
+    .orderBy(asc(examples.publication));
 }
