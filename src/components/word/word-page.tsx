@@ -677,6 +677,21 @@ export function WordDisplay({
       {showDeleteModal && (
         <DeleteWordModal lemma={lastSavedLemma} onClose={() => setShowDeleteModal(false)} />
       )}
+
+      {!editorMode && (
+        <div className="text-backdrop-blur-sm mt-12 rounded-lg bg-white/5 p-6">
+          <p className="text-gray-600">¿Tienes alguna sugerencia o comentario?</p>
+          <p className="text-gray-600">
+            Envíanos un correo a{' '}
+            <a
+              href="mailto:duech.online@gmail.com"
+              className="text-duech-gold font-medium hover:text-yellow-600 hover:underline"
+            >
+              duech.online@gmail.com
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
