@@ -83,7 +83,7 @@ export function Dropdown({
   label?: string;
   options: Option[];
   value: string | string[];
-  onChange: (value: any) => void;
+  onChange: ((value: string) => void) | ((value: string[]) => void);
   placeholder?: string;
   disabled?: boolean;
   searchable?: boolean;
@@ -132,9 +132,9 @@ export function Dropdown({
       const newValues = selectedValues.includes(val)
         ? selectedValues.filter((v) => v !== val)
         : [...selectedValues, val];
-      onChange(newValues);
+      (onChange as (value: string[]) => void)(newValues);
     } else {
-      onChange(val);
+      (onChange as (value: string) => void)(val);
       setIsOpen(false);
       setSearchTerm('');
     }
@@ -142,8 +142,8 @@ export function Dropdown({
 
   const handleSelectAll = () => {
     if (disabled || !multiple) return;
-    if (selectedValues.length === options.length) onChange([]);
-    else onChange(options.map((o) => o.value));
+    if (selectedValues.length === options.length) (onChange as (value: string[]) => void)([]);
+    else (onChange as (value: string[]) => void)(options.map((o) => o.value));
   };
 
   return (
