@@ -393,7 +393,8 @@ export default function SearchBar({
             key={`${pill.key}-${pill.value}`}
             type="button"
             onClick={() => removeFilterValue(pill.key, pill.value)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${pill.variant === 'category'
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${
+              pill.variant === 'category'
                 ? 'border-blue-300 bg-blue-100 text-blue-800'
                 : pill.variant === 'origin'
                   ? 'border-purple-300 bg-purple-100 text-purple-800'
@@ -402,7 +403,7 @@ export default function SearchBar({
                     : pill.variant === 'dictionary'
                       ? 'border-teal-300 bg-teal-100 text-teal-800'
                       : 'border-green-300 bg-green-100 text-green-800'
-              } `}
+            } `}
           >
             <span>{pill.label}</span>
             <CloseIcon className="h-3 w-3" />
