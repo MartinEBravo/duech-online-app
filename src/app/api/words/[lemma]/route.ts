@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getWordByLemma } from '@/lib/queries';
+import { isEditorModeFromHeaders } from '@/lib/editor-mode-server';
 import {
   updateWordByLemma,
   deleteWordByLemma,
@@ -38,8 +39,13 @@ export async function GET(
       return NextResponse.json({ error: 'Lemma too long' }, { status: 400 });
     }
 
-    // Get word data from database
-    const wordData = await getWordByLemma(decodedLemma);
+  // Determine editor mode from headers or query param fallback. When in editor mode
+  // we must include drafts (imported/incorporated/preredacted) in the result.
+  const url = new URL(request.url);
+  const editorMode = isEditorModeFromHeaders(request.headers) || url.searchParams.get('editorMode') === 'true';
+
+  // Get word data from database
+  const wordData = await getWordByLemma(decodedLemma, editorMode ? { includeDrafts: true } : undefined);
 
     if (!wordData) {
       return NextResponse.json({ error: 'Word not found' }, { status: 404 });
