@@ -129,7 +129,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -650,7 +650,24 @@ export function WordDisplay({
       <ExampleEditorModal
         isOpen={editorMode && activeExample !== null && exampleDraft !== null}
         isNew={activeExample?.isNew ?? false}
-        draft={exampleDraft ?? { value: '', author: '', title: '', source: '', date: '', page: '' }}
+        draft={
+          exampleDraft ?? {
+            value: '',
+            author: '',
+            year: '',
+            publication: '',
+            format: '',
+            title: '',
+            date: '',
+            city: '',
+            editorial: '',
+            volume: '',
+            number: '',
+            page: '',
+            doi: '',
+            url: '',
+          }
+        }
         onDraftChange={setExampleDraft}
         onSave={saveExampleDraft}
         onCancel={() => closeExampleEditor(activeExample?.isNew)}
