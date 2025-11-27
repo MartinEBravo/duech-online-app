@@ -129,7 +129,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -684,7 +684,7 @@ export function WordDisplay({
           <p className="text-gray-600">
             Envíanos un correo a{' '}
             <a
-              href="mailto:duech.online@gmail.com
+              href="mailto:duech.online@gmail.com"
               className="text-duech-gold font-medium hover:text-yellow-600 hover:underline"
             >
               duech.online@gmail.com
