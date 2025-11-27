@@ -32,18 +32,6 @@ const WORD_COLUMNS = {
 } as const;
 
 /**
- * Common meanings relation config with examples
- */
-const MEANINGS_WITH_EXAMPLES = {
-  meanings: {
-    orderBy: (meaningsTable: typeof meanings, { asc }: { asc: typeof import('drizzle-orm').asc }) => [asc(meaningsTable.number)],
-    with: {
-      examples: true,
-    },
-  },
-} as const;
-
-/**
  * Get a word by lemma with all its meanings
  * Returns in frontend-compatible format
  */
@@ -73,7 +61,12 @@ export async function getWordByLemma(
     where: whereCondition,
     columns: WORD_COLUMNS,
     with: {
-      ...MEANINGS_WITH_EXAMPLES,
+      meanings: {
+        orderBy: (meaningsTable, { asc }) => [asc(meaningsTable.number)],
+        with: {
+          examples: true,
+        },
+      },
       notes: {
         orderBy: (notesTable, { desc }) => [desc(notesTable.createdAt)],
         with: {
@@ -99,9 +92,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-            id: note.user.id,
-            username: note.user.username,
-          }
+              id: note.user.id,
+              username: note.user.username,
+            }
           : null,
       })) ?? [],
   };
@@ -627,7 +620,14 @@ export async function getWordsBySource(publication: string): Promise<SearchResul
       sql`, `
     )})`,
     columns: WORD_COLUMNS,
-    with: MEANINGS_WITH_EXAMPLES,
+    with: {
+      meanings: {
+        orderBy: (meaningsTable, { asc }) => [asc(meaningsTable.number)],
+        with: {
+          examples: true,
+        },
+      },
+    },
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
 

@@ -333,16 +333,16 @@ export function SearchPage({
       ? searchState.filters
       : urlHasCriteria
         ? (() => {
-          const snapshot = {
-            categories: [...urlParams.categories],
-            origins: [...urlParams.origins],
-            letters: [...urlParams.letters],
-          } as LocalSearchFilters;
-          for (const key of MEANING_MARKER_KEYS) {
-            snapshot[key] = [...urlParams[key]];
-          }
-          return snapshot;
-        })()
+            const snapshot = {
+              categories: [...urlParams.categories],
+              origins: [...urlParams.origins],
+              letters: [...urlParams.letters],
+            } as LocalSearchFilters;
+            for (const key of MEANING_MARKER_KEYS) {
+              snapshot[key] = [...urlParams[key]];
+            }
+            return snapshot;
+          })()
         : searchState.filters;
 
     void executeSearch({
@@ -469,15 +469,15 @@ export function SearchPage({
     () =>
       editorMode
         ? {
-          hasActive: hasEditorFilters,
-          onClear: clearAdditionalFilters,
-          render: () => (
-            <>
-              {statusFilter}
-              {assignedFilter}
-            </>
-          ),
-        }
+            hasActive: hasEditorFilters,
+            onClear: clearAdditionalFilters,
+            render: () => (
+              <>
+                {statusFilter}
+                {assignedFilter}
+              </>
+            ),
+          }
         : undefined,
     [editorMode, clearAdditionalFilters, hasEditorFilters, statusFilter, assignedFilter]
   );
