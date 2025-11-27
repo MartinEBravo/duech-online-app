@@ -213,7 +213,7 @@ export function WordDisplay({
   };
 
   const handlePreview = () => {
-    const url = `${window.location.origin}/palabra/${encodeURIComponent(word.lemma)}`;
+    const url = `${window.location.origin}/palabra/${encodeURIComponent(word.lemma)}?preview=true`;
     window.open(url, '_blank');
   };
 

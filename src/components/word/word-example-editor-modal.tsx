@@ -92,7 +92,7 @@ export function ExampleEditorModal({
             onChange={(value) => onDraftChange({ ...draft, date: value })}
           />
           <FormInput
-            label="Página"
+            label="URL"
             value={draft.page}
             onChange={(value) => onDraftChange({ ...draft, page: value })}
           />

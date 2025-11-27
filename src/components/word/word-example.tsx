@@ -41,7 +41,16 @@ export function ExampleDisplay({
             {ex.title && <span className="mr-3">Título: {ex.title}</span>}
             {ex.source && <span className="mr-3">Fuente: {ex.source}</span>}
             {ex.date && <span className="mr-3">Fecha: {ex.date}</span>}
-            {ex.page && <span>Página: {ex.page}</span>}
+            {ex.page && (
+              <a
+                href={ex.page}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                URL
+              </a>
+            )}
           </div>
 
           {/* Example action buttons (editor mode) */}
