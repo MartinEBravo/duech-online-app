@@ -259,13 +259,15 @@ export function DefinitionSection({
             </div>
           )}
           {/* Examples */}
-          {def.examples && def.examples.length > 0 && (
+          {((def.examples && def.examples.length > 0) || editorMode) && (
             <div className="mt-4">
-              <div className="mb-2 flex items-center gap-3">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Ejemplo{def.examples && def.examples.length > 1 ? 's' : ''}:
-                </h3>
-              </div>
+              {def.examples && def.examples.length > 0 && (
+                <div className="mb-2 flex items-center gap-3">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Ejemplo{def.examples.length > 1 ? 's' : ''}:
+                  </h3>
+                </div>
+              )}
               <div className="space-y-8">
                 {renderExample(def.examples ?? null, defIndex, editorMode)}
               </div>
