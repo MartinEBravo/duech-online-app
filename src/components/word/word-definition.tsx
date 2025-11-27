@@ -7,6 +7,7 @@ import MarkdownRenderer from '@/components/word/markdown-renderer';
 import InlineEditable from '@/components/word/inline-editable';
 import { Chip, type MarkerColorVariant } from '@/components/common/chip';
 import { Button } from '@/components/common/button';
+import { SelectDropdown } from '@/components/common/dropdown';
 import { PlusIcon, TrashIcon } from '@/components/icons';
 import {
   GRAMMATICAL_CATEGORIES,
@@ -124,18 +125,21 @@ export function DefinitionSection({
             {editorMode ? (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-600">Origen:</span>
-                <select
-                  value={def.origin ?? ''}
-                  onChange={(e) => onPatchDefinition({ origin: e.target.value || null })}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="">Sin origen</option>
-                  {Object.entries(ORIGINS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-48">
+                  <SelectDropdown
+                    label=""
+                    options={[
+                      { value: '', label: 'Sin origen' },
+                      ...Object.entries(ORIGINS).map(([key, label]) => ({
+                        value: key,
+                        label: label,
+                      })),
+                    ]}
+                    selectedValue={def.origin ?? ''}
+                    onChange={(value) => onPatchDefinition({ origin: value || null })}
+                    placeholder="Seleccionar origen"
+                  />
+                </div>
               </div>
             ) : (
               def.origin && (
