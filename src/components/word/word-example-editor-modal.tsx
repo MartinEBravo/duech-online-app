@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/common/button';
-import { SelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { fetchUniqueSources } from '@/lib/actions';
 
 // Helper component for form input fields
@@ -127,7 +127,7 @@ export function ExampleEditorModal({
           </div>
 
           <div className="rounded-lg bg-gray-50 p-4">
-            <SelectDropdown
+            <Dropdown
               label="Cargar datos desde Nómina (Opcional)"
               options={sourceOptions}
               value=""

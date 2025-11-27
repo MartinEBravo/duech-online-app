@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { MultiSelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { CloseIcon, SearchIcon, SettingsIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import {
@@ -394,14 +394,14 @@ export default function SearchBar({
             type="button"
             onClick={() => removeFilterValue(pill.key, pill.value)}
             className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-medium ${pill.variant === 'category'
-                ? 'border-blue-300 bg-blue-100 text-blue-800'
-                : pill.variant === 'origin'
-                  ? 'border-purple-300 bg-purple-100 text-purple-800'
-                  : pill.variant === 'letter'
-                    ? 'border-orange-300 bg-orange-100 text-orange-800'
-                    : pill.variant === 'dictionary'
-                      ? 'border-teal-300 bg-teal-100 text-teal-800'
-                      : 'border-green-300 bg-green-100 text-green-800'
+              ? 'border-blue-300 bg-blue-100 text-blue-800'
+              : pill.variant === 'origin'
+                ? 'border-purple-300 bg-purple-100 text-purple-800'
+                : pill.variant === 'letter'
+                  ? 'border-orange-300 bg-orange-100 text-orange-800'
+                  : pill.variant === 'dictionary'
+                    ? 'border-teal-300 bg-teal-100 text-teal-800'
+                    : 'border-green-300 bg-green-100 text-green-800'
               } `}
           >
             <span>{pill.label}</span>
@@ -470,7 +470,7 @@ export default function SearchBar({
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Row 1 */}
-              <SelectDropdown
+              <Dropdown
                 label="Letras"
                 options={LETTER_OPTIONS}
                 value={filters.letters}
@@ -478,7 +478,7 @@ export default function SearchBar({
                 placeholder="Seleccionar letras"
                 multiple={true}
               />
-              <SelectDropdown
+              <Dropdown
                 label="Orígenes"
                 options={originOptions}
                 value={filters.origins}
@@ -487,7 +487,7 @@ export default function SearchBar({
                 multiple={true}
               />
 
-              <SelectDropdown
+              <Dropdown
                 label="Diccionarios"
                 options={DICCIONARIES}
                 value={filters.dictionaries}
@@ -497,22 +497,24 @@ export default function SearchBar({
               />
 
               {/* Row 2 */}
-              <SelectDropdown
+              <Dropdown
                 label="Categorías gramaticales"
                 options={categoryOptions}
-                selectedValues={filters.categories}
+                value={filters.categories}
                 onChange={(values) => updateFilters('categories', values)}
                 placeholder="Seleccionar categorías"
+                multiple={true}
               />
               {/* Markers - rows 2-5 */}
               {MARKER_ENTRIES.map(({ key, config }) => (
-                <MultiSelectDropdown
+                <Dropdown
                   key={key}
                   label={config.label}
                   options={markerOptions[key]}
-                  selectedValues={filters[key]}
+                  value={filters[key]}
                   onChange={(values) => updateFilters(key, values)}
                   placeholder={config.addLabel.replace('+ ', '')}
+                  multiple={true}
                 />
               ))}
 

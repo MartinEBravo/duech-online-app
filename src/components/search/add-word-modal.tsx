@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Popup from 'reactjs-popup';
-import { SelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
 import { getLexicographerByRole, type User } from '@/lib/search-utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -158,7 +158,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                 />
               </div>
               <div>
-                <SelectDropdown
+                <Dropdown
                   label="Letra"
                   options={[{ value: '', label: 'Seleccionar letra' }, ...LETTER_OPTIONS]}
                   value={selectedLetter}
@@ -168,7 +168,7 @@ export function AddWordModal({ availableUsers }: AddWordModalProps) {
                 />
               </div>
             </div>
-            <SelectDropdown
+            <Dropdown
               label="Asignado a"
               options={userOptions}
               value={newWordAssignedTo}

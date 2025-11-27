@@ -4,7 +4,7 @@ import React from 'react';
 import { useMemo } from 'react';
 import Link from 'next/link';
 import InlineEditable from '@/components/word/inline-editable';
-import { SelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
 import { InformationCircleIcon, SpinnerIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
@@ -163,7 +163,7 @@ export function WordHeader({
         {editorMode && (
           <div className="flex flex-wrap items-end gap-3 text-sm">
             <div className="w-32">
-              <SelectDropdown
+              <Dropdown
                 label="Diccionario"
                 options={DICCIONARIES}
                 value={dictionary || ''}
@@ -173,7 +173,7 @@ export function WordHeader({
               />
             </div>
             <div className="w-24">
-              <SelectDropdown
+              <Dropdown
                 label="Letra"
                 options={letterOptions}
                 value={letter}
@@ -184,7 +184,7 @@ export function WordHeader({
             </div>
 
             <div className="w-36">
-              <SelectDropdown
+              <Dropdown
                 label="Asignado a"
                 options={userOptions}
                 value={assignedTo?.toString() ?? ''}
@@ -195,7 +195,7 @@ export function WordHeader({
             </div>
 
             <div className="w-32">
-              <SelectDropdown
+              <Dropdown
                 label="Estado"
                 options={statusFilters}
                 value={status}

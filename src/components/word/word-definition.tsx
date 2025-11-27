@@ -7,7 +7,7 @@ import MarkdownRenderer from '@/components/word/markdown-renderer';
 import InlineEditable from '@/components/word/inline-editable';
 import { Chip, type MarkerColorVariant } from '@/components/common/chip';
 import { Button } from '@/components/common/button';
-import { SelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { PlusIcon, TrashIcon } from '@/components/icons';
 import {
   GRAMMATICAL_CATEGORIES,
@@ -126,7 +126,7 @@ export function DefinitionSection({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-600">Origen:</span>
                 <div className="w-48">
-                  <SelectDropdown
+                  <Dropdown
                     label=""
                     options={[
                       { value: '', label: 'Sin origen' },
