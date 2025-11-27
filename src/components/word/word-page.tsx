@@ -13,6 +13,7 @@ import {
   STATUS_OPTIONS,
   MEANING_MARKER_GROUPS,
   createEmptyMeaningMarkerValues,
+  DICTIONARY_COLORS,
   type Example,
   type Word,
   type Meaning,
@@ -68,6 +69,8 @@ export function WordDisplay({
   const [assignedTo, setAssignedTo] = useState<number | null>(initialAssignedTo || null);
   const [users, setUsers] = useState<Array<{ id: number; username: string; role: string }>>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const isFirstRender = useRef(true);
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const isEditing = (k: string) => editingKey === k;
@@ -164,6 +167,7 @@ export function WordDisplay({
       if (!response.ok) throw new Error('Error al guardar');
 
       setSaveStatus('saved');
+      setIsDirty(false);
       setLastSavedLemma(wordRef.current.lemma);
 
       setTimeout(() => {
@@ -181,6 +185,13 @@ export function WordDisplay({
   useEffect(() => {
     if (!editorMode) return;
 
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setIsDirty(true);
+
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -194,7 +205,18 @@ export function WordDisplay({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [word, letter, status, assignedTo, autoSave, editorMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word, letter, status, assignedTo, editorMode]); // Removed autoSave from deps to avoid loop
+
+  const handleManualSave = () => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    autoSave();
+  };
+
+  const handlePreview = () => {
+    const url = `${window.location.origin}/palabra/${encodeURIComponent(word.lemma)}?preview=true`;
+    window.open(url, '_blank');
+  };
 
   // Helper functions
   const patchWordLocal = (patch: Partial<Word>) => {
@@ -211,10 +233,18 @@ export function WordDisplay({
   const emptyExample = (): Example => ({
     value: '',
     author: undefined,
+    year: undefined,
+    publication: undefined,
+    format: undefined,
     title: undefined,
-    source: undefined,
     date: undefined,
+    city: undefined,
+    editorial: undefined,
+    volume: undefined,
+    number: undefined,
     page: undefined,
+    doi: undefined,
+    url: undefined,
   });
 
   const getExamples = (def: Meaning): Example[] => {
@@ -241,10 +271,18 @@ export function WordDisplay({
   const toExampleDraft = (example: Example): ExampleDraft => ({
     value: example.value ?? '',
     author: example.author ?? '',
+    year: example.year ?? '',
+    publication: example.publication ?? example.source ?? '', // Fallback to legacy source
+    format: example.format ?? '',
     title: example.title ?? '',
-    source: example.source ?? '',
     date: example.date ?? '',
+    city: example.city ?? '',
+    editorial: example.editorial ?? '',
+    volume: example.volume ?? '',
+    number: example.number ?? '',
     page: example.page ?? '',
+    doi: example.doi ?? '',
+    url: example.url ?? '',
   });
 
   const fromExampleDraft = (draft: ExampleDraft): Example => {
@@ -253,17 +291,28 @@ export function WordDisplay({
       value: sanitize(draft.value),
     };
 
-    const author = sanitize(draft.author);
-    const title = sanitize(draft.title);
-    const source = sanitize(draft.source);
-    const date = sanitize(draft.date);
-    const page = sanitize(draft.page);
+    const fields: (keyof ExampleDraft)[] = [
+      'author',
+      'year',
+      'publication',
+      'format',
+      'title',
+      'date',
+      'city',
+      'editorial',
+      'volume',
+      'number',
+      'page',
+      'doi',
+      'url',
+    ];
 
-    if (author) base.author = author;
-    if (title) base.title = title;
-    if (source) base.source = source;
-    if (date) base.date = date;
-    if (page) base.page = page;
+    fields.forEach((field) => {
+      const val = sanitize(draft[field]);
+      if (val) {
+        base[field as keyof Example] = val;
+      }
+    });
 
     return base;
   };
@@ -453,6 +502,9 @@ export function WordDisplay({
   const searchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchLabel = editorMode ? 'Buscar' : 'Buscar';
 
+  const dictionary = word.values[0]?.dictionary;
+  const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <SaveStatusIndicator />
@@ -488,9 +540,13 @@ export function WordDisplay({
         canChangeStatus={canChangeStatus}
         dictionary={word.values[0]?.dictionary || null}
         onDictionaryChange={handleDictionaryChange}
+        onManualSave={handleManualSave}
+        isSaved={!isDirty}
+        isSaving={saveStatus === 'saving'}
+        onPreview={handlePreview}
       />
 
-      <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">
+      <div className={`border-duech-gold rounded-xl border-t-4 ${cardBgColor} p-10 shadow-2xl`}>
         {/* Definitions */}
         <div className="space-y-16">
           {hasDefinitions ? (
@@ -594,7 +650,24 @@ export function WordDisplay({
       <ExampleEditorModal
         isOpen={editorMode && activeExample !== null && exampleDraft !== null}
         isNew={activeExample?.isNew ?? false}
-        draft={exampleDraft ?? { value: '', author: '', title: '', source: '', date: '', page: '' }}
+        draft={
+          exampleDraft ?? {
+            value: '',
+            author: '',
+            year: '',
+            publication: '',
+            format: '',
+            title: '',
+            date: '',
+            city: '',
+            editorial: '',
+            volume: '',
+            number: '',
+            page: '',
+            doi: '',
+            url: '',
+          }
+        }
         onDraftChange={setExampleDraft}
         onSave={saveExampleDraft}
         onCancel={() => closeExampleEditor(activeExample?.isNew)}

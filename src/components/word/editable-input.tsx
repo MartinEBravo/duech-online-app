@@ -52,11 +52,6 @@ export default function EditableInput({
     onBlur?.();
   };
 
-  const cancel = () => {
-    setDraft(value ?? '');
-    onBlur?.();
-  };
-
   const classNames =
     as === 'textarea'
       ? `rounded border border-gray-300 px-3 py-2 leading-relaxed ${className}`

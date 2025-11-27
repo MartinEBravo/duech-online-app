@@ -545,6 +545,7 @@ export function SearchPage({
                       assignedTo={editorMode ? result.assignedTo : undefined}
                       currentUserId={currentUserId}
                       currentUserRole={currentUserRole}
+                      dictionary={result.word.values[0]?.dictionary}
                     />
                   );
                 })}

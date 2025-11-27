@@ -8,11 +8,24 @@
 
 export interface Example {
   value: string;
+  // Mandatory
   author?: string;
+  year?: string;
+  publication?: string;
+  format?: string;
+  // Optional
   title?: string;
-  source?: string;
   date?: string;
-  page?: string;
+  city?: string;
+  editorial?: string;
+  volume?: string;
+  number?: string;
+  page?: string; // Replaces 'pages' to keep legacy compatibility and singular naming
+  doi?: string;
+  url?: string;
+  // Legacy
+  source?: string;
+  // page?: string; // Removed duplicate legacy definition
 }
 
 export interface WordNote {
@@ -281,6 +294,14 @@ export const DICCIONARIES = [
   { value: 'damer', label: 'Damer' },
   { value: 'm2015', label: 'María Moliner 2015' },
 ];
+
+export const DICTIONARY_COLORS: Record<string, string> = {
+  duech: 'bg-white',
+  difruech: 'bg-blue-50',
+  dfp: 'bg-green-50',
+  damer: 'bg-purple-50',
+  m2015: 'bg-rose-50',
+};
 
 function sortKeysByLabel(source: Record<string, string>): string[] {
   return Object.entries(source)
