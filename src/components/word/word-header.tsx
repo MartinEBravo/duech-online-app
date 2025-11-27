@@ -6,7 +6,7 @@ import Link from 'next/link';
 import InlineEditable from '@/components/word/inline-editable';
 import { SelectDropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
-import { InformationCircleIcon, EyeIcon, SaveIcon, SpinnerIcon } from '@/components/icons';
+import { InformationCircleIcon, SpinnerIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
 import { DICCIONARIES, type Meaning } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -223,14 +223,12 @@ export function WordHeader({
                 type="button"
                 onClick={onManualSave}
                 disabled={isSaving}
-                className={`rounded-md px-4 py-2 text-white transition-colors ${isSaved
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                className={`rounded-md px-4 py-2 text-white transition-colors ${isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 title="Guardar cambios"
               >
                 {isSaved ? 'Guardado' : 'Guardar cambios'}
-                {isSaving ? <SpinnerIcon className="h-5 w-5" /> : ""}
+                {isSaving ? <SpinnerIcon className="h-5 w-5" /> : ''}
               </Button>
             )}
 

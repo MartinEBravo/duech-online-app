@@ -205,6 +205,7 @@ export function WordDisplay({
         clearTimeout(saveTimeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word, letter, status, assignedTo, editorMode]); // Removed autoSave from deps to avoid loop
 
   const handleManualSave = () => {
@@ -309,7 +310,7 @@ export function WordDisplay({
     fields.forEach((field) => {
       const val = sanitize(draft[field]);
       if (val) {
-        (base as any)[field] = val;
+        base[field as keyof Example] = val;
       }
     });
 
@@ -502,7 +503,7 @@ export function WordDisplay({
   const searchLabel = editorMode ? 'Buscar' : 'Buscar';
 
   const dictionary = word.values[0]?.dictionary;
-  const cardBgColor = dictionary ? (DICTIONARY_COLORS[dictionary] || 'bg-amber-50') : 'bg-white';
+  const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

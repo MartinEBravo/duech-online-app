@@ -63,7 +63,7 @@ export function DefinitionSection({
   const isEditing = (k: string) => editingKey === k;
 
   const dictionary = def.dictionary;
-  const cardBgColor = dictionary ? (DICTIONARY_COLORS[dictionary] || 'bg-amber-50') : 'bg-white';
+  const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
 
   // Gather all chips (category + markers) into a single list
   const allChips = useMemo(() => {
