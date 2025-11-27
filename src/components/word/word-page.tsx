@@ -129,7 +129,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -679,10 +679,8 @@ export function WordDisplay({
       )}
 
       {!editorMode && (
-        <div className="mt-12 rounded-lg bg-white/5 p-6 text-backdrop-blur-sm">
-          <p className="text-gray-600">
-            ¿Tienes alguna sugerencia o comentario? 
-          </p>
+        <div className="text-backdrop-blur-sm mt-12 rounded-lg bg-white/5 p-6">
+          <p className="text-gray-600">¿Tienes alguna sugerencia o comentario?</p>
           <p className="text-gray-600">
             Envíanos un correo a{' '}
             <a
