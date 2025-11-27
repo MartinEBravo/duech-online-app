@@ -453,6 +453,10 @@ export function WordDisplay({
   const searchPath = editorBasePath ? `${editorBasePath}/buscar` : '/buscar';
   const searchLabel = editorMode ? 'Buscar' : 'Buscar';
 
+  const dictionary = word.values[0]?.dictionary;
+  const isExternalDictionary = dictionary && dictionary.toLowerCase() !== 'duech';
+  const cardBgColor = isExternalDictionary ? 'bg-amber-50' : 'bg-white';
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <SaveStatusIndicator />
@@ -490,7 +494,7 @@ export function WordDisplay({
         onDictionaryChange={handleDictionaryChange}
       />
 
-      <div className="border-duech-gold rounded-xl border-t-4 bg-white p-10 shadow-2xl">
+      <div className={`border-duech-gold rounded-xl border-t-4 ${cardBgColor} p-10 shadow-2xl`}>
         {/* Definitions */}
         <div className="space-y-16">
           {hasDefinitions ? (

@@ -61,6 +61,10 @@ export function DefinitionSection({
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
   const isEditing = (k: string) => editingKey === k;
 
+  const dictionary = def.dictionary;
+  const isExternalDictionary = dictionary && dictionary.toLowerCase() !== 'duech';
+  const cardBgColor = isExternalDictionary ? 'bg-amber-50' : 'bg-white';
+
   // Gather all chips (category + markers) into a single list
   const allChips = useMemo(() => {
     const chips: ChipItem[] = [];
@@ -102,7 +106,7 @@ export function DefinitionSection({
 
   return (
     <section
-      className={`definition-hover relative rounded-2xl border-2 ${editorMode ? 'border-blue-300/70' : 'border-gray-200'} bg-white p-6 ${editorMode ? 'pb-16' : ''} shadow-sm`}
+      className={`definition-hover relative rounded-2xl border-2 ${editorMode ? 'border-blue-300/70' : 'border-gray-200'} ${cardBgColor} p-6 ${editorMode ? 'pb-16' : ''} shadow-sm`}
     >
       {/* Layout: number on left, content on right */}
       <div className="flex gap-4">
