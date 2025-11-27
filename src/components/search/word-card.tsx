@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
-import { STATUS_OPTIONS } from '@/lib/definitions';
+import { STATUS_OPTIONS, DICTIONARY_COLORS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
 interface WordCardProps {
@@ -82,9 +82,7 @@ export function WordCard({
   const statusColor = statusColors[status || ''] || 'bg-gray-100 text-gray-800';
 
   // Determine background color based on dictionary
-  // If dictionary is NOT 'duech' (and is present), use a different background
-  const isExternalDictionary = dictionary && dictionary.toLowerCase() !== 'duech';
-  const cardBgColor = isExternalDictionary ? 'bg-amber-50' : 'bg-white';
+  const cardBgColor = dictionary ? (DICTIONARY_COLORS[dictionary] || 'bg-amber-50') : 'bg-white';
 
   // Public mode: simple card with link to view page
   if (!editorMode) {
@@ -149,8 +147,8 @@ export function WordCard({
           <Button
             href={viewUrl}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${canEdit
-                ? 'bg-duech-blue text-white hover:bg-blue-800'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-duech-blue text-white hover:bg-blue-800'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             {canEdit ? (

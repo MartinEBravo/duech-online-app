@@ -282,6 +282,14 @@ export const DICCIONARIES = [
   { value: 'm2015', label: 'María Moliner 2015' },
 ];
 
+export const DICTIONARY_COLORS: Record<string, string> = {
+  duech: 'bg-white',
+  difruech: 'bg-blue-50',
+  dfp: 'bg-green-50',
+  damer: 'bg-purple-50',
+  m2015: 'bg-rose-50',
+};
+
 function sortKeysByLabel(source: Record<string, string>): string[] {
   return Object.entries(source)
     .sort(([, labelA], [, labelB]) => labelA.localeCompare(labelB, 'es'))

@@ -13,6 +13,7 @@ import {
   STATUS_OPTIONS,
   MEANING_MARKER_GROUPS,
   createEmptyMeaningMarkerValues,
+  DICTIONARY_COLORS,
   type Example,
   type Word,
   type Meaning,
@@ -474,8 +475,7 @@ export function WordDisplay({
   const searchLabel = editorMode ? 'Buscar' : 'Buscar';
 
   const dictionary = word.values[0]?.dictionary;
-  const isExternalDictionary = dictionary && dictionary.toLowerCase() !== 'duech';
-  const cardBgColor = isExternalDictionary ? 'bg-amber-50' : 'bg-white';
+  const cardBgColor = dictionary ? (DICTIONARY_COLORS[dictionary] || 'bg-amber-50') : 'bg-white';
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
