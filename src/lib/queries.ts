@@ -87,9 +87,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-            id: note.user.id,
-            username: note.user.username,
-          }
+              id: note.user.id,
+              username: note.user.username,
+            }
           : null,
       })) ?? [],
   };

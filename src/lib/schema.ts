@@ -143,7 +143,6 @@ export const notesRelations = relations(notes, ({ one }) => ({
   }),
 }));
 
-
 export const usersRelations = relations(users, ({ many }) => ({
   createdWords: many(words),
   notes: many(notes),
