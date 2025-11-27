@@ -12,9 +12,20 @@ function cleanExample(ex: Example) {
   return {
     value: ex.value,
     ...(ex.author !== undefined && { author: ex.author }),
+    ...(ex.year !== undefined && { year: ex.year }),
+    ...(ex.publication !== undefined && { publication: ex.publication }),
+    ...(ex.format !== undefined && { format: ex.format }),
     ...(ex.title !== undefined && { title: ex.title }),
-    ...(ex.source !== undefined && { source: ex.source }),
     ...(ex.date !== undefined && { date: ex.date }),
+    ...(ex.city !== undefined && { city: ex.city }),
+    ...(ex.editorial !== undefined && { editorial: ex.editorial }),
+    ...(ex.volume !== undefined && { volume: ex.volume }),
+    ...(ex.number !== undefined && { number: ex.number }),
+    ...(ex.pages !== undefined && { pages: ex.pages }),
+    ...(ex.doi !== undefined && { doi: ex.doi }),
+    ...(ex.url !== undefined && { url: ex.url }),
+    // Legacy fields
+    ...(ex.source !== undefined && { source: ex.source }),
     ...(ex.page !== undefined && { page: ex.page }),
   };
 }

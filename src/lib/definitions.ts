@@ -8,10 +8,23 @@
 
 export interface Example {
   value: string;
+  // Mandatory
   author?: string;
+  year?: string;
+  publication?: string;
+  format?: string;
+  // Optional
   title?: string;
-  source?: string;
   date?: string;
+  city?: string;
+  editorial?: string;
+  volume?: string;
+  number?: string;
+  pages?: string;
+  doi?: string;
+  url?: string;
+  // Legacy
+  source?: string;
   page?: string;
 }
 

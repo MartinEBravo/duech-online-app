@@ -65,10 +65,20 @@ export const meanings = pgTable('meanings', {
     Array<{
       value: string;
       author?: string;
+      year?: string;
+      publication?: string;
+      format?: string;
       title?: string;
-      source?: string;
       date?: string;
-      page?: string;
+      city?: string;
+      editorial?: string;
+      volume?: string;
+      number?: string;
+      pages?: string;
+      doi?: string;
+      url?: string;
+      source?: string; // Legacy
+      page?: string; // Legacy
     }>
   >(), // JSONB field with examples
   createdAt: timestamp('created_at').notNull().defaultNow(),

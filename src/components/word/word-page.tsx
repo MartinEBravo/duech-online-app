@@ -232,10 +232,18 @@ export function WordDisplay({
   const emptyExample = (): Example => ({
     value: '',
     author: undefined,
+    year: undefined,
+    publication: undefined,
+    format: undefined,
     title: undefined,
-    source: undefined,
     date: undefined,
-    page: undefined,
+    city: undefined,
+    editorial: undefined,
+    volume: undefined,
+    number: undefined,
+    pages: undefined,
+    doi: undefined,
+    url: undefined,
   });
 
   const getExamples = (def: Meaning): Example[] => {
@@ -262,10 +270,18 @@ export function WordDisplay({
   const toExampleDraft = (example: Example): ExampleDraft => ({
     value: example.value ?? '',
     author: example.author ?? '',
+    year: example.year ?? '',
+    publication: example.publication ?? example.source ?? '', // Fallback to legacy source
+    format: example.format ?? '',
     title: example.title ?? '',
-    source: example.source ?? '',
     date: example.date ?? '',
-    page: example.page ?? '',
+    city: example.city ?? '',
+    editorial: example.editorial ?? '',
+    volume: example.volume ?? '',
+    number: example.number ?? '',
+    pages: example.pages ?? example.page ?? '', // Fallback to legacy page
+    doi: example.doi ?? '',
+    url: example.url ?? '',
   });
 
   const fromExampleDraft = (draft: ExampleDraft): Example => {
@@ -274,17 +290,28 @@ export function WordDisplay({
       value: sanitize(draft.value),
     };
 
-    const author = sanitize(draft.author);
-    const title = sanitize(draft.title);
-    const source = sanitize(draft.source);
-    const date = sanitize(draft.date);
-    const page = sanitize(draft.page);
+    const fields: (keyof ExampleDraft)[] = [
+      'author',
+      'year',
+      'publication',
+      'format',
+      'title',
+      'date',
+      'city',
+      'editorial',
+      'volume',
+      'number',
+      'pages',
+      'doi',
+      'url',
+    ];
 
-    if (author) base.author = author;
-    if (title) base.title = title;
-    if (source) base.source = source;
-    if (date) base.date = date;
-    if (page) base.page = page;
+    fields.forEach((field) => {
+      const val = sanitize(draft[field]);
+      if (val) {
+        (base as any)[field] = val;
+      }
+    });
 
     return base;
   };
