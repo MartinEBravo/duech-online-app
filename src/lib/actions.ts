@@ -12,6 +12,7 @@ import {
   getUserByUsername,
   getUserById,
   getUniqueSources,
+  getWordsBySource,
 } from '@/lib/queries';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
@@ -375,5 +376,18 @@ export async function fetchUniqueSources() {
   } catch (error) {
     console.error('Error fetching sources:', error);
     return { success: false, error: 'Error al cargar las fuentes' };
+  }
+}
+
+/**
+ * Fetch words by source/publication
+ */
+export async function fetchWordsBySource(publication: string) {
+  try {
+    const words = await getWordsBySource(publication);
+    return { success: true, data: words };
+  } catch (error) {
+    console.error('Error fetching words by source:', error);
+    return { success: false, error: 'Error al cargar las palabras' };
   }
 }
