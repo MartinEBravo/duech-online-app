@@ -129,7 +129,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -676,6 +676,23 @@ export function WordDisplay({
       {/* Delete word modal */}
       {showDeleteModal && (
         <DeleteWordModal lemma={lastSavedLemma} onClose={() => setShowDeleteModal(false)} />
+      )}
+
+      {!editorMode && (
+        <div className="mt-12 rounded-lg bg-white/5 p-6 text-backdrop-blur-sm">
+          <p className="text-gray-600">
+            ¿Tienes alguna sugerencia o comentario? 
+          </p>
+          <p className="text-gray-600">
+            Envíanos un correo a{' '}
+            <a
+              href="mailto:duech.online@gmail.com"
+              className="text-duech-gold font-medium hover:text-yellow-600 hover:underline"
+            >
+              duech.online@gmail.com
+            </a>
+          </p>
+        </div>
       )}
     </div>
   );
