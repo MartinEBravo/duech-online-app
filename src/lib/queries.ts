@@ -58,6 +58,9 @@ export async function getWordByLemma(
     with: {
       meanings: {
         orderBy: (meanings, { asc }) => [asc(meanings.number)],
+        with: {
+          examples: true,
+        },
       },
       notes: {
         orderBy: (notesTable, { desc }) => [desc(notesTable.createdAt)],
@@ -84,9 +87,9 @@ export async function getWordByLemma(
         createdAt: note.createdAt.toISOString(),
         user: note.user
           ? {
-              id: note.user.id,
-              username: note.user.username,
-            }
+            id: note.user.id,
+            username: note.user.username,
+          }
           : null,
       })) ?? [],
   };
