@@ -90,7 +90,7 @@ export default function InlineEditable({
             <button
               type="button"
               onClick={begin}
-              className="inline-flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-blue-700 opacity-80 shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 group-hover:opacity-100 hover:bg-blue-100 hover:opacity-100"
+              className="inline-flex cursor-pointer items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-blue-700 opacity-80 shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 group-hover:opacity-100 hover:bg-blue-100 hover:opacity-100"
               aria-label={`Editar ${placeholder.toLowerCase()}`}
               title={`Editar ${placeholder.toLowerCase()}`}
             >
