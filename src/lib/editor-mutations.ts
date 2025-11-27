@@ -51,6 +51,7 @@ async function insertMeaning(wordId: number, def: Word['values'][number]) {
     observation: def.observation || null,
     remission: def.remission || null,
     grammarCategory: def.grammarCategory || null,
+    dictionary: def.dictionary || null,
     ...markerValues,
     examples: cleanedExamples.length > 0 ? cleanedExamples : null,
   });

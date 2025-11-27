@@ -148,11 +148,10 @@ export function WordCard({
         <div className="flex flex-col gap-2">
           <Button
             href={viewUrl}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              canEdit
+            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${canEdit
                 ? 'bg-duech-blue text-white hover:bg-blue-800'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             {canEdit ? (
               <>

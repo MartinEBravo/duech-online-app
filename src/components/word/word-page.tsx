@@ -68,6 +68,8 @@ export function WordDisplay({
   const [assignedTo, setAssignedTo] = useState<number | null>(initialAssignedTo || null);
   const [users, setUsers] = useState<Array<{ id: number; username: string; role: string }>>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const isFirstRender = useRef(true);
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const isEditing = (k: string) => editingKey === k;
@@ -126,7 +128,7 @@ export function WordDisplay({
           setUsers(data.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [editorMode]);
 
   // Debounced auto-save (editor mode only)
@@ -164,6 +166,7 @@ export function WordDisplay({
       if (!response.ok) throw new Error('Error al guardar');
 
       setSaveStatus('saved');
+      setIsDirty(false);
       setLastSavedLemma(wordRef.current.lemma);
 
       setTimeout(() => {
@@ -181,6 +184,13 @@ export function WordDisplay({
   useEffect(() => {
     if (!editorMode) return;
 
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setIsDirty(true);
+
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -194,7 +204,17 @@ export function WordDisplay({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [word, letter, status, assignedTo, autoSave, editorMode]);
+  }, [word, letter, status, assignedTo, editorMode]); // Removed autoSave from deps to avoid loop
+
+  const handleManualSave = () => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    autoSave();
+  };
+
+  const handlePreview = () => {
+    const url = `${window.location.origin}/palabra/${encodeURIComponent(word.lemma)}`;
+    window.open(url, '_blank');
+  };
 
   // Helper functions
   const patchWordLocal = (patch: Partial<Word>) => {
@@ -492,6 +512,10 @@ export function WordDisplay({
         canChangeStatus={canChangeStatus}
         dictionary={word.values[0]?.dictionary || null}
         onDictionaryChange={handleDictionaryChange}
+        onManualSave={handleManualSave}
+        isSaved={!isDirty}
+        isSaving={saveStatus === 'saving'}
+        onPreview={handlePreview}
       />
 
       <div className={`border-duech-gold rounded-xl border-t-4 ${cardBgColor} p-10 shadow-2xl`}>
