@@ -178,7 +178,7 @@ export function ExampleEditorModal({
                 />
               </div>
               <FormInput
-                label="Fecha (dd/mm/aa)"
+                label="Fecha (dd/mm/aaaa)"
                 value={draft.date}
                 onChange={(value) => onDraftChange({ ...draft, date: value })}
               />
