@@ -189,7 +189,7 @@ export function WordHeader({
                 options={userOptions}
                 value={assignedTo?.toString() ?? ''}
                 onChange={(value: string) => onAssignedToChange(value ? Number(value) : null)}
-                placeholder="Sin asignar"
+                placeholder={assignedTo?.toString() ?? 'Sin asignar'}
                 disabled={!(canAsigned || canActuallyEdit)}
               />
             </div>
@@ -200,7 +200,11 @@ export function WordHeader({
                 options={statusFilters}
                 value={status}
                 onChange={onStatusChange}
-                placeholder="Seleccionar estado"
+                placeholder={
+                  status
+                    ? statusOptions.find((opt) => opt.value === status)?.label || status
+                    : 'Seleccionar estado'
+                }
                 disabled={!canActuallyEdit && !canChangeStatus}
               />
             </div>
