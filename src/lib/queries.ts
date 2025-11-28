@@ -1,21 +1,11 @@
 /**
- * Database query functions using Drizzle ORM.
- *
- * This module contains all database query functions for the DUECh application.
- * It provides CRUD operations for words, meanings, users, and password reset tokens.
- *
- * Key features:
- * - Word search with full-text matching and filters
- * - User authentication and session management
- * - Password reset token handling
- *
- * @module lib/queries
+ * Database query functions using Drizzle ORM
  */
 
-import { eq, ilike, or, and, sql, SQL } from 'drizzle-orm';
+import { eq, ilike, or, and, sql, SQL, isNotNull, asc } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { db } from '@/lib/db';
-import { words, meanings, users, passwordResetTokens } from '@/lib/schema';
+import { words, meanings, users, passwordResetTokens, examples } from '@/lib/schema';
 import {
   Word,
   SearchResult,
@@ -26,10 +16,26 @@ import {
 import { dbWordToWord, dbWordToSearchResult } from '@/lib/transformers';
 
 /**
- * Options for getWordByLemma function.
+ * Common word columns for queries
  */
-export interface GetWordByLemmaOptions {
-  /** If true, includes non-published words (for editor mode) */
+const WORD_COLUMNS = {
+  id: true,
+  lemma: true,
+  root: true,
+  letter: true,
+  variant: true,
+  status: true,
+  createdBy: true,
+  assignedTo: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+/**
+ * Get a word by lemma with all its meanings
+ * Returns in frontend-compatible format
+ */
+interface GetWordByLemmaOptions {
   includeDrafts?: boolean;
 }
 
@@ -70,21 +76,13 @@ export async function getWordByLemma(
 
   const result = await db.query.words.findFirst({
     where: whereCondition,
-    columns: {
-      id: true,
-      lemma: true,
-      root: true,
-      letter: true,
-      variant: true,
-      status: true,
-      createdBy: true,
-      assignedTo: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    columns: WORD_COLUMNS,
     with: {
       meanings: {
-        orderBy: (meanings, { asc }) => [asc(meanings.number)],
+        orderBy: (meaningsTable, { asc }) => [asc(meaningsTable.number)],
+        with: {
+          examples: true,
+        },
       },
       notes: {
         orderBy: (notesTable, { desc }) => [desc(notesTable.createdAt)],
@@ -681,4 +679,60 @@ export async function getRedactedWords() {
     },
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
+}
+
+/**
+ * Get unique sources from examples for the bibliography dropdown
+ */
+export async function getUniqueSources() {
+  return await db
+    .selectDistinct({
+      publication: examples.publication,
+      author: examples.author,
+      year: examples.year,
+      city: examples.city,
+      editorial: examples.editorial,
+      format: examples.format,
+    })
+    .from(examples)
+    .where(isNotNull(examples.publication))
+    .orderBy(asc(examples.publication));
+}
+
+/**
+ * Get words that have examples from a specific publication/source
+ */
+export async function getWordsBySource(publication: string): Promise<SearchResult[]> {
+  // Find all word IDs that have examples with this publication
+  const wordIdsResult = await db
+    .selectDistinct({ wordId: meanings.wordId })
+    .from(examples)
+    .innerJoin(meanings, eq(examples.meaningId, meanings.id))
+    .where(eq(examples.publication, publication));
+
+  if (wordIdsResult.length === 0) {
+    return [];
+  }
+
+  const wordIds = wordIdsResult.map((r) => r.wordId);
+
+  // Fetch full word data for these IDs
+  const results = await db.query.words.findMany({
+    where: sql`${words.id} IN (${sql.join(
+      wordIds.map((id) => sql`${id}`),
+      sql`, `
+    )})`,
+    columns: WORD_COLUMNS,
+    with: {
+      meanings: {
+        orderBy: (meaningsTable, { asc }) => [asc(meaningsTable.number)],
+        with: {
+          examples: true,
+        },
+      },
+    },
+    orderBy: (table, { asc }) => [asc(table.lemma)],
+  });
+
+  return results.map((result) => dbWordToSearchResult(result));
 }

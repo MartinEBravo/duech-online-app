@@ -97,7 +97,7 @@ function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void
  *
  * @example
  * ```tsx
- * <SelectDropdown
+ * <Dropdown
  *   label="Estado"
  *   options={[{ value: 'draft', label: 'Borrador' }]}
  *   selectedValue={status}
@@ -105,197 +105,151 @@ function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void
  * />
  * ```
  */
-export function SelectDropdown({
+export function Dropdown({
   label,
   options,
-  selectedValue,
+  value,
   onChange,
   placeholder = 'Seleccionar...',
   disabled,
-}: {
-  /** Field label */
-  label: string;
-  /** Available options */
-  options: Option[];
-  /** Currently selected value */
-  selectedValue: string;
-  /** Callback when selection changes */
-  onChange: (value: string) => void;
-  /** Placeholder when no selection */
-  placeholder?: string;
-  /** Disables the dropdown */
-  disabled?: boolean;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const ref = useDropdownClose(setIsOpen);
-
-  const selectedOption = options.find((o) => o.value === selectedValue);
-  const displayText = selectedOption ? selectedOption.label : placeholder;
-
-  const handleSelect = (value: string) => {
-    if (disabled) return;
-    onChange(value);
-    setIsOpen(false);
-  };
-
-  return (
-    <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
-      <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
-      <DropdownButton
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        isOpen={isOpen}
-        disabled={disabled}
-        displayText={displayText}
-        isEmpty={!selectedValue}
-      />
-
-      {isOpen && !disabled && (
-        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-lg">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => handleSelect(option.value)}
-              className={`w-full px-3 py-2 text-left transition-colors hover:bg-gray-50 ${
-                selectedValue === option.value
-                  ? 'bg-duech-blue bg-opacity-10 text-duech-blue font-medium'
-                  : 'text-gray-700'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Multi-select dropdown with search filtering.
- *
- * Allows selecting multiple options with checkboxes. Includes search
- * filtering and select/deselect all functionality.
- *
- * @example
- * ```tsx
- * <MultiSelectDropdown
- *   label="Categorías"
- *   options={categoryOptions}
- *   selectedValues={selectedCategories}
- *   onChange={setSelectedCategories}
- *   maxDisplay={2}
- * />
- * ```
- */
-export function MultiSelectDropdown({
-  label,
-  options,
-  selectedValues,
-  onChange,
-  placeholder = 'Seleccionar...',
+  searchable = false,
+  multiple = false,
   maxDisplay = 3,
-  disabled,
 }: {
-  /** Field label */
-  label: string;
-  /** Available options */
+  label?: string;
   options: Option[];
-  /** Currently selected values */
-  selectedValues: string[];
-  /** Callback when selection changes */
-  onChange: (values: string[]) => void;
-  /** Placeholder when no selection */
+  value: string | string[];
+  onChange: ((value: string) => void) | ((value: string[]) => void);
   placeholder?: string;
-  /** Max items to show in button before truncating */
-  maxDisplay?: number;
   /** Disables the dropdown */
   disabled?: boolean;
+  searchable?: boolean;
+  multiple?: boolean;
+  maxDisplay?: number;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const ref = useDropdownClose(setIsOpen, () => setSearchTerm(''));
 
-  const filteredOptions = options.filter((o) =>
-    o.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Helper to ensure value is array for multiple mode
+  const selectedValues = multiple
+    ? Array.isArray(value)
+      ? value
+      : []
+    : value
+      ? [value as string]
+      : [];
+
+  const filteredOptions = searchable
+    ? options.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    : options;
 
   const selectedOptions = options.filter((o) => selectedValues.includes(o.value));
 
-  const displayText =
-    selectedOptions.length === 0
-      ? placeholder
-      : selectedOptions.length <= maxDisplay
-        ? selectedOptions.map((o) => o.label).join(', ')
-        : `${selectedOptions
-            .slice(0, maxDisplay)
-            .map((o) => o.label)
-            .join(', ')} +${selectedOptions.length - maxDisplay} más`;
+  let displayText = placeholder;
+  if (selectedValues.length > 0) {
+    if (multiple) {
+      displayText =
+        selectedValues.length <= maxDisplay
+          ? selectedOptions.map((o) => o.label).join(', ')
+          : `${selectedOptions
+              .slice(0, maxDisplay)
+              .map((o) => o.label)
+              .join(', ')} +${selectedValues.length - maxDisplay} más`;
+    } else {
+      const option = options.find((o) => o.value === selectedValues[0]);
+      displayText = option ? option.label : placeholder;
+    }
+  }
 
-  const toggleValue = (value: string) => {
-    const values = selectedValues.includes(value)
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
-    onChange(values);
+  const handleSelect = (val: string) => {
+    if (disabled) return;
+
+    if (multiple) {
+      const newValues = selectedValues.includes(val)
+        ? selectedValues.filter((v) => v !== val)
+        : [...selectedValues, val];
+      (onChange as (value: string[]) => void)(newValues);
+    } else {
+      (onChange as (value: string) => void)(val);
+      setIsOpen(false);
+      setSearchTerm('');
+    }
   };
 
   const handleSelectAll = () => {
-    if (disabled) return;
-    if (selectedValues.length === options.length) onChange([]);
-    else onChange(options.map((o) => o.value));
+    if (disabled || !multiple) return;
+    if (selectedValues.length === options.length) (onChange as (value: string[]) => void)([]);
+    else (onChange as (value: string[]) => void)(options.map((o) => o.value));
   };
 
   return (
     <div className={`relative ${disabled ? 'cursor-not-allowed opacity-50' : ''}`} ref={ref}>
-      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+      {label && <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>}
       <DropdownButton
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         isOpen={isOpen}
         disabled={disabled}
         displayText={displayText}
         isEmpty={selectedValues.length === 0}
-        badge={selectedValues.length > 0 ? selectedValues.length : undefined}
+        badge={multiple && selectedValues.length > 0 ? selectedValues.length : undefined}
       />
 
       {isOpen && !disabled && (
-        <div className="absolute z-10 mt-1 max-h-64 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
-          <div className="border-b border-gray-200 p-2">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="focus:border-duech-blue w-full rounded border border-gray-300 px-3 py-1 text-sm focus:outline-none"
-            />
-          </div>
+        <div className="absolute z-10 mt-1 max-h-96 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-lg">
+          {searchable && (
+            <div className="border-b border-gray-200 p-2">
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="focus:border-duech-blue w-full rounded border border-gray-300 px-3 py-1 text-sm focus:outline-none"
+                autoFocus
+              />
+            </div>
+          )}
 
-          <div className="border-b border-gray-200 p-2">
-            <button
-              type="button"
-              onClick={handleSelectAll}
-              className="text-duech-blue text-sm hover:underline"
-            >
-              {selectedValues.length === options.length
-                ? 'Deseleccionar todos'
-                : 'Seleccionar todos'}
-            </button>
-          </div>
-
-          <div className="max-h-48 overflow-y-auto">
-            {filteredOptions.map((option) => (
-              <label
-                key={option.value}
-                className="flex cursor-pointer items-center px-3 py-2 hover:bg-gray-50"
+          {multiple && (
+            <div className="border-b border-gray-200 p-2">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-duech-blue text-sm hover:underline"
               >
-                <input
-                  type="checkbox"
-                  checked={selectedValues.includes(option.value)}
-                  onChange={() => toggleValue(option.value)}
-                  className="text-duech-blue focus:ring-duech-blue mr-3 rounded"
-                />
-                <span className="text-sm text-gray-700">{option.label}</span>
-              </label>
-            ))}
+                {selectedValues.length === options.length
+                  ? 'Deseleccionar todos'
+                  : 'Seleccionar todos'}
+              </button>
+            </div>
+          )}
+
+          <div className="max-h-64 overflow-y-auto">
+            {filteredOptions.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleSelect(option.value)}
+                  className={`flex w-full items-center px-3 py-2 text-left transition-colors hover:bg-gray-50 ${
+                    isSelected && !multiple
+                      ? 'bg-duech-blue bg-opacity-10 text-duech-blue font-medium'
+                      : 'text-gray-700'
+                  }`}
+                >
+                  {multiple && (
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      readOnly
+                      className="text-duech-blue focus:ring-duech-blue mr-3 rounded"
+                    />
+                  )}
+                  <span className="truncate">{option.label}</span>
+                </button>
+              );
+            })}
             {filteredOptions.length === 0 && (
               <div className="px-3 py-2 text-sm text-gray-500">No se encontraron opciones</div>
             )}

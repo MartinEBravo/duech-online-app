@@ -232,9 +232,11 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                 data-dropdown
                 className="bg-duech-blue absolute top-full right-0 z-50 mt-2 w-64 rounded-lg border border-white/20 py-2 shadow-xl"
               >
-                <NavLink href={buildHref('/')} icon={HomeIcon} onClick={closeMenu}>
-                  Inicio
-                </NavLink>
+                {!editorMode && (
+                  <NavLink href={buildHref('/')} icon={HomeIcon} onClick={closeMenu}>
+                    Inicio
+                  </NavLink>
+                )}
                 <NavLink href={buildHref('/buscar')} icon={SearchIcon} onClick={closeMenu}>
                   Buscar
                 </NavLink>

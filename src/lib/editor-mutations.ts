@@ -9,7 +9,7 @@
 
 import 'server-only';
 import { db } from '@/lib/db';
-import { words, meanings, notes } from '@/lib/schema';
+import { words, meanings, notes, examples } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import type { Word, Example, MeaningMarkerKey } from '@/lib/definitions';
 import { MEANING_MARKER_KEYS } from '@/lib/definitions';
@@ -21,11 +21,19 @@ import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 function cleanExample(ex: Example) {
   return {
     value: ex.value,
-    ...(ex.author !== undefined && { author: ex.author }),
-    ...(ex.title !== undefined && { title: ex.title }),
-    ...(ex.source !== undefined && { source: ex.source }),
-    ...(ex.date !== undefined && { date: ex.date }),
-    ...(ex.page !== undefined && { page: ex.page }),
+    author: ex.author || null,
+    year: ex.year || null,
+    publication: ex.publication || ex.source || null, // Handle legacy source
+    format: ex.format || null,
+    title: ex.title || null,
+    date: ex.date || null,
+    city: ex.city || null,
+    editorial: ex.editorial || null,
+    volume: ex.volume || null,
+    number: ex.number || null,
+    page: ex.page || null,
+    doi: ex.doi || null,
+    url: ex.url || null,
   };
 }
 
@@ -55,17 +63,29 @@ async function insertMeaning(wordId: number, def: Word['values'][number]) {
     {} as Record<MeaningMarkerKey, string | null>
   );
 
-  await db.insert(meanings).values({
-    wordId,
-    number: def.number,
-    origin: def.origin || null,
-    meaning: def.meaning,
-    observation: def.observation || null,
-    remission: def.remission || null,
-    grammarCategory: def.grammarCategory || null,
-    ...markerValues,
-    examples: cleanedExamples.length > 0 ? cleanedExamples : null,
-  });
+  const [insertedMeaning] = await db
+    .insert(meanings)
+    .values({
+      wordId,
+      number: def.number,
+      origin: def.origin || null,
+      meaning: def.meaning,
+      observation: def.observation || null,
+      remission: def.remission || null,
+      grammarCategory: def.grammarCategory || null,
+      dictionary: def.dictionary || null,
+      ...markerValues,
+    })
+    .returning({ id: meanings.id });
+
+  if (cleanedExamples.length > 0) {
+    await db.insert(examples).values(
+      cleanedExamples.map((ex) => ({
+        meaningId: insertedMeaning.id,
+        ...ex,
+      }))
+    );
+  }
 }
 
 /**

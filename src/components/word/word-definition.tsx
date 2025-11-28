@@ -16,12 +16,14 @@ import MarkdownRenderer from '@/components/word/markdown-renderer';
 import InlineEditable from '@/components/word/inline-editable';
 import { Chip, type MarkerColorVariant } from '@/components/common/chip';
 import { Button } from '@/components/common/button';
+import { Dropdown } from '@/components/common/dropdown';
 import { PlusIcon, TrashIcon } from '@/components/icons';
 import {
   GRAMMATICAL_CATEGORIES,
   MEANING_MARKER_GROUPS,
   MEANING_MARKER_KEYS,
   ORIGINS,
+  DICTIONARY_COLORS,
   type Example,
   type Meaning,
   type MeaningMarkerKey,
@@ -96,6 +98,9 @@ export function DefinitionSection({
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
   const isEditing = (k: string) => editingKey === k;
 
+  const dictionary = def.dictionary;
+  const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
+
   // Gather all chips (category + markers) into a single list
   const allChips = useMemo(() => {
     const chips: ChipItem[] = [];
@@ -137,7 +142,7 @@ export function DefinitionSection({
 
   return (
     <section
-      className={`definition-hover relative rounded-2xl border-2 ${editorMode ? 'border-blue-300/70' : 'border-gray-200'} bg-white p-6 ${editorMode ? 'pb-16' : ''} shadow-sm`}
+      className={`definition-hover relative rounded-2xl border-2 ${editorMode ? 'border-blue-300/70' : 'border-gray-200'} ${cardBgColor} p-6 ${editorMode ? 'pb-16' : ''} shadow-sm`}
     >
       {/* Layout: number on left, content on right */}
       <div className="flex gap-4">
@@ -155,18 +160,22 @@ export function DefinitionSection({
             {editorMode ? (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-600">Origen:</span>
-                <select
-                  value={def.origin ?? ''}
-                  onChange={(e) => onPatchDefinition({ origin: e.target.value || null })}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                >
-                  <option value="">Sin origen</option>
-                  {Object.entries(ORIGINS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-48">
+                  <Dropdown
+                    label=""
+                    options={[
+                      { value: '', label: 'Sin origen' },
+                      ...Object.entries(ORIGINS).map(([key, label]) => ({
+                        value: key,
+                        label: label,
+                      })),
+                    ]}
+                    value={def.origin ?? ''}
+                    onChange={(value: string) => onPatchDefinition({ origin: value || null })}
+                    placeholder="Seleccionar origen"
+                    searchable={true}
+                  />
+                </div>
               </div>
             ) : (
               def.origin && (
@@ -294,13 +303,15 @@ export function DefinitionSection({
             </div>
           )}
           {/* Examples */}
-          {def.examples && def.examples.length > 0 && (
+          {((def.examples && def.examples.length > 0) || editorMode) && (
             <div className="mt-4">
-              <div className="mb-2 flex items-center gap-3">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Ejemplo{def.examples && def.examples.length > 1 ? 's' : ''}:
-                </h3>
-              </div>
+              {def.examples && def.examples.length > 0 && (
+                <div className="mb-2 flex items-center gap-3">
+                  <h3 className="text-sm font-medium text-gray-900">
+                    Ejemplo{def.examples.length > 1 ? 's' : ''}:
+                  </h3>
+                </div>
+              )}
               <div className="space-y-8">
                 {renderExample(def.examples ?? null, defIndex, editorMode)}
               </div>

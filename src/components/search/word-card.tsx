@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
-import { STATUS_OPTIONS } from '@/lib/definitions';
+import { STATUS_OPTIONS, DICTIONARY_COLORS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
 /**
@@ -34,6 +34,7 @@ export interface WordCardProps {
   assignedTo?: number | null;
   currentUserId?: number | null;
   currentUserRole?: string | null;
+  dictionary?: string | null;
 }
 
 /**
@@ -72,6 +73,7 @@ export function WordCard({
   assignedTo,
   currentUserId,
   currentUserRole,
+  dictionary,
 }: WordCardProps) {
   const pathname = usePathname();
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
@@ -114,12 +116,15 @@ export function WordCard({
   };
   const statusColor = statusColors[status || ''] || 'bg-gray-100 text-gray-800';
 
+  // Determine background color based on dictionary
+  const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
+
   // Public mode: simple card with link to view page
   if (!editorMode) {
     return (
       <Link
         href={viewUrl}
-        className={`border-duech-gold card-hover block rounded-xl border-l-4 bg-white p-8 shadow-lg transition-all duration-200 hover:shadow-xl ${className}`}
+        className={`border-duech-gold card-hover block rounded-xl border-l-4 ${cardBgColor} p-8 shadow-lg transition-all duration-200 hover:shadow-xl ${className}`}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-duech-blue text-2xl font-bold">{lemma}</h2>
@@ -132,7 +137,7 @@ export function WordCard({
   // Editor mode: same card style but with additional metadata
   return (
     <div
-      className={`border-duech-gold card-hover relative rounded-xl border-l-4 bg-white p-6 shadow-lg transition-all duration-200 hover:shadow-xl ${className}`}
+      className={`border-duech-gold card-hover relative rounded-xl border-l-4 ${cardBgColor} p-6 shadow-lg transition-all duration-200 hover:shadow-xl ${className}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
@@ -141,6 +146,11 @@ export function WordCard({
             <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
               Letra {letter.toUpperCase()}
             </span>
+            {dictionary && dictionary !== 'duech' && (
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+                {dictionary}
+              </span>
+            )}
           </div>
 
           <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">

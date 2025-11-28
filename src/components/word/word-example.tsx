@@ -10,6 +10,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import { Button } from '@/components/common/button';
 import { PencilIcon, PlusIcon, TrashIcon } from '@/components/icons';
@@ -73,11 +74,51 @@ export function ExampleDisplay({
             <MarkdownRenderer content={ex.value} />
           </div>
           <div className="text-sm text-gray-600">
-            {ex.author && <span className="mr-3">Autor: {ex.author}</span>}
-            {ex.title && <span className="mr-3">Título: {ex.title}</span>}
-            {ex.source && <span className="mr-3">Fuente: {ex.source}</span>}
+            {/* Green fields (Visible to public) */}
+            {ex.author && <span className="mr-3 font-medium">Autor: {ex.author}</span>}
+            {ex.year && <span className="mr-3">Año: {ex.year}</span>}
+            {ex.title && <span className="mr-3">Título: &ldquo;{ex.title}&rdquo;</span>}
+            {(ex.publication || ex.source) && (
+              <span className="mr-3 italic">
+                Publicación:{' '}
+                {ex.publication ? (
+                  <Link
+                    href={`/fuente/${encodeURIComponent(ex.publication)}`}
+                    className="text-duech-blue hover:text-duech-gold underline transition-colors"
+                  >
+                    {ex.publication}
+                  </Link>
+                ) : (
+                  ex.source
+                )}
+              </span>
+            )}
             {ex.date && <span className="mr-3">Fecha: {ex.date}</span>}
-            {ex.page && <span>Página: {ex.page}</span>}
+            {editorMode && (
+              <div className="mt-2 border-t border-gray-200 pt-2 text-xs text-gray-500">
+                <span className="font-semibold text-yellow-700">Datos internos:</span>
+                {ex.format && <span className="ml-2">Formato: {ex.format}</span>}
+                {ex.city && <span className="ml-2">Ciudad: {ex.city}</span>}
+                {ex.editorial && <span className="ml-2">Editorial: {ex.editorial}</span>}
+                {ex.volume && <span className="ml-2">Vol: {ex.volume}</span>}
+                {ex.number && <span className="ml-2">Núm: {ex.number}</span>}
+                {ex.page && <span className="ml-2">Páginas: {ex.page}</span>}
+                {ex.doi && <span className="ml-2">DOI: {ex.doi}</span>}
+                {ex.url && (
+                  <span className="ml-2">
+                    URL:{' '}
+                    <a
+                      href={ex.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Link
+                    </a>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Example action buttons (editor mode) */}

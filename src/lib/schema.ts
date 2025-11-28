@@ -1,17 +1,8 @@
 /**
- * Drizzle ORM Schema for DUECh PostgreSQL Database.
- *
- * This module defines all database tables and their relationships using Drizzle ORM.
- * The schema supports a complete dictionary management system with:
- * - User authentication and role-based access control
- * - Dictionary words with multiple meanings
- * - Editorial notes and comments
- * - Password reset functionality
- *
- * @module lib/schema
+ * Drizzle ORM Schema for DUECh PostgreSQL Database
  */
 
-import { pgTable, serial, text, timestamp, integer, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 /**
@@ -103,16 +94,30 @@ export const meanings = pgTable('meanings', {
   chronologicalMarkers: text('chrono_mark'),
   frequencyMarkers: text('freq_mark'),
   dictionary: text('dictionary'), // difruech, duech, etc.
-  examples: jsonb('examples').$type<
-    Array<{
-      value: string;
-      author?: string;
-      title?: string;
-      source?: string;
-      date?: string;
-      page?: string;
-    }>
-  >(), // JSONB field with examples
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Examples table (normalized)
+export const examples = pgTable('examples', {
+  id: serial('id').primaryKey(),
+  meaningId: integer('meaning_id')
+    .notNull()
+    .references(() => meanings.id, { onDelete: 'cascade' }),
+  value: text('value').notNull(),
+  author: text('author'),
+  year: text('year'),
+  publication: text('publication'),
+  format: text('format'),
+  title: text('title'),
+  date: text('date'),
+  city: text('city'),
+  editorial: text('editorial'),
+  volume: text('volume'),
+  number: text('number'),
+  page: text('page'),
+  doi: text('doi'),
+  url: text('url'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -144,26 +149,30 @@ export const wordsRelations = relations(words, ({ many, one }) => ({
   creator: one(users, {
     fields: [words.createdBy],
     references: [users.id],
+    relationName: 'createdWords',
   }),
   assignee: one(users, {
     fields: [words.assignedTo],
     references: [users.id],
+    relationName: 'assignedWords',
   }),
 }));
 
-/**
- * Meaning relations - connects meanings back to their parent word.
- */
-export const meaningsRelations = relations(meanings, ({ one }) => ({
+export const meaningsRelations = relations(meanings, ({ one, many }) => ({
   word: one(words, {
     fields: [meanings.wordId],
     references: [words.id],
   }),
+  examples: many(examples),
 }));
 
-/**
- * Note relations - connects notes to their word and author.
- */
+export const examplesRelations = relations(examples, ({ one }) => ({
+  meaning: one(meanings, {
+    fields: [examples.meaningId],
+    references: [meanings.id],
+  }),
+}));
+
 export const notesRelations = relations(notes, ({ one }) => ({
   word: one(words, {
     fields: [notes.wordId],

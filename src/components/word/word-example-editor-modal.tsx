@@ -9,8 +9,10 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/common/button';
+import { Dropdown } from '@/components/common/dropdown';
+import { fetchUniqueSources } from '@/lib/actions';
 
 /**
  * @internal
@@ -47,23 +49,24 @@ function FormInput({
 type ExampleDraft = {
   /** Example text content */
   value: string;
-  /** Example author */
+  // Mandatory
   author: string;
-  /** Work title */
+  year: string;
+  publication: string;
+  format: string;
+  // Optional
   title: string;
-  /** Source publication */
-  source: string;
-  /** Publication date */
   date: string;
-  /** Page number */
+  city: string;
+  editorial: string;
+  volume: string;
+  number: string;
   page: string;
+  doi: string;
+  url: string;
 };
 
-/**
- * Props for the ExampleEditorModal component.
- */
-export interface ExampleEditorModalProps {
-  /** Whether the modal is visible */
+interface ExampleEditorModalProps {
   isOpen: boolean;
   /** Whether this is a new example (vs editing existing) */
   isNew: boolean;
@@ -102,13 +105,55 @@ export function ExampleEditorModal({
   onSave,
   onCancel,
 }: ExampleEditorModalProps) {
+  const [sources, setSources] = useState<
+    {
+      publication: string | null;
+      author: string | null;
+      year: string | null;
+      city: string | null;
+      editorial: string | null;
+      format: string | null;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUniqueSources().then((res) => {
+        if (res.success && res.data) {
+          setSources(res.data);
+        }
+      });
+    }
+  }, [isOpen]);
+
+  const handleSourceSelect = (indexStr: string) => {
+    const index = parseInt(indexStr, 10);
+    const source = sources[index];
+    if (source) {
+      onDraftChange({
+        ...draft,
+        publication: source.publication || '',
+        author: source.author || '',
+        year: source.year || '',
+        city: source.city || '',
+        editorial: source.editorial || '',
+        format: source.format || '',
+      });
+    }
+  };
+
+  const sourceOptions = sources.map((s, i) => ({
+    value: i.toString(),
+    label: `${s.publication || 'Sin título'} (${s.year || 's/f'}) - ${s.author || 'Anon'}`,
+  }));
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6">
         <h2 className="mb-4 text-2xl font-bold">{isNew ? 'Nuevo ejemplo' : 'Editar ejemplo'}</h2>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <label className="mb-1 block text-sm font-medium">Ejemplo *</label>
             <textarea
@@ -118,31 +163,102 @@ export function ExampleEditorModal({
               placeholder="Texto del ejemplo"
             />
           </div>
-          <FormInput
-            label="Autor"
-            value={draft.author}
-            onChange={(value) => onDraftChange({ ...draft, author: value })}
-          />
-          <FormInput
-            label="Título"
-            value={draft.title}
-            onChange={(value) => onDraftChange({ ...draft, title: value })}
-          />
-          <FormInput
-            label="Fuente"
-            value={draft.source}
-            onChange={(value) => onDraftChange({ ...draft, source: value })}
-          />
-          <FormInput
-            label="Fecha"
-            value={draft.date}
-            onChange={(value) => onDraftChange({ ...draft, date: value })}
-          />
-          <FormInput
-            label="Página"
-            value={draft.page}
-            onChange={(value) => onDraftChange({ ...draft, page: value })}
-          />
+
+          <div className="rounded-lg bg-gray-50 p-4">
+            <Dropdown
+              label="Cargar datos desde Nómina (Opcional)"
+              options={sourceOptions}
+              value=""
+              onChange={handleSourceSelect}
+              placeholder="Seleccionar fuente..."
+              searchable={true}
+            />
+          </div>
+
+          <div className="rounded-lg bg-green-50 p-4">
+            <h3 className="mb-3 font-semibold text-green-800">Datos bibliográficos obligatorios</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormInput
+                label="Autor(a,es,as)"
+                value={draft.author}
+                onChange={(value) => onDraftChange({ ...draft, author: value })}
+              />
+              <FormInput
+                label="Año"
+                value={draft.year}
+                onChange={(value) => onDraftChange({ ...draft, year: value })}
+              />
+              <div className="sm:col-span-2">
+                <FormInput
+                  label="Publicación (revista, periódico, libro, sitio web)"
+                  value={draft.publication}
+                  onChange={(value) => onDraftChange({ ...draft, publication: value })}
+                  placeholder="Siempre en cursiva"
+                />
+              </div>
+              <FormInput
+                label="Formato"
+                value={draft.format}
+                onChange={(value) => onDraftChange({ ...draft, format: value })}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-yellow-50 p-4">
+            <h3 className="mb-3 font-semibold text-yellow-800">Datos bibliográficos opcionales</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <FormInput
+                  label="Título (capítulo, artículo)"
+                  value={draft.title}
+                  onChange={(value) => onDraftChange({ ...draft, title: value })}
+                  placeholder="Siempre entre comillas dobles"
+                />
+              </div>
+              <FormInput
+                label="Fecha (dd/mm/aaaa)"
+                value={draft.date}
+                onChange={(value) => onDraftChange({ ...draft, date: value })}
+              />
+              <FormInput
+                label="Ciudad"
+                value={draft.city}
+                onChange={(value) => onDraftChange({ ...draft, city: value })}
+              />
+              <FormInput
+                label="Editorial"
+                value={draft.editorial}
+                onChange={(value) => onDraftChange({ ...draft, editorial: value })}
+              />
+              <FormInput
+                label="Volumen"
+                value={draft.volume}
+                onChange={(value) => onDraftChange({ ...draft, volume: value })}
+              />
+              <FormInput
+                label="Número"
+                value={draft.number}
+                onChange={(value) => onDraftChange({ ...draft, number: value })}
+              />
+              <FormInput
+                label="Páginas"
+                value={draft.page}
+                onChange={(value) => onDraftChange({ ...draft, page: value })}
+              />
+              <FormInput
+                label="DOI"
+                value={draft.doi}
+                onChange={(value) => onDraftChange({ ...draft, doi: value })}
+              />
+              <div className="sm:col-span-2">
+                <FormInput
+                  label="URL"
+                  value={draft.url}
+                  onChange={(value) => onDraftChange({ ...draft, url: value })}
+                />
+              </div>
+            </div>
+          </div>
         </div>
         <div className="mt-6 flex justify-end gap-3">
           <Button onClick={onCancel} className="rounded border px-4 py-2 hover:bg-gray-50">

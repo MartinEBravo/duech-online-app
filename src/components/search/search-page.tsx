@@ -11,7 +11,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SelectDropdown, MultiSelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import SearchBar from '@/components/search/search-bar';
 import { searchDictionary } from '@/lib/dictionary-client';
 import {
@@ -20,7 +20,6 @@ import {
   SearchResult,
   STATUS_OPTIONS,
 } from '@/lib/definitions';
-import { WordCard } from '@/components/search/word-card';
 import { AddWordModal } from '@/components/search/add-word-modal';
 import { useUrlSearchParams } from '@/hooks/useUrlSearchParams';
 import { useSearchState, type SearchState } from '@/hooks/useSearchState';
@@ -29,6 +28,7 @@ import {
   EmptySearchState,
   NoResultsState,
   SearchResultsCount,
+  WordResultsList,
 } from '@/components/search/search-results-components';
 import { Pagination } from '@/components/search/pagination';
 import {
@@ -476,11 +476,11 @@ export function SearchPage({
   const statusFilter = useMemo(
     () =>
       editorMode ? (
-        <SelectDropdown
+        <Dropdown
           key="status-filter"
           label="Estado"
           options={STATUS_OPTIONS}
-          selectedValue={searchState.status}
+          value={searchState.status}
           onChange={handleStatusChange}
           placeholder="Seleccionar estado"
         />
@@ -491,13 +491,14 @@ export function SearchPage({
   const assignedFilter = useMemo(
     () =>
       editorMode ? (
-        <MultiSelectDropdown
+        <Dropdown
           key="assigned-filter"
           label="Asignado a"
           options={userOptions}
-          selectedValues={searchState.assignedTo}
+          value={searchState.assignedTo}
           onChange={handleAssignedChange}
           placeholder="Seleccionar usuario"
+          multiple={true}
         />
       ) : null,
     [editorMode, searchState.assignedTo, userOptions, handleAssignedChange]
@@ -569,25 +570,12 @@ export function SearchPage({
                 pageSize={RESULTS_PER_PAGE}
               />
               {/* Results list */}
-              <div className="space-y-4">
-                {searchResults.map((result, index) => {
-                  return (
-                    <WordCard
-                      key={`${result.word.lemma}-${index}`}
-                      lemma={result.word.lemma}
-                      letter={result.letter}
-                      editorMode={editorMode}
-                      root={editorMode ? result.word.root : undefined}
-                      status={editorMode ? result.status : undefined}
-                      createdBy={editorMode ? result.createdBy : undefined}
-                      definitionsCount={editorMode ? result.word.values.length : undefined}
-                      assignedTo={editorMode ? result.assignedTo : undefined}
-                      currentUserId={currentUserId}
-                      currentUserRole={currentUserRole}
-                    />
-                  );
-                })}
-              </div>
+              <WordResultsList
+                results={searchResults}
+                editorMode={editorMode}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+              />
 
               {/* Pagination */}
               <Pagination

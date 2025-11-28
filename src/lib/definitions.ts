@@ -19,11 +19,24 @@
  */
 export interface Example {
   value: string;
-  author?: string;
-  title?: string;
-  source?: string;
-  date?: string;
-  page?: string;
+  // Mandatory
+  author?: string | null;
+  year?: string | null;
+  publication?: string | null;
+  format?: string | null;
+  // Optional
+  title?: string | null;
+  date?: string | null;
+  city?: string | null;
+  editorial?: string | null;
+  volume?: string | null;
+  number?: string | null;
+  page?: string | null; // Replaces 'pages' to keep legacy compatibility and singular naming
+  doi?: string | null;
+  url?: string | null;
+  // Legacy
+  source?: string | null;
+  // page?: string; // Removed duplicate legacy definition
 }
 
 /**
@@ -452,13 +465,14 @@ export const DICCIONARIES = [
   { value: 'm2015', label: 'María Moliner 2015' },
 ];
 
-/**
- * Sorts record keys alphabetically by their Spanish labels.
- *
- * @param source - Record with code-to-label mappings
- * @returns Array of keys sorted by their label values
- * @internal
- */
+export const DICTIONARY_COLORS: Record<string, string> = {
+  duech: 'bg-white',
+  difruech: 'bg-blue-50',
+  dfp: 'bg-green-50',
+  damer: 'bg-purple-50',
+  m2015: 'bg-rose-50',
+};
+
 function sortKeysByLabel(source: Record<string, string>): string[] {
   return Object.entries(source)
     .sort(([, labelA], [, labelB]) => labelA.localeCompare(labelB, 'es'))
@@ -486,6 +500,7 @@ export const STATUS_OPTIONS = [
   { value: 'included', label: 'Incorporado' },
   { value: 'preredacted', label: 'Prerredactada' },
   { value: 'redacted', label: 'Redactado' },
+  { value: 'reviewedLex', label: 'Revisado por lexicógrafos' },
   { value: 'reviewed', label: 'Revisado por comisión' },
   { value: 'published', label: 'Publicado' },
   { value: 'archaic', label: 'Arcaico' },

@@ -68,45 +68,57 @@ export function middleware(request: NextRequest) {
   const normalizedPathname = isEditorPath
     ? normalizeEditorPath(originalPathname)
     : originalPathname;
-  const shouldRewrite = isEditorPath;
-  const targetUrl = request.nextUrl.clone();
+
+  const isEditorMode = hostname === EDITOR_HOST || isEditorPath;
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
   const editorBasePathHeader = isEditorPath ? EDITOR_PATH_PREFIX : '';
 
-  if (shouldRewrite) {
-    targetUrl.pathname = normalizedPathname;
-  }
-
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const isEditorMode = hostname === EDITOR_HOST || isEditorPath;
-
-  // Skip middleware for bypass paths
-  if (shouldBypass(normalizedPathname)) {
-    const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();
+  // Helper to generate response with headers
+  const createResponse = (rewrite: boolean = false) => {
+    const targetUrl = request.nextUrl.clone();
+    if (rewrite) {
+      targetUrl.pathname = normalizedPathname;
+    }
+    const response = rewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();
     response.headers.set('x-editor-mode', isEditorMode ? 'true' : 'false');
     response.headers.set('x-editor-base-path', editorBasePathHeader);
     return response;
+  };
+
+  // 1. Assets and Next.js internals - Always allow
+  if (
+    normalizedPathname.startsWith('/_next/') ||
+    /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2|ttf|eot)$/i.test(normalizedPathname)
+  ) {
+    return createResponse(isEditorPath);
   }
 
-  // Helper function to create login redirect
-  const createLoginRedirect = () => {
+  // 2. API Routes - Always allow (auth handled by endpoints)
+  if (normalizedPathname.startsWith('/api/')) {
+    return createResponse(isEditorPath);
+  }
+
+  // 3. Public Auth Pages - Always allow
+  if (normalizedPathname === '/login' || normalizedPathname === '/cambiar-contrasena') {
+    return createResponse(isEditorPath);
+  }
+
+  // 4. Editor Mode Protection - Redirect if not logged in
+  if (isEditorMode && !token) {
     const loginPath = isEditorPath ? `${EDITOR_PATH_PREFIX}/login` : '/login';
     const redirectTarget = isEditorPath ? originalPathname : normalizedPathname;
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set('redirectTo', redirectTarget);
     return NextResponse.redirect(loginUrl);
-  };
-
-  // Redirect to login if accessing editor host without token
-  if (isEditorMode && !token) {
-    return createLoginRedirect();
   }
 
-  // Admin-only routes: must be authenticated, in editor mode, and have admin role
+  // 5. Admin Routes Protection
   const adminOnlyRoutes = ['/usuarios'];
   const isAdminRoute = adminOnlyRoutes.some((route) => normalizedPathname.startsWith(route));
 
   if (isAdminRoute) {
-    // Redirect to editor login if not in editor mode
+    // If we are here, we have a token (checked in step 4 if editor mode)
+    // But if we are NOT in editor mode, we should redirect to editor login
     if (!isEditorMode) {
       const editorUrl = new URL(request.url);
       editorUrl.hostname = EDITOR_HOST;
@@ -114,15 +126,9 @@ export function middleware(request: NextRequest) {
       editorUrl.searchParams.set('redirectTo', '/usuarios');
       return NextResponse.redirect(editorUrl);
     }
-
-    // Redirect to login if not authenticated
-    if (!token) {
-      return createLoginRedirect();
-    }
+    // If in editor mode and have token, we let it pass (page will check role)
   }
 
-  const response = shouldRewrite ? NextResponse.rewrite(targetUrl) : NextResponse.next();
-  response.headers.set('x-editor-mode', isEditorMode ? 'true' : 'false');
-  response.headers.set('x-editor-base-path', editorBasePathHeader);
-  return response;
+  // 6. Default - Allow access
+  return createResponse(isEditorPath);
 }

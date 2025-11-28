@@ -85,6 +85,14 @@ export function ArrowRightIcon(props: IconProps) {
   );
 }
 
+export function ArrowLeftIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M19 12H5m7-7l-7 7 7 7" />
+    </Icon>
+  );
+}
+
 export function InformationCircleIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -163,14 +171,6 @@ export function CloseIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M6 18L18 6M6 6l12 12" />
-    </Icon>
-  );
-}
-
-export function DeleteIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7m3 0V4a1 1 0 011-1h6a1 1 0 011 1v3M4 7h16M10 11v6m4-6v6" />
     </Icon>
   );
 }

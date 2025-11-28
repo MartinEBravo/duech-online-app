@@ -13,9 +13,9 @@ import React from 'react';
 import { useMemo } from 'react';
 import Link from 'next/link';
 import InlineEditable from '@/components/word/inline-editable';
-import { SelectDropdown } from '@/components/common/dropdown';
+import { Dropdown } from '@/components/common/dropdown';
 import { Button } from '@/components/common/button';
-import { InformationCircleIcon } from '@/components/icons';
+import { InformationCircleIcon, SpinnerIcon } from '@/components/icons';
 import WordWarning from '@/components/word/word-warning';
 import { DICCIONARIES, type Meaning } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -60,6 +60,10 @@ export interface WordHeaderProps {
   definitions?: Meaning[];
   onDeleteWord?: () => void;
   userRole?: string;
+  onManualSave?: () => void;
+  isSaved?: boolean;
+  isSaving?: boolean;
+  onPreview?: () => void;
 }
 
 /**
@@ -110,6 +114,10 @@ export function WordHeader({
   definitions,
   onDeleteWord,
   userRole,
+  onManualSave,
+  isSaved,
+  isSaving,
+  onPreview,
 }: WordHeaderProps) {
   const { isAdmin, isLexicographer, username } = useUserRole(true);
 
@@ -185,47 +193,79 @@ export function WordHeader({
         {editorMode && (
           <div className="flex flex-wrap items-end gap-3 text-sm">
             <div className="w-32">
-              <SelectDropdown
+              <Dropdown
                 label="Diccionario"
                 options={DICCIONARIES}
-                selectedValue={dictionary || ''}
-                onChange={(val) => onDictionaryChange(val || null)}
+                value={dictionary || ''}
+                onChange={(val: string) => onDictionaryChange(val || null)}
                 placeholder="Seleccionar"
                 disabled={!canActuallyEdit}
               />
             </div>
             <div className="w-24">
-              <SelectDropdown
+              <Dropdown
                 label="Letra"
                 options={letterOptions}
-                selectedValue={letter}
-                onChange={(value) => onLetterChange(value.toLowerCase())}
+                value={letter}
+                onChange={(value: string) => onLetterChange(value.toLowerCase())}
                 placeholder="Letra"
                 disabled={!canActuallyEdit}
               />
             </div>
 
             <div className="w-36">
-              <SelectDropdown
+              <Dropdown
                 label="Asignado a"
                 options={userOptions}
-                selectedValue={assignedTo?.toString() ?? ''}
-                onChange={(value) => onAssignedToChange(value ? Number(value) : null)}
-                placeholder="Sin asignar"
+                value={assignedTo?.toString() ?? ''}
+                onChange={(value: string) => onAssignedToChange(value ? Number(value) : null)}
+                placeholder={assignedTo?.toString() ?? 'Sin asignar'}
                 disabled={!(canAsigned || canActuallyEdit)}
               />
             </div>
 
             <div className="w-32">
-              <SelectDropdown
+              <Dropdown
                 label="Estado"
                 options={statusFilters}
-                selectedValue={status}
+                value={status}
                 onChange={onStatusChange}
-                placeholder="Seleccionar estado"
+                placeholder={
+                  status
+                    ? statusOptions.find((opt) => opt.value === status)?.label || status
+                    : 'Seleccionar estado'
+                }
                 disabled={!canActuallyEdit && !canChangeStatus}
               />
             </div>
+
+            {/* Preview Button */}
+            {onPreview && (
+              <Button
+                type="button"
+                onClick={onPreview}
+                className="rounded-md bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200"
+                title="Previsualizar"
+              >
+                Previsualizar
+              </Button>
+            )}
+
+            {/* Manual Save Button */}
+            {onManualSave && (
+              <Button
+                type="button"
+                onClick={onManualSave}
+                disabled={isSaving}
+                className={`rounded-md px-4 py-2 text-white transition-colors ${
+                  isSaved ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+                title="Guardar cambios"
+              >
+                {isSaved ? 'Guardado' : 'Guardar cambios'}
+                {isSaving ? <SpinnerIcon className="h-5 w-5" /> : ''}
+              </Button>
+            )}
 
             {onDeleteWord && (userRole === 'admin' || userRole === 'superadmin') && (
               <Button

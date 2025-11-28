@@ -5,10 +5,16 @@ import SearchBar from '@/components/search/search-bar';
 import WordOfTheDay, { type WordOfTheDayData } from '@/components/word-of-the-day';
 import { getEditorBasePath, isEditorMode } from '@/lib/editor-mode-server';
 import { getWordOfTheDay } from '@/lib/dictionary';
+import { redirect } from 'next/navigation';
 
 export default async function Home() {
   const editorMode = await isEditorMode();
   const editorBasePath = editorMode ? await getEditorBasePath() : '';
+
+  if (editorMode) {
+    redirect(`${editorBasePath}/buscar`);
+  }
+
   let wordOfTheDayData: WordOfTheDayData | null = null;
 
   try {

@@ -8,6 +8,8 @@
  */
 
 import { SadFaceIcon, SearchIcon } from '@/components/icons';
+import { WordCard } from '@/components/search/word-card';
+import { type SearchResult } from '@/lib/definitions';
 
 /**
  * Props for the SearchLoadingSkeleton component.
@@ -139,6 +141,44 @@ export function SearchResultsCount({
   return (
     <div className="mb-4 flex items-center justify-between">
       <p className="mb-6 text-gray-600">{getMessage()}</p>
+    </div>
+  );
+}
+
+interface WordResultsListProps {
+  results: SearchResult[];
+  editorMode?: boolean;
+  currentUserId?: number | null;
+  currentUserRole?: string | null;
+}
+
+/**
+ * Reusable list component for displaying word search results
+ */
+export function WordResultsList({
+  results,
+  editorMode = false,
+  currentUserId,
+  currentUserRole,
+}: WordResultsListProps) {
+  return (
+    <div className="space-y-4">
+      {results.map((result, index) => (
+        <WordCard
+          key={`${result.word.lemma}-${index}`}
+          lemma={result.word.lemma}
+          letter={result.letter}
+          editorMode={editorMode}
+          root={editorMode ? result.word.root : undefined}
+          status={editorMode ? result.status : undefined}
+          createdBy={editorMode ? result.createdBy : undefined}
+          definitionsCount={editorMode ? result.word.values.length : undefined}
+          assignedTo={editorMode ? result.assignedTo : undefined}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
+          dictionary={result.word.values[0]?.dictionary}
+        />
+      ))}
     </div>
   );
 }
