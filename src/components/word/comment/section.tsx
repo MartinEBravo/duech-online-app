@@ -1,10 +1,33 @@
 /**
  * Word comments section component.
  *
- * Displays editorial comments for a word and allows adding new ones.
- * Handles loading, error states, and optimistic updates.
+ * This component manages the complete editorial comments experience for a word,
+ * including displaying existing comments, loading states, error handling, and
+ * adding new comments with optimistic updates.
+ *
+ * ## Features
+ *
+ * ### Data Management
+ * - Loads comments from API on mount and when lemma changes
+ * - Supports initial server-side comments for SSR
+ * - Uses AbortController for clean request cancellation
+ *
+ * ### Optimistic Updates
+ * - New comments appear immediately with temporary data
+ * - On success: replaced with server response
+ * - On error: removed from list with error message
+ *
+ * ### UI States
+ * - Loading: Shows loading indicator when fetching
+ * - Empty: Shows placeholder with call-to-action in editor mode
+ * - Error: Displays error message in red alert box
+ * - Populated: Renders list of Globe comment bubbles
  *
  * @module components/word/comment/section
+ * @see {@link WordCommentSection} - The main exported component (default export)
+ * @see {@link WordCommentSectionProps} - Props interface
+ * @see {@link Globe} - Individual comment display component
+ * @see {@link NewComment} - New comment input component
  */
 
 'use client';
@@ -15,30 +38,66 @@ import NewComment from '@/components/word/comment/new';
 
 /**
  * Props for the WordCommentSection component.
+ *
+ * @interface WordCommentSectionProps
  */
 export interface WordCommentSectionProps {
-  /** Enable comment creation */
+  /**
+   * Whether the component is in editor mode.
+   * Controls visibility of the add comment button.
+   * @type {boolean}
+   */
   editorMode: boolean;
-  /** Initial comments from server */
+
+  /**
+   * Initial comments loaded from server (SSR).
+   * Used to hydrate the component before client-side fetch.
+   * @type {WordComment[]}
+   * @default []
+   */
   initial?: WordComment[];
-  /** Word lemma for API calls */
+
+  /**
+   * The word lemma for API calls.
+   * Used to fetch and post comments for this specific word.
+   * @type {string}
+   */
   lemma: string;
 }
 
 /**
  * Section displaying editorial comments for a word.
  *
- * Fetches and displays comments, handles adding new comments
- * with optimistic updates, and shows loading/error states.
+ * This is the main container component for the comments feature.
+ * It orchestrates data fetching, state management, and renders
+ * the appropriate UI based on current state.
+ *
+ * ## API Integration
+ * - GET `/api/words/{lemma}` - Fetches word data including comments
+ * - PUT `/api/words/{lemma}` - Adds new comment via `{ comment: text }`
+ *
+ * @function WordCommentSection
+ * @param {WordCommentSectionProps} props - Component props
+ * @param {boolean} props.editorMode - Enable comment creation
+ * @param {WordComment[]} [props.initial=[]] - Initial comments from server
+ * @param {string} props.lemma - Word lemma for API calls
+ * @returns {JSX.Element} Comments section with list and input
  *
  * @example
- * ```tsx
+ * // Basic usage in word page
  * <WordCommentSection
  *   editorMode={true}
  *   initial={initialComments}
  *   lemma={word.lemma}
  * />
- * ```
+ *
+ * @example
+ * // Read-only mode (no add button)
+ * <WordCommentSection
+ *   editorMode={false}
+ *   initial={comments}
+ *   lemma="chilenismo"
+ * />
  */
 export default function WordCommentSection({
   editorMode,

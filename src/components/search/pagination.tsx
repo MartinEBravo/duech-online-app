@@ -1,45 +1,111 @@
 /**
  * Pagination component for search results.
  *
- * Displays page numbers with ellipsis for large page counts.
+ * This component provides navigation controls for paginated content.
+ * It displays page numbers with smart ellipsis handling for large
+ * page counts, ensuring the UI stays clean and usable.
+ *
+ * ## Features
+ *
+ * ### Page Number Display
+ * - Shows up to 7 page numbers at once
+ * - Always shows first and last pages
+ * - Uses ellipsis (...) for skipped ranges
+ * - Highlights current page with primary color
+ *
+ * ### Navigation Buttons
+ * - "Anterior" (Previous) button on left
+ * - "Siguiente" (Next) button on right
+ * - Disabled states when at boundaries
+ *
+ * ## Ellipsis Logic
+ * - Small page counts (≤7): shows all pages
+ * - Current near start: shows 1, 2, 3, 4, ..., last
+ * - Current near end: shows 1, ..., n-3, n-2, n-1, n
+ * - Current in middle: shows 1, ..., c-1, c, c+1, ..., last
  *
  * @module components/search/pagination
+ * @see {@link Pagination} - The main exported component
+ * @see {@link PaginationProps} - Props interface
  */
 
 'use client';
 
 /**
  * Props for the Pagination component.
+ *
+ * @interface PaginationProps
  */
 export interface PaginationProps {
-  /** Current active page (1-indexed) */
+  /**
+   * Current active page number (1-indexed).
+   * @type {number}
+   */
   currentPage: number;
-  /** Total number of pages */
+
+  /**
+   * Total number of pages available.
+   * @type {number}
+   */
   totalPages: number;
-  /** Callback when page changes */
+
+  /**
+   * Callback fired when a page is selected.
+   * @param {number} page - The new page number (1-indexed)
+   * @returns {void}
+   */
   onPageChange: (page: number) => void;
-  /** Whether there is a next page */
+
+  /**
+   * Whether there is a next page (currentPage < totalPages).
+   * Controls the "Siguiente" button enabled state.
+   * @type {boolean}
+   */
   hasNext: boolean;
-  /** Whether there is a previous page */
+
+  /**
+   * Whether there is a previous page (currentPage > 1).
+   * Controls the "Anterior" button enabled state.
+   * @type {boolean}
+   */
   hasPrev: boolean;
 }
 
 /**
  * Pagination controls with numbered pages and prev/next buttons.
  *
- * Shows up to 7 page numbers with ellipsis for larger page counts.
- * Returns null if there's only one page.
+ * Renders a horizontal pagination bar with previous/next buttons
+ * and clickable page numbers. Uses smart ellipsis for large page
+ * counts to keep the UI manageable.
+ *
+ * @function Pagination
+ * @param {PaginationProps} props - Component props
+ * @param {number} props.currentPage - Current page (1-indexed)
+ * @param {number} props.totalPages - Total page count
+ * @param {Function} props.onPageChange - Page change callback
+ * @param {boolean} props.hasNext - Has next page
+ * @param {boolean} props.hasPrev - Has previous page
+ * @returns {JSX.Element | null} Pagination bar or null if single page
  *
  * @example
- * ```tsx
+ * // Basic usage
+ * <Pagination
+ *   currentPage={5}
+ *   totalPages={20}
+ *   hasNext={true}
+ *   hasPrev={true}
+ *   onPageChange={(page) => setCurrentPage(page)}
+ * />
+ *
+ * @example
+ * // With derived hasNext/hasPrev
  * <Pagination
  *   currentPage={currentPage}
  *   totalPages={totalPages}
  *   hasNext={currentPage < totalPages}
  *   hasPrev={currentPage > 1}
- *   onPageChange={setCurrentPage}
+ *   onPageChange={handlePageChange}
  * />
- * ```
  */
 export function Pagination({
   currentPage,

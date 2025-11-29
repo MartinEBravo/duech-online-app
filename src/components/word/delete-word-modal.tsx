@@ -1,10 +1,30 @@
 /**
  * Delete word confirmation modal.
  *
- * Wraps DeleteConfirmationModal with word-specific logic
- * including API call and redirect after deletion.
+ * This component provides a safe deletion workflow for words, requiring
+ * users to type the word's lemma to confirm deletion. It wraps the
+ * generic DeleteConfirmationModal with word-specific logic.
+ *
+ * ## Safety Features
+ * - Requires typing the exact word lemma to confirm
+ * - Displays clear warning about irreversible action
+ * - Lists all data that will be deleted
+ *
+ * ## Flow
+ * 1. Modal displays with warning and confirmation input
+ * 2. User types the word lemma to enable delete button
+ * 3. On confirm: DELETE API call is made
+ * 4. On success: redirects to search page
+ * 5. On error: throws error (handled by parent modal)
+ *
+ * ## Permissions
+ * This modal should only be shown to admin/superadmin users.
+ * The parent component is responsible for permission checks.
  *
  * @module components/word/delete-word-modal
+ * @see {@link DeleteWordModal} - The main exported component
+ * @see {@link DeleteWordModalProps} - Props interface
+ * @see {@link DeleteConfirmationModal} - Base modal component
  */
 
 'use client';
@@ -14,29 +34,59 @@ import { DeleteConfirmationModal } from '@/components/common/delete-confirmation
 
 /**
  * Props for the DeleteWordModal component.
+ *
+ * @interface DeleteWordModalProps
  */
 export interface DeleteWordModalProps {
-  /** Word lemma to delete */
+  /**
+   * The word's lemma to delete.
+   * Also used as the confirmation text the user must type.
+   * @type {string}
+   */
   lemma: string;
-  /** Callback to close the modal */
+
+  /**
+   * Callback to close the modal.
+   * Called on cancel or after successful deletion redirect.
+   * @returns {void}
+   */
   onClose: () => void;
 }
 
 /**
- * Modal for confirming word deletion.
+ * Modal for confirming word deletion with type-to-confirm.
  *
- * Requires user to type the word lemma to confirm. On success,
- * redirects to the search page.
+ * Displays a warning about the irreversible nature of deletion
+ * and requires the user to type the word's lemma to confirm.
+ * On successful deletion, redirects to the search page.
+ *
+ * @function DeleteWordModal
+ * @param {DeleteWordModalProps} props - Component props
+ * @param {string} props.lemma - Word lemma to delete
+ * @param {Function} props.onClose - Close modal callback
+ * @returns {JSX.Element} Delete confirmation modal
  *
  * @example
- * ```tsx
- * {showDelete && (
+ * // Conditional rendering in word page
+ * {showDeleteModal && (
  *   <DeleteWordModal
  *     lemma={word.lemma}
+ *     onClose={() => setShowDeleteModal(false)}
+ *   />
+ * )}
+ *
+ * @example
+ * // With state management
+ * const [showDelete, setShowDelete] = useState(false);
+ *
+ * // In render:
+ * <button onClick={() => setShowDelete(true)}>Delete Word</button>
+ * {showDelete && (
+ *   <DeleteWordModal
+ *     lemma="chilenismo"
  *     onClose={() => setShowDelete(false)}
  *   />
  * )}
- * ```
  */
 export function DeleteWordModal({ lemma, onClose }: DeleteWordModalProps) {
   const router = useRouter();

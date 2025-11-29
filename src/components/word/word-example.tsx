@@ -1,10 +1,30 @@
 /**
  * Example display component for word definitions.
  *
- * Renders usage examples with metadata (author, title, source, date, page).
- * Supports editing actions in editor mode.
+ * This component renders usage examples that demonstrate how a word is used
+ * in context. Each example includes the example text (with markdown support)
+ * and bibliographic metadata such as author, year, title, publication, etc.
+ *
+ * ## Display Structure
+ *
+ * ### Public View
+ * - Example text with markdown formatting
+ * - Visible metadata: author, year, title, publication (linked), date
+ *
+ * ### Editor View
+ * - All public fields plus internal metadata section
+ * - Internal fields: format, city, editorial, volume, number, page, DOI, URL
+ * - Edit/Add/Delete action buttons with hover reveal
+ *
+ * ## Styling
+ * - Left border accent (blue-400 in view, blue-600 in editor)
+ * - Gray background for contrast
+ * - Additional padding in editor mode for action buttons
  *
  * @module components/word/word-example
+ * @see {@link ExampleDisplay} - The main exported component
+ * @see {@link ExampleDisplayProps} - Props interface
+ * @see {@link Example} - Example data type from definitions
  */
 
 'use client';
@@ -18,39 +38,107 @@ import { type Example } from '@/lib/definitions';
 
 /**
  * Props for the ExampleDisplay component.
+ *
+ * @interface ExampleDisplayProps
  */
 export interface ExampleDisplayProps {
-  /** Example or array of examples to display */
+  /**
+   * Example or array of examples to display.
+   * Accepts both single example and array for flexibility.
+   * @type {Example | Example[]}
+   */
   example: Example | Example[];
-  /** Definition index for editing callbacks */
+
+  /**
+   * Zero-based index of the parent definition.
+   * Required for editing callbacks to identify which definition
+   * the examples belong to.
+   * @type {number}
+   */
   defIndex?: number;
-  /** Enable edit/add/delete buttons */
+
+  /**
+   * Whether to enable editor mode with action buttons.
+   * When true, shows edit/add/delete buttons on hover.
+   * @type {boolean}
+   * @default false
+   */
   editorMode?: boolean;
-  /** Callback when edit button clicked */
+
+  /**
+   * Callback fired when the edit button is clicked.
+   * Opens the example editor modal for the specified example.
+   * @param {number} exIndex - Zero-based index of the example to edit
+   * @returns {void}
+   */
   onEdit?: (exIndex: number) => void;
-  /** Callback when add button clicked */
+
+  /**
+   * Callback fired when the add button is clicked.
+   * Creates a new empty example and opens the editor.
+   * @returns {void}
+   */
   onAdd?: () => void;
-  /** Callback when delete button clicked */
+
+  /**
+   * Callback fired when the delete button is clicked.
+   * Removes the example at the specified index.
+   * @param {number} exIndex - Zero-based index of the example to delete
+   * @returns {void}
+   */
   onDelete?: (exIndex: number) => void;
 }
 
 /**
  * Displays word usage examples with optional editing.
  *
- * Renders example text with markdown support and shows metadata.
- * In editor mode, provides edit, add, and delete buttons.
+ * Renders example text with markdown support and shows bibliographic
+ * metadata. Each example is displayed in a card with a left border accent.
+ * In editor mode, hovering reveals floating action buttons for editing,
+ * adding, and deleting examples.
+ *
+ * ## Metadata Display
+ *
+ * ### Visible to All Users
+ * - **Author**: Name of the author/source
+ * - **Year**: Publication year
+ * - **Title**: Title of the work (in quotes)
+ * - **Publication**: Source publication (linked to source page)
+ * - **Date**: Specific date if available
+ *
+ * ### Internal (Editor Only)
+ * - Format, City, Editorial, Volume, Number, Page, DOI, URL
+ * - Displayed in a separate section with yellow header
+ *
+ * @function ExampleDisplay
+ * @param {ExampleDisplayProps} props - Component props
+ * @param {Example | Example[]} props.example - Example(s) to display
+ * @param {number} [props.defIndex] - Parent definition index
+ * @param {boolean} [props.editorMode=false] - Enable editing features
+ * @param {Function} [props.onEdit] - Edit button callback
+ * @param {Function} [props.onAdd] - Add button callback
+ * @param {Function} [props.onDelete] - Delete button callback
+ * @returns {JSX.Element} Rendered example card(s)
  *
  * @example
- * ```tsx
+ * // Single example in view mode
  * <ExampleDisplay
- *   example={[{ value: "Example sentence", author: "Author" }]}
+ *   example={{ value: "Ejemplo de uso", author: "García" }}
+ * />
+ *
+ * @example
+ * // Multiple examples with editing
+ * <ExampleDisplay
+ *   example={[
+ *     { value: "First example", author: "Author 1", year: "2020" },
+ *     { value: "Second example", author: "Author 2", year: "2021" }
+ *   ]}
  *   defIndex={0}
  *   editorMode={true}
  *   onEdit={(idx) => openEditor(idx)}
- *   onAdd={addExample}
- *   onDelete={(idx) => deleteExample(idx)}
+ *   onAdd={() => addNewExample()}
+ *   onDelete={(idx) => confirmDelete(idx)}
  * />
- * ```
  */
 export function ExampleDisplay({
   example,

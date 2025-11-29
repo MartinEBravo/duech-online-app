@@ -1,5 +1,51 @@
 /**
- * Database query functions using Drizzle ORM
+ * Database query functions using Drizzle ORM.
+ *
+ * This module provides all database access functions for the dictionary
+ * application. It uses Drizzle ORM for type-safe database queries against
+ * the PostgreSQL backend.
+ *
+ * ## Function Categories
+ *
+ * ### Word Queries
+ * - {@link getWordByLemma} - Retrieve a single word with all its data
+ * - {@link searchWords} - Search words with flexible filtering and pagination
+ * - {@link getRedactedWords} - Get words pending review
+ * - {@link getWordsBySource} - Get words by publication source
+ *
+ * ### User Management
+ * - {@link getUserByUsername} - Find user by username
+ * - {@link getUserByEmail} - Find user by email
+ * - {@link getUserById} - Find user by ID
+ * - {@link getUsers} - Get all users
+ * - {@link createUser} - Create new user
+ * - {@link updateUser} - Update user data
+ * - {@link deleteUser} - Delete user
+ *
+ * ### Authentication
+ * - {@link verifyUserPassword} - Verify password against hash
+ * - {@link hashPassword} - Create bcrypt hash
+ * - {@link updateUserSessionId} - Track user sessions
+ *
+ * ### Password Reset
+ * - {@link createPasswordResetToken} - Generate reset token
+ * - {@link getPasswordResetToken} - Retrieve token with user
+ * - {@link deletePasswordResetToken} - Clean up used tokens
+ *
+ * ### Utilities
+ * - {@link getUniqueSources} - Get bibliography dropdown options
+ *
+ * ## Query Patterns
+ *
+ * Most functions follow these patterns:
+ * - Return null/undefined for not found (single item)
+ * - Return empty array for no results (collections)
+ * - Use Drizzle query builder for complex queries
+ * - Use raw SQL for advanced text search (unaccent, LIKE)
+ *
+ * @module lib/queries
+ * @see {@link db} - Database connection
+ * @see {@link SearchWordsParams} - Search parameters type
  */
 
 import { eq, ilike, or, and, sql, SQL, isNotNull, asc } from 'drizzle-orm';

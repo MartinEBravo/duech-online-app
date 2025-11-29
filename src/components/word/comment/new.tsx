@@ -1,10 +1,29 @@
 /**
  * New comment input component.
  *
- * Shows an "Add comment" button that expands to an input field
- * for entering new editorial comments.
+ * This component provides a collapsible interface for adding new editorial
+ * comments. It starts as a compact button that expands into an input field
+ * when clicked, providing a clean UX that doesn't clutter the page.
+ *
+ * ## Interaction Flow
+ * 1. User sees "Añadir comentario" button
+ * 2. Click expands to input field with instructions
+ * 3. Type comment and press Enter to submit
+ * 4. Input collapses back to button
+ *
+ * ## States
+ * - **Collapsed**: Shows the add button (blue, rounded)
+ * - **Expanded**: Shows instruction text and input field
+ *
+ * ## Behavior
+ * - Empty submissions are ignored
+ * - Blur cancels without submitting
+ * - Calls onAdd asynchronously and waits for completion
  *
  * @module components/word/comment/new
+ * @see {@link NewComment} - The main exported component (default export)
+ * @see {@link NewCommentProps} - Props type
+ * @see {@link EditableInput} - Input component used for text entry
  */
 
 'use client';
@@ -16,24 +35,54 @@ import EditableInput from '@/components/word/editable-input';
 
 /**
  * Props for the NewComment component.
+ *
+ * @typedef NewCommentProps
  */
 export type NewCommentProps = {
-  /** Callback to add a new comment */
+  /**
+   * Callback to add a new comment.
+   * Can be async - the component will wait for completion.
+   * @param {string} text - The comment text (already trimmed)
+   * @returns {Promise<void> | void}
+   */
   onAdd: (text: string) => Promise<void> | void;
-  /** Enable the add button (defaults to true) */
+
+  /**
+   * Whether to show the add button.
+   * When false, component returns null.
+   * @type {boolean}
+   * @default true
+   */
   editorMode?: boolean;
 };
 
 /**
- * Button/input for adding new comments.
+ * Collapsible input for adding new comments.
  *
  * Shows a button that expands to an input field when clicked.
- * Submits the comment and collapses on Enter or blur.
+ * Handles the complete flow of expanding, capturing input,
+ * submitting, and collapsing.
+ *
+ * @function NewComment
+ * @param {NewCommentProps} props - Component props
+ * @param {Function} props.onAdd - Callback with comment text
+ * @param {boolean} [props.editorMode=true] - Show the add button
+ * @returns {JSX.Element | null} Button or input, or null if not in editor mode
  *
  * @example
- * ```tsx
- * <NewComment onAdd={async (text) => await saveComment(text)} editorMode={true} />
- * ```
+ * // Basic async usage
+ * <NewComment
+ *   onAdd={async (text) => {
+ *     await saveCommentToAPI(text);
+ *   }}
+ *   editorMode={true}
+ * />
+ *
+ * @example
+ * // Synchronous handler
+ * <NewComment
+ *   onAdd={(text) => setComments([...comments, { text }])}
+ * />
  */
 export default function NewComment({ onAdd, editorMode = true }: NewCommentProps) {
   const [adding, setAdding] = useState(false);

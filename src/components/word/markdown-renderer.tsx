@@ -1,10 +1,28 @@
 /**
  * Markdown renderer for word content.
  *
- * Renders markdown text with styled emphasis (bold, italic)
- * using Tailwind CSS classes.
+ * This component provides consistent markdown rendering for word definitions
+ * and examples throughout the dictionary application. It uses ReactMarkdown
+ * with custom component mappings to apply the application's styling.
+ *
+ * ## Supported Markdown
+ * - **Bold text**: `**text**` or `__text__`
+ * - *Italic text*: `*text*` or `_text_`
+ * - ***Bold and italic***: `***text***`
+ *
+ * ## Custom Styling
+ * - Bold: Blue color (duech-blue) with font-bold
+ * - Italic: Gray color (gray-800) with italic style
+ * - Paragraphs: Rendered as inline spans (not block elements)
+ *
+ * ## Use Cases
+ * - Word definitions with emphasized terms
+ * - Examples with highlighted usage
+ * - Any text content that needs markdown formatting
  *
  * @module components/word/markdown-renderer
+ * @see {@link MarkdownRenderer} - The main exported component (default export)
+ * @see {@link MarkdownRendererProps} - Props interface
  */
 
 'use client';
@@ -13,24 +31,56 @@ import ReactMarkdown from 'react-markdown';
 
 /**
  * Props for the MarkdownRenderer component.
+ *
+ * @interface MarkdownRendererProps
  */
 export interface MarkdownRendererProps {
-  /** Markdown content to render */
+  /**
+   * The markdown content string to render.
+   * Supports basic markdown syntax: bold, italic, combined.
+   * @type {string}
+   */
   content: string;
-  /** Additional CSS classes */
+
+  /**
+   * Additional CSS classes to apply to formatted elements.
+   * @type {string}
+   */
   className?: string;
 }
 
 /**
- * Renders markdown content with custom styling.
+ * Renders markdown content with custom dictionary styling.
  *
- * Supports bold (**text**), italic (*text*), and combined formatting.
- * Renders paragraphs as inline spans for use in flowing text.
+ * Uses ReactMarkdown with custom component mappings to render
+ * markdown text inline with the application's design system.
+ * Paragraphs are rendered as spans to allow inline usage within
+ * other text elements.
+ *
+ * @function MarkdownRenderer
+ * @param {MarkdownRendererProps} props - Component props
+ * @param {string} props.content - Markdown content to render
+ * @param {string} [props.className] - Additional CSS classes
+ * @returns {JSX.Element} Rendered markdown content
  *
  * @example
- * ```tsx
- * <MarkdownRenderer content="A **bold** and *italic* word" />
- * ```
+ * // Basic usage
+ * <MarkdownRenderer content="A **bold** word" />
+ *
+ * @example
+ * // Italic text
+ * <MarkdownRenderer content="An *italic* phrase" />
+ *
+ * @example
+ * // Combined formatting
+ * <MarkdownRenderer content="Both ***bold and italic***" />
+ *
+ * @example
+ * // With additional classes
+ * <MarkdownRenderer
+ *   content="The word **chilenismo** means..."
+ *   className="text-lg"
+ * />
  */
 export default function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (

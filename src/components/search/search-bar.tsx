@@ -1,10 +1,40 @@
 /**
  * Search bar component with advanced filtering options.
  *
- * Provides full-text search with expandable advanced filters for categories,
- * origins, letters, dictionaries, and meaning markers.
+ * This component provides a comprehensive search interface with full-text search
+ * and expandable advanced filters. It's used for both public and editor modes
+ * with different filter persistence strategies.
+ *
+ * ## Features
+ *
+ * ### Search Input
+ * - Large input field with placeholder
+ * - Debounced input (300ms) to reduce API calls
+ * - Settings toggle to show/hide advanced filters
+ * - Search button to submit query
+ *
+ * ### Advanced Filters
+ * - Letters (a-z, ñ)
+ * - Origins (etymology sources)
+ * - Dictionaries (DUECh, Orígen, etc.)
+ * - Grammar categories (noun, verb, etc.)
+ * - Meaning markers (diatopic, diaphasic, etc.)
+ * - Additional filters (status, assignment in editor mode)
+ *
+ * ### Filter Pills
+ * - Active filters displayed as removable pills
+ * - Color-coded by filter type
+ * - Click to remove individual filter
+ *
+ * ### State Persistence
+ * - Editor mode: persists to cookies via setEditorSearchFilters
+ * - Public mode: persists to cookies via setPublicSearchFilters
+ * - Syncs with URL parameters on navigation
  *
  * @module components/search/search-bar
+ * @see {@link SearchBar} - The main exported component (default export)
+ * @see {@link SearchBarProps} - Props interface
+ * @see {@link InternalFilters} - Internal filter state type
  */
 
 'use client';
@@ -43,45 +73,150 @@ import {
 
 /**
  * Props for the SearchBar component.
+ *
+ * @interface SearchBarProps
  */
 export interface SearchBarProps {
+  /**
+   * Placeholder text for the search input.
+   * @type {string}
+   * @default 'Buscar palabra...'
+   */
   placeholder?: string;
+
+  /**
+   * Additional CSS classes for the form container.
+   * @type {string}
+   */
   className?: string;
+
+  /**
+   * Initial search query value.
+   * @type {string}
+   * @default ''
+   */
   initialValue?: string;
+
+  /**
+   * Initial filter selections.
+   * @type {Partial<SearchFilters>}
+   */
   initialFilters?: Partial<SearchFilters>;
+
+  /**
+   * Custom search path for navigation.
+   * Defaults to '/buscar' or '/editor/buscar' based on mode.
+   * @type {string}
+   */
   searchPath?: string;
+
+  /**
+   * Whether to show advanced filters panel initially.
+   * @type {boolean}
+   * @default false
+   */
   initialAdvancedOpen?: boolean;
+
+  /**
+   * Custom search handler. When provided, prevents default navigation.
+   * @param {Object} state - Current search state
+   * @param {string} state.query - Search query
+   * @param {InternalFilters} state.filters - Active filters
+   * @returns {void | Promise<void>}
+   */
   onSearch?: (state: { query: string; filters: InternalFilters }) => void | Promise<void>;
+
+  /**
+   * Callback fired when search state changes (debounced).
+   * Used for real-time search updates.
+   * @param {Object} state - Current search state
+   * @param {string} state.query - Search query
+   * @param {InternalFilters} state.filters - Active filters
+   * @returns {void}
+   */
   onStateChange?: (state: { query: string; filters: InternalFilters }) => void;
+
+  /**
+   * Callback fired when "Clear filters" button is clicked.
+   * @returns {void}
+   */
   onClearAll?: () => void;
+
+  /**
+   * Configuration for additional filters (e.g., status, assignment).
+   * @type {AdditionalFiltersConfig}
+   */
   additionalFilters?: AdditionalFiltersConfig;
+
+  /**
+   * Whether the search bar is in editor mode.
+   * Affects filter persistence and available options.
+   * @type {boolean}
+   * @default false
+   */
   editorMode?: boolean;
 }
 
 /**
  * Selection state for meaning marker filters.
+ * Maps each marker key to an array of selected values.
+ *
+ * @typedef MarkerSelections
  */
 export type MarkerSelections = Record<MeaningMarkerKey, string[]>;
 
 /**
- * Internal filter state for search bar.
+ * Internal filter state for the search bar.
+ *
+ * Combines base filters (categories, origins, letters, dictionaries)
+ * with all meaning marker selections.
+ *
+ * @typedef InternalFilters
  */
 export type InternalFilters = {
+  /** Selected grammar categories */
   categories: string[];
+  /** Selected origin values */
   origins: string[];
+  /** Selected letters (a-z, ñ) */
   letters: string[];
+  /** Selected dictionary sources */
   dictionaries: string[];
 } & MarkerSelections;
 
-/** @internal */
+/**
+ * Filter type variants for pill styling.
+ * @internal
+ * @typedef FilterVariant
+ */
 type FilterVariant = 'category' | 'origin' | 'letter' | 'marker' | 'dictionary';
 
 /**
- * Configuration for additional filters section.
+ * Configuration for the additional filters section.
+ *
+ * Allows parent components to inject custom filter controls
+ * into the advanced filters panel.
+ *
+ * @interface AdditionalFiltersConfig
  */
 export interface AdditionalFiltersConfig {
+  /**
+   * Whether any additional filters are currently active.
+   * Used to show/hide clear button.
+   * @type {boolean}
+   */
   hasActive: boolean;
+
+  /**
+   * Callback to clear additional filters.
+   * @returns {void}
+   */
   onClear?: () => void;
+
+  /**
+   * Render function for additional filter controls.
+   * @returns {ReactNode} Custom filter UI elements
+   */
   render: () => ReactNode;
 }
 

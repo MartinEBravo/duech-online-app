@@ -1,10 +1,39 @@
 /**
  * Example editor modal component.
  *
- * Modal form for creating or editing word usage examples
- * with fields for text, author, title, source, date, and page.
+ * This component provides a comprehensive form for creating or editing
+ * word usage examples with full bibliographic metadata. It's designed
+ * to capture all necessary information for academic dictionary entries.
+ *
+ * ## Form Structure
+ *
+ * ### Required Fields (Green Section)
+ * - **Example text**: The actual usage example (textarea)
+ * - **Author**: Name(s) of the author(s)
+ * - **Year**: Publication year
+ * - **Publication**: Source publication name
+ * - **Format**: Publication format type
+ *
+ * ### Optional Fields (Yellow Section)
+ * - **Title**: Article or chapter title
+ * - **Date**: Specific date (dd/mm/yyyy)
+ * - **City**: Publication city
+ * - **Editorial**: Publisher name
+ * - **Volume**: Volume number
+ * - **Number**: Issue number
+ * - **Page**: Page reference
+ * - **DOI**: Digital Object Identifier
+ * - **URL**: Web address
+ *
+ * ## Special Features
+ * - Auto-fill from existing sources (Nómina dropdown)
+ * - Color-coded sections for field importance
+ * - Responsive two-column grid layout
  *
  * @module components/word/word-example-editor-modal
+ * @see {@link ExampleEditorModal} - The main exported component
+ * @see {@link ExampleDraft} - Draft state type
+ * @see {@link ExampleEditorModalProps} - Props interface
  */
 
 'use client';
@@ -15,8 +44,17 @@ import { Dropdown } from '@/components/common/dropdown';
 import { fetchUniqueSources } from '@/lib/actions';
 
 /**
+ * Internal helper component for form input fields.
+ *
+ * Renders a labeled text input with consistent styling.
+ *
  * @internal
- * Helper component for form input fields.
+ * @param {Object} props - Component props
+ * @param {string} props.label - Label text displayed above input
+ * @param {string} props.value - Current input value
+ * @param {Function} props.onChange - Change handler
+ * @param {string} [props.placeholder] - Placeholder text
+ * @returns {JSX.Element} Labeled input field
  */
 function FormInput({
   label,
@@ -45,57 +83,186 @@ function FormInput({
 
 /**
  * Draft state for an example being edited.
+ *
+ * Contains all fields for a word usage example, both required
+ * and optional. All fields are strings to simplify form handling.
+ *
+ * @typedef ExampleDraft
  */
 type ExampleDraft = {
-  /** Example text content */
+  /**
+   * The example text content showing word usage.
+   * @type {string}
+   */
   value: string;
-  // Mandatory
+
+  // Required bibliographic fields
+  /**
+   * Name(s) of the author(s).
+   * @type {string}
+   */
   author: string;
+
+  /**
+   * Publication year.
+   * @type {string}
+   */
   year: string;
+
+  /**
+   * Source publication name (journal, book, website).
+   * @type {string}
+   */
   publication: string;
+
+  /**
+   * Publication format type.
+   * @type {string}
+   */
   format: string;
-  // Optional
+
+  // Optional bibliographic fields
+  /**
+   * Article or chapter title.
+   * @type {string}
+   */
   title: string;
+
+  /**
+   * Specific date in dd/mm/yyyy format.
+   * @type {string}
+   */
   date: string;
+
+  /**
+   * Publication city.
+   * @type {string}
+   */
   city: string;
+
+  /**
+   * Publisher/editorial name.
+   * @type {string}
+   */
   editorial: string;
+
+  /**
+   * Volume number.
+   * @type {string}
+   */
   volume: string;
+
+  /**
+   * Issue number.
+   * @type {string}
+   */
   number: string;
+
+  /**
+   * Page reference.
+   * @type {string}
+   */
   page: string;
+
+  /**
+   * Digital Object Identifier.
+   * @type {string}
+   */
   doi: string;
+
+  /**
+   * Web URL.
+   * @type {string}
+   */
   url: string;
 };
 
+/**
+ * Props for the ExampleEditorModal component.
+ *
+ * @interface ExampleEditorModalProps
+ */
 interface ExampleEditorModalProps {
+  /**
+   * Whether the modal is currently visible.
+   * @type {boolean}
+   */
   isOpen: boolean;
-  /** Whether this is a new example (vs editing existing) */
+
+  /**
+   * Whether this is a new example (vs editing existing).
+   * Affects the modal title.
+   * @type {boolean}
+   */
   isNew: boolean;
-  /** Current draft state */
+
+  /**
+   * Current draft state with all form values.
+   * @type {ExampleDraft}
+   */
   draft: ExampleDraft;
-  /** Callback to update draft */
+
+  /**
+   * Callback to update the draft state.
+   * Called on any field change with the complete new draft.
+   * @param {ExampleDraft} draft - Updated draft state
+   * @returns {void}
+   */
   onDraftChange: (draft: ExampleDraft) => void;
-  /** Callback when save button clicked */
+
+  /**
+   * Callback when the save button is clicked.
+   * Parent component handles actual persistence.
+   * @returns {void}
+   */
   onSave: () => void;
-  /** Callback when cancel button clicked */
+
+  /**
+   * Callback when the cancel button is clicked.
+   * Should close the modal without saving.
+   * @returns {void}
+   */
   onCancel: () => void;
 }
 
 /**
  * Modal form for editing word examples.
  *
- * Provides fields for all example metadata and save/cancel buttons.
+ * Provides a comprehensive form with all bibliographic fields needed
+ * for dictionary examples. Includes a dropdown to auto-fill from
+ * existing sources in the database.
+ *
+ * @function ExampleEditorModal
+ * @param {ExampleEditorModalProps} props - Component props
+ * @param {boolean} props.isOpen - Whether modal is visible
+ * @param {boolean} props.isNew - Whether creating new example
+ * @param {ExampleDraft} props.draft - Current form state
+ * @param {Function} props.onDraftChange - Draft update callback
+ * @param {Function} props.onSave - Save button callback
+ * @param {Function} props.onCancel - Cancel button callback
+ * @returns {JSX.Element | null} Modal element or null when closed
  *
  * @example
- * ```tsx
+ * // Creating a new example
  * <ExampleEditorModal
  *   isOpen={showModal}
  *   isNew={true}
- *   draft={exampleDraft}
- *   onDraftChange={setExampleDraft}
+ *   draft={emptyDraft}
+ *   onDraftChange={setDraft}
  *   onSave={handleSave}
  *   onCancel={() => setShowModal(false)}
  * />
- * ```
+ *
+ * @example
+ * // Editing an existing example
+ * <ExampleEditorModal
+ *   isOpen={showModal}
+ *   isNew={false}
+ *   draft={existingExampleDraft}
+ *   onDraftChange={setDraft}
+ *   onSave={handleSave}
+ *   onCancel={handleCancel}
+ * />
  */
 export function ExampleEditorModal({
   isOpen,

@@ -17,20 +17,6 @@ const EDITOR_PATH_PREFIX = '/editor';
 /** Session cookie name */
 const SESSION_COOKIE = 'duech_session';
 
-/**
- * @internal
- * Determines if a path should bypass middleware checks.
- */
-function shouldBypass(pathname: string): boolean {
-  return (
-    pathname.startsWith('/_next/') || // Next.js internals
-    pathname.startsWith('/api/') || // API routes
-    pathname === '/login' || // Login page
-    pathname === '/cambiar-contrasena' || // Password change page (needs token in URL, not session)
-    /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2|ttf|eot)$/i.test(pathname) // Static files
-  );
-}
-
 function isEditorPathAccess(hostname: string | undefined, pathname: string): boolean {
   return pathname === EDITOR_PATH_PREFIX || pathname.startsWith(`${EDITOR_PATH_PREFIX}/`);
 }
