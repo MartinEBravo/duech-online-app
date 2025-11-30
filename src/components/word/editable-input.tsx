@@ -1,13 +1,20 @@
 /**
- * EditableInput
- * A small reusable input component that encapsulates local draft state and common handlers.
+ * Editable input component with draft state management.
+ *
+ * Encapsulates local draft state and handles commit/cancel via
+ * keyboard shortcuts (Enter to save, Escape to cancel).
+ *
+ * @module components/word/editable-input
  */
 
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 
-type EditableInputProps = {
+/**
+ * Props for the EditableInput component.
+ */
+export type EditableInputProps = {
   value: string;
   onChange: (v: string) => void;
   onBlur?: () => void;
@@ -18,6 +25,22 @@ type EditableInputProps = {
   rows?: number;
 };
 
+/**
+ * Input field with local draft state.
+ *
+ * Maintains a local draft that syncs with the value prop.
+ * Commits on blur or Enter, cancels on Escape.
+ *
+ * @example
+ * ```tsx
+ * <EditableInput
+ *   value={text}
+ *   onChange={(v) => setText(v)}
+ *   placeholder="Enter text"
+ *   autoFocus
+ * />
+ * ```
+ */
 export default function EditableInput({
   value,
   onChange,

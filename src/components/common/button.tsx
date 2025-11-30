@@ -1,15 +1,40 @@
+/**
+ * Reusable button component with loading state support.
+ *
+ * Can render as a button or a link depending on props.
+ *
+ * @module components/common/button
+ */
+
 'use client';
 import React from 'react';
 import Link from 'next/link';
 import { SpinnerIcon } from '@/components/icons';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+/**
+ * Props for the Button component.
+ */
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Button content */
   children: React.ReactNode;
+  /** Shows loading spinner and disables button */
   loading?: boolean;
+  /** If provided, renders as a Link instead of button */
   href?: string;
+  /** Disables the button */
   disabled?: boolean;
 }
 
+/**
+ * Button component that supports loading states and link rendering.
+ *
+ * @example
+ * ```tsx
+ * <Button onClick={handleClick}>Click me</Button>
+ * <Button loading>Saving...</Button>
+ * <Button href="/page">Go to page</Button>
+ * ```
+ */
 export function Button({
   children,
   className = '',

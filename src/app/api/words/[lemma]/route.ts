@@ -1,3 +1,11 @@
+/**
+ * Word API endpoint for CRUD operations on dictionary entries.
+ *
+ * Supports fetching, creating, updating, and deleting words by their lemma.
+ *
+ * @module app/api/words/[lemma]
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getWordByLemma } from '@/lib/queries';
 import { isEditorModeFromHeaders } from '@/lib/editor-mode-server';
@@ -12,6 +20,11 @@ import { getSessionUser } from '@/lib/auth';
 import type { Word, Meaning, WordNote, MeaningMarkerValues, Example } from '@/lib/definitions';
 import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
+/**
+ * GET /api/words/[lemma] - Fetch a word by its lemma
+ *
+ * @returns Word data with meanings and notes, or 404 if not found
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ lemma: string }> }
@@ -65,6 +78,7 @@ export async function GET(
   }
 }
 
+/** @internal */
 interface CreateWordPayload {
   lemma?: unknown;
   root?: unknown;
@@ -75,6 +89,7 @@ interface CreateWordPayload {
   createdBy?: unknown;
 }
 
+/** @internal */
 function normalizeMeanings(input: unknown): Meaning[] {
   if (!Array.isArray(input)) {
     return [];
@@ -106,6 +121,7 @@ function normalizeMeanings(input: unknown): Meaning[] {
     });
 }
 
+/** @internal */
 function extractMarkerValues(source: Record<string, unknown>): MeaningMarkerValues {
   return MEANING_MARKER_KEYS.reduce((acc, key) => {
     const rawValue = source[key];
@@ -118,6 +134,7 @@ function extractMarkerValues(source: Record<string, unknown>): MeaningMarkerValu
   }, {} as MeaningMarkerValues);
 }
 
+/** @internal */
 function extractExamples(source: Record<string, unknown>): Example[] {
   const legacyExample = source.example;
   const newExamples = source.examples;
@@ -137,6 +154,7 @@ function extractExamples(source: Record<string, unknown>): Example[] {
   return [];
 }
 
+/** @internal */
 function resolveAssignedTo(rawValue: unknown): number | null {
   if (typeof rawValue === 'number' && Number.isInteger(rawValue)) {
     return rawValue;
@@ -155,8 +173,18 @@ function resolveAssignedTo(rawValue: unknown): number | null {
 }
 
 /**
- * POST /api/words/[lemma]
- * Create a new word with its meanings
+ * POST /api/words/[lemma] - Create a new word
+ *
+ * Request body:
+ * - lemma: Word headword (required)
+ * - root: Root word (optional)
+ * - letter: First letter for indexing (optional, auto-detected)
+ * - values: Array of meaning definitions
+ * - status: Initial status (optional)
+ * - assignedTo: Assigned user ID (optional)
+ * - createdBy: Creator user ID (optional)
+ *
+ * @returns Created word data with wordId, lemma, and letter
  */
 export async function POST(request: NextRequest) {
   const rateLimitResult = await applyRateLimit(request);
@@ -229,6 +257,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/** @internal */
 function createEmptyMarkerValues(): MeaningMarkerValues {
   return MEANING_MARKER_KEYS.reduce((acc, key) => {
     acc[key] = null;
@@ -237,8 +266,15 @@ function createEmptyMarkerValues(): MeaningMarkerValues {
 }
 
 /**
- * PUT /api/words/[lemma]
- * Update a word and its meanings
+ * PUT /api/words/[lemma] - Update a word and its meanings
+ *
+ * Request body:
+ * - word: Updated word data (optional if only adding comment)
+ * - status: New status (optional)
+ * - assignedTo: New assigned user ID (optional)
+ * - comment: Editorial comment to add (optional)
+ *
+ * @returns Success or error with created comment if applicable
  */
 export async function PUT(request: NextRequest, context: { params: Promise<{ lemma: string }> }) {
   try {
@@ -312,8 +348,12 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ lem
 }
 
 /**
- * DELETE /api/words/[lemma]
- * Delete a word and its meanings (admin only)
+ * DELETE /api/words/[lemma] - Delete a word (admin only)
+ *
+ * Requires admin or superadmin role.
+ * Cascade deletes associated meanings and notes.
+ *
+ * @returns Success or error
  */
 export async function DELETE(
   request: NextRequest,

@@ -1,9 +1,32 @@
+/**
+ * Form error display component.
+ *
+ * Shows validation errors with an icon in forms.
+ *
+ * @module components/common/form-error
+ */
+
 import { ExclamationCircleIcon } from '@/components/icons';
 
-interface FormErrorProps {
+/**
+ * Props for the FormError component.
+ */
+export interface FormErrorProps {
+  /** Error message to display */
   message: string;
 }
 
+/**
+ * Displays a form validation error with an exclamation icon.
+ *
+ * Returns null if the message is empty, making it safe to always render.
+ * Uses aria-live for accessibility announcements.
+ *
+ * @example
+ * ```tsx
+ * <FormError message={errors.email} />
+ * ```
+ */
 export function FormError({ message }: FormErrorProps) {
   if (!message) return null;
 

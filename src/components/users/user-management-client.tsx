@@ -1,3 +1,11 @@
+/**
+ * User management client component.
+ *
+ * Main component for user administration with table and modals.
+ *
+ * @module components/users/user-management-client
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -8,35 +16,63 @@ import DeleteUserModal from '@/components/users/delete-user-modal';
 import ResetPasswordModal from '@/components/users/reset-password-modal';
 import { Button } from '@/components/common/button';
 
-interface User {
+/**
+ * User data structure for management.
+ */
+export interface UserManagementUser {
+  /** User ID */
   id: number;
+  /** Username */
   username: string;
+  /** User email */
   email: string | null;
+  /** User role */
   role: string;
+  /** Account creation date */
   createdAt: Date;
 }
 
-interface UserManagementClientProps {
-  initialUsers: User[];
+/**
+ * Props for the UserManagementClient component.
+ */
+export interface UserManagementClientProps {
+  /** Initial list of users */
+  initialUsers: UserManagementUser[];
+  /** Current logged-in user */
   currentUser: SessionUser;
 }
 
+/**
+ * User management page client component.
+ *
+ * Displays user table with actions and manages create/edit/delete modals.
+ *
+ * @example
+ * ```tsx
+ * <UserManagementClient
+ *   initialUsers={users}
+ *   currentUser={session.user}
+ * />
+ * ```
+ */
 export default function UserManagementClient({
   initialUsers,
   currentUser,
 }: UserManagementClientProps) {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<UserManagementUser[]>(initialUsers);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [resettingPasswordUser, setResettingPasswordUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<UserManagementUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserManagementUser | null>(null);
+  const [resettingPasswordUser, setResettingPasswordUser] = useState<UserManagementUser | null>(
+    null
+  );
 
-  const handleUserCreated = (newUser: User) => {
+  const handleUserCreated = (newUser: UserManagementUser) => {
     setUsers([...users, newUser]);
     setIsCreateModalOpen(false);
   };
 
-  const handleUserUpdated = (updatedUser: User) => {
+  const handleUserUpdated = (updatedUser: UserManagementUser) => {
     setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
     setEditingUser(null);
   };

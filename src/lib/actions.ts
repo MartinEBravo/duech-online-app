@@ -1,3 +1,12 @@
+/**
+ * Server actions for user management.
+ *
+ * Provides secure server-side functions for creating, updating, deleting,
+ * and managing users. Requires admin/superadmin role for all operations.
+ *
+ * @module lib/actions
+ */
+
 'use server';
 
 import { getSessionUser, SessionUser } from '@/lib/auth';
@@ -18,7 +27,8 @@ import { sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
 
 /**
- * Generate a secure random password
+ * Generates a secure random password.
+ * @internal
  */
 function generateSecurePassword(length = 12): string {
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
@@ -34,14 +44,17 @@ function generateSecurePassword(length = 12): string {
 }
 
 /**
- * Generate a secure random token for password reset
+ * Generates a secure random token for password reset.
+ * @internal
  */
 function generatePasswordResetToken(): string {
   return randomBytes(32).toString('hex');
 }
 
 /**
- * Check if current user has admin or superadmin role
+ * Verifies the current user has admin or superadmin role.
+ * @throws Error if not authenticated or not an admin
+ * @internal
  */
 async function requireAdminRole(): Promise<SessionUser> {
   const user = await getSessionUser();
@@ -57,7 +70,10 @@ async function requireAdminRole(): Promise<SessionUser> {
   return user;
 }
 
-interface CreateUserResult {
+/**
+ * Result of the createUserAction.
+ */
+export interface CreateUserResult {
   success: boolean;
   user?: {
     id: number;
@@ -70,7 +86,15 @@ interface CreateUserResult {
 }
 
 /**
- * Create a new user (admin/superadmin only)
+ * Creates a new user account.
+ *
+ * Generates a random password, creates the user, and sends a welcome email
+ * with a password reset link.
+ *
+ * @param username - The username for the new user
+ * @param email - The email address for the new user
+ * @param role - The role to assign (lexicographer, admin, superadmin)
+ * @returns Result with user data or error message
  */
 export async function createUserAction(
   username: string,
@@ -164,7 +188,10 @@ export async function createUserAction(
   }
 }
 
-interface UpdateUserResult {
+/**
+ * Result of the updateUserAction.
+ */
+export interface UpdateUserResult {
   success: boolean;
   user?: {
     id: number;
@@ -176,7 +203,11 @@ interface UpdateUserResult {
 }
 
 /**
- * Update an existing user (admin/superadmin only)
+ * Updates an existing user's information.
+ *
+ * @param userId - The ID of the user to update
+ * @param data - Fields to update (username, email, role)
+ * @returns Result with updated user data or error message
  */
 export async function updateUserAction(
   userId: number,
@@ -254,13 +285,20 @@ export async function updateUserAction(
   }
 }
 
-interface DeleteUserResult {
+/**
+ * Result of the deleteUserAction.
+ */
+export interface DeleteUserResult {
   success: boolean;
   error?: string;
 }
 
 /**
- * Delete a user (admin/superadmin only)
+ * Deletes a user account.
+ * Users cannot delete their own account.
+ *
+ * @param userId - The ID of the user to delete
+ * @returns Result indicating success or error
  */
 export async function deleteUserAction(userId: number): Promise<DeleteUserResult> {
   try {
@@ -289,13 +327,20 @@ export async function deleteUserAction(userId: number): Promise<DeleteUserResult
   }
 }
 
-interface ResetPasswordResult {
+/**
+ * Result of the resetUserPasswordAction.
+ */
+export interface ResetPasswordResult {
   success: boolean;
   error?: string;
 }
 
 /**
- * Reset a user's password by sending them a password reset email (admin/superadmin only)
+ * Sends a password reset email to a user.
+ * Validates role hierarchy before allowing the reset.
+ *
+ * @param userId - The ID of the user to send the reset email to
+ * @returns Result indicating success or error
  */
 export async function resetUserPasswordAction(userId: number): Promise<ResetPasswordResult> {
   try {

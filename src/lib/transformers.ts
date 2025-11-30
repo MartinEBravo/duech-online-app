@@ -1,5 +1,10 @@
 /**
- * Transformation functions to convert between DB format and frontend format
+ * Transformation functions to convert between database and frontend formats.
+ *
+ * This module handles the conversion of data between the raw database representation
+ * (DBWord, raw Meaning) and the frontend-friendly formats (Word, normalized Meaning).
+ *
+ * @module lib/transformers
  */
 
 import {
@@ -12,7 +17,13 @@ import {
 } from '@/lib/definitions';
 
 /**
- * Transform a DBWord (from database) to Word (frontend format)
+ * Transforms a database word record to the frontend Word format.
+ *
+ * - Normalizes meanings to ensure all marker fields are present
+ * - Uses lemma as fallback for root if not specified
+ *
+ * @param dbWord - The raw database word record
+ * @returns Frontend-compatible Word object
  */
 export function dbWordToWord(dbWord: DBWord): Word {
   const normalizedMeanings: Meaning[] =
@@ -25,6 +36,14 @@ export function dbWordToWord(dbWord: DBWord): Word {
   };
 }
 
+/**
+ * Normalizes a meaning by ensuring all optional fields have consistent values.
+ * Converts undefined values to null for consistent handling.
+ *
+ * @param meaning - The raw meaning record
+ * @returns Normalized meaning with all fields defined
+ * @internal
+ */
 function normalizeMeaning(meaning: Meaning): Meaning {
   const markerValues = MEANING_MARKER_KEYS.reduce(
     (acc, key) => {
@@ -50,7 +69,11 @@ function normalizeMeaning(meaning: Meaning): Meaning {
 }
 
 /**
- * Transform DBWord with its letter to SearchResult-compatible format
+ * Transforms a database word to a SearchResult object.
+ *
+ * @param dbWord - The raw database word record
+ * @param matchType - How the word matched the search query
+ * @returns SearchResult object for use in search results list
  */
 export function dbWordToSearchResult(
   dbWord: DBWord,

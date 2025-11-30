@@ -1,5 +1,13 @@
 /**
- * Custom hook to manage search state with URL and cookie synchronization
+ * Custom hook to manage search state with URL and cookie synchronization.
+ *
+ * This hook handles the complex state management for the search feature,
+ * including:
+ * - Initial state from URL params (public) or cookies (editor)
+ * - State updates with cookie persistence
+ * - Synchronization between URL and internal state
+ *
+ * @module hooks/useSearchState
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -16,13 +24,24 @@ import {
 import { UrlSearchParams } from '@/hooks/useUrlSearchParams';
 import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
+/**
+ * Current search state including query, filters, and editor-specific fields.
+ */
 export interface SearchState {
+  /** The search query string */
   query: string;
+  /** Applied search filters */
   filters: LocalSearchFilters;
+  /** Selected status filter (editor mode only) */
   status: string;
+  /** Selected assigned user IDs (editor mode only) */
   assignedTo: string[];
 }
 
+/**
+ * Creates an empty default search state.
+ * @internal
+ */
 const createDefaultSearchState = (): SearchState => ({
   query: '',
   filters: createEmptyLocalFilters(),
@@ -30,11 +49,20 @@ const createDefaultSearchState = (): SearchState => ({
   assignedTo: [],
 });
 
-interface UseSearchStateOptions {
+/**
+ * Options for the useSearchState hook.
+ */
+export interface UseSearchStateOptions {
+  /** Whether in editor mode (uses cookies) or public mode (uses URL) */
   editorMode: boolean;
+  /** Parsed URL search parameters */
   urlParams: UrlSearchParams;
 }
 
+/**
+ * Creates search state from saved editor cookies.
+ * @internal
+ */
 const createEditorSearchStateFromCookies = (): SearchState => {
   const savedFilters = getEditorSearchFilters();
 
@@ -52,6 +80,10 @@ const createEditorSearchStateFromCookies = (): SearchState => {
   };
 };
 
+/**
+ * Creates search state from saved public cookies.
+ * @internal
+ */
 const createPublicSearchStateFromCookies = (): SearchState => {
   const savedFilters = getPublicSearchFilters();
 
@@ -69,6 +101,10 @@ const createPublicSearchStateFromCookies = (): SearchState => {
   };
 };
 
+/**
+ * Checks if URL params contain any search criteria.
+ * @internal
+ */
 const hasUrlSearchCriteria = (params: UrlSearchParams): boolean =>
   Boolean(params.trimmedQuery) ||
   params.categories.length > 0 ||
@@ -78,6 +114,10 @@ const hasUrlSearchCriteria = (params: UrlSearchParams): boolean =>
   params.assignedTo.length > 0 ||
   MEANING_MARKER_KEYS.some((key) => params[key].length > 0);
 
+/**
+ * Checks if search state contains any search criteria.
+ * @internal
+ */
 const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean): boolean =>
   state.query.length > 0 ||
   state.filters.categories.length > 0 ||
@@ -87,7 +127,20 @@ const hasSearchStateCriteria = (state: SearchState, includeEditorFields: boolean
   (includeEditorFields && (state.status.length > 0 || state.assignedTo.length > 0));
 
 /**
- * Manages search state with synchronization from URL params (public) or cookies (editor)
+ * Manages search state with synchronization from URL params (public) or cookies (editor).
+ *
+ * @param options - Hook options
+ * @param options.editorMode - Whether in editor mode
+ * @param options.urlParams - Parsed URL search parameters
+ * @returns Object containing state, setters, and utility functions
+ *
+ * @example
+ * ```tsx
+ * const { searchState, updateState, saveFilters, clearAll } = useSearchState({
+ *   editorMode: false,
+ *   urlParams: parsedParams,
+ * });
+ * ```
  */
 export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions) {
   const urlHasCriteria = hasUrlSearchCriteria(urlParams);
@@ -225,6 +278,10 @@ export function useSearchState({ editorMode, urlParams }: UseSearchStateOptions)
   };
 }
 
+/**
+ * Builds a marker snapshot from filters for cookie storage.
+ * @internal
+ */
 function buildMarkerSnapshot(filters: LocalSearchFilters): MarkerSelectionState {
   const snapshot = {} as MarkerSelectionState;
   for (const key of MEANING_MARKER_KEYS) {

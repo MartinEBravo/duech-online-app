@@ -1,14 +1,42 @@
+/**
+ * Modal dialog component with backdrop.
+ *
+ * Provides a centered modal overlay with click-outside-to-close functionality.
+ *
+ * @module components/common/modal
+ */
+
 'use client';
 
 import React from 'react';
 
-interface ModalProps {
+/**
+ * Props for the Modal component.
+ */
+export interface ModalProps {
+  /** Whether the modal is visible */
   isOpen: boolean;
+  /** Callback when modal should close (backdrop click) */
   onClose?: () => void;
+  /** Modal content */
   children: React.ReactNode;
+  /** Additional CSS classes for the modal container */
   className?: string;
 }
 
+/**
+ * Modal dialog with backdrop overlay.
+ *
+ * Renders children in a centered container with a semi-transparent backdrop.
+ * Clicking the backdrop triggers the onClose callback.
+ *
+ * @example
+ * ```tsx
+ * <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+ *   <div className="p-6">Modal content here</div>
+ * </Modal>
+ * ```
+ */
 export function Modal({ isOpen, onClose, children, className = '' }: ModalProps) {
   if (!isOpen) return null;
 

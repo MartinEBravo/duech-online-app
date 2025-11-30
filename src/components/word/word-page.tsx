@@ -1,3 +1,47 @@
+/**
+ * Word display and editing page component.
+ *
+ * This is the main component for rendering a complete dictionary word entry.
+ * It handles both the public-facing read-only view and the full editor interface
+ * with inline editing, auto-save, and comment management.
+ *
+ * ## Key Features
+ *
+ * ### Public View Mode
+ * - Displays word lemma, root, and all definitions
+ * - Shows examples with metadata (author, year, source)
+ * - Dictionary source color coding
+ * - Link to contact email for feedback
+ *
+ * ### Editor Mode
+ * - Inline editing for all text fields (lemma, root, meanings, etc.)
+ * - Dropdown selectors for letter, status, and assignment
+ * - Auto-save with 2-second debounce after changes
+ * - Manual save button with status indicator
+ * - Modal selectors for grammar categories and markers
+ * - Example editor modal for detailed example editing
+ * - Comment section for editorial notes
+ * - Delete word functionality for admins
+ *
+ * ## State Management
+ * - Local state for word data with optimistic updates
+ * - Debounced auto-save to prevent excessive API calls
+ * - Save status indicator (idle, saving, saved, error)
+ * - Dirty tracking to show unsaved changes
+ *
+ * ## Authorization
+ * - Superadmin: Full access to all features
+ * - Admin: Can edit, assign, change status (except preredacted)
+ * - Creator: Can edit their own words
+ * - Assigned user: Can edit words assigned to them
+ *
+ * @module components/word/word-page
+ * @see {@link WordDisplay} - The main exported component
+ * @see {@link WordDisplayProps} - Props interface
+ * @see {@link DefinitionSection} - Individual definition rendering
+ * @see {@link WordHeader} - Header with controls
+ */
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -24,29 +68,196 @@ import WordCommentSection from '@/components/word/comment/section';
 import type { WordComment } from '@/components/word/comment/globe';
 import { DeleteWordModal } from '@/components/word/delete-word-modal';
 
-interface WordDisplayProps {
+/**
+ * Props for the WordDisplay component.
+ *
+ * @interface WordDisplayProps
+ */
+export interface WordDisplayProps {
+  /**
+   * The initial word data loaded from the server.
+   * Contains lemma, root, and array of meanings/definitions.
+   * @type {Word}
+   */
   initialWord: Word;
+
+  /**
+   * The letter this word is filed under (a-z).
+   * Used for alphabetical organization in the dictionary.
+   * @type {string}
+   */
   initialLetter: string;
+
+  /**
+   * Initial status of the word (draft, preredacted, included, imported, redacted).
+   * Controls editing permissions and visibility.
+   * @type {string}
+   * @default 'draft'
+   */
   initialStatus?: string;
+
+  /**
+   * User ID of the person assigned to edit this word.
+   * @type {number}
+   */
   initialAssignedTo?: number;
+
+  /**
+   * Database ID of the word record.
+   * Used for API calls and comment association.
+   * @type {number}
+   */
   wordId: number;
+
+  /**
+   * Initial array of comments associated with this word.
+   * Comments are only visible in editor mode.
+   * @type {WordComment[]}
+   */
   initialComments: WordComment[];
+
+  /**
+   * Whether the component is rendered in editor mode.
+   * Controls visibility of editing controls and features.
+   * @type {boolean}
+   */
   editorMode: boolean;
+
+  /**
+   * Initial list of users for the assignment dropdown.
+   * Filtered by role to show only valid assignees.
+   * @type {Array<{ id: number; username: string; role: string }>}
+   */
   initialUsers: Array<{ id: number; username: string; role: string }>;
+
+  /**
+   * Role of the current user (lexicographer, admin, superadmin).
+   * Used for permission checks on actions.
+   * @type {string}
+   */
   userRole?: string;
+
+  /**
+   * User ID of the person who created this word.
+   * Creators have edit permissions on their own words.
+   * @type {number}
+   */
   craetedBy?: number;
+
+  /**
+   * Current logged-in user's ID, or null if not authenticated.
+   * @type {number | null}
+   */
   currentUserId: number | null;
+
+  /**
+   * Current logged-in user's role, or null if not authenticated.
+   * @type {string | null}
+   */
   currentUserRole: string | null;
 }
 
+/**
+ * Possible states for the auto-save status indicator.
+ * @internal
+ * @typedef {'idle' | 'saving' | 'saved' | 'error'} SaveStatus
+ */
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+/**
+ * Tracks the currently active example being edited.
+ * @internal
+ * @typedef {Object} ActiveExample
+ * @property {number} defIndex - Definition index containing the example
+ * @property {number} exIndex - Example index within the definition
+ * @property {boolean} [isNew] - Whether this is a newly created example
+ */
 type ActiveExample = { defIndex: number; exIndex: number; isNew?: boolean };
 
+/**
+ * Dropdown options for the letter selector (a-z including ñ).
+ * @internal
+ * @constant
+ * @type {Array<{value: string, label: string}>}
+ */
 const LETTER_OPTIONS = 'abcdefghijklmnñopqrstuvwxyz'.split('').map((letter) => ({
   value: letter,
   label: letter.toUpperCase(),
 }));
 
+/**
+ * Main word display component with editing capabilities.
+ *
+ * This is the top-level component for word pages, orchestrating all child
+ * components and managing complex state for the editing workflow. It handles:
+ *
+ * - Word data state and local mutations
+ * - Debounced auto-save with status tracking
+ * - Example editing modal workflow
+ * - Category and marker selection modals
+ * - Comment section management
+ * - Permission checks for various actions
+ *
+ * ## Component Hierarchy
+ * ```
+ * WordDisplay
+ * ├── SaveStatusIndicator (internal)
+ * ├── WordHeader
+ * ├── DefinitionSection[] (for each meaning)
+ * │   └── ExampleDisplay[]
+ * ├── WordCommentSection (editor only)
+ * ├── MultiSelector (modal, categories)
+ * ├── MultiSelector (modal, markers)
+ * ├── ExampleEditorModal
+ * └── DeleteWordModal
+ * ```
+ *
+ * @function WordDisplay
+ * @param {WordDisplayProps} props - Component props
+ * @param {Word} props.initialWord - Initial word data from server
+ * @param {string} props.initialLetter - Letter this word is filed under
+ * @param {string} [props.initialStatus='draft'] - Initial word status
+ * @param {number} [props.initialAssignedTo] - Assigned user ID
+ * @param {number} props.wordId - Database word ID
+ * @param {WordComment[]} props.initialComments - Initial comments array
+ * @param {boolean} props.editorMode - Whether in editor mode
+ * @param {Array} props.initialUsers - Users for assignment dropdown
+ * @param {string} [props.userRole] - Current user's role
+ * @param {number} [props.craetedBy] - Creator's user ID
+ * @param {number | null} props.currentUserId - Current user's ID
+ * @param {string | null} props.currentUserRole - Current user's role
+ * @returns {JSX.Element} The complete word page component
+ *
+ * @example
+ * // Public view mode
+ * <WordDisplay
+ *   initialWord={word}
+ *   initialLetter="c"
+ *   wordId={123}
+ *   initialComments={[]}
+ *   editorMode={false}
+ *   initialUsers={[]}
+ *   currentUserId={null}
+ *   currentUserRole={null}
+ * />
+ *
+ * @example
+ * // Editor mode with full permissions
+ * <WordDisplay
+ *   initialWord={word}
+ *   initialLetter="c"
+ *   initialStatus="preredacted"
+ *   initialAssignedTo={5}
+ *   wordId={123}
+ *   initialComments={comments}
+ *   editorMode={true}
+ *   initialUsers={users}
+ *   userRole="admin"
+ *   craetedBy={3}
+ *   currentUserId={1}
+ *   currentUserRole="admin"
+ * />
+ */
 export function WordDisplay({
   initialWord,
   initialLetter,

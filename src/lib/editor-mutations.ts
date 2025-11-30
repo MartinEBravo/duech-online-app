@@ -1,3 +1,12 @@
+/**
+ * Server-side mutation functions for dictionary editing.
+ *
+ * Provides CRUD operations for words, meanings, and notes.
+ * These functions are server-only and directly modify the database.
+ *
+ * @module lib/editor-mutations
+ */
+
 import 'server-only';
 import { db } from '@/lib/db';
 import { words, meanings, notes, examples } from '@/lib/schema';
@@ -6,7 +15,8 @@ import type { Word, Example, MeaningMarkerKey } from '@/lib/definitions';
 import { MEANING_MARKER_KEYS } from '@/lib/definitions';
 
 /**
- * Clean example data by removing undefined fields
+ * Cleans example data by removing undefined fields.
+ * @internal
  */
 function cleanExample(ex: Example) {
   return {
@@ -28,7 +38,8 @@ function cleanExample(ex: Example) {
 }
 
 /**
- * Normalize examples to array and clean them
+ * Normalizes examples to an array and cleans each one.
+ * @internal
  */
 function normalizeAndCleanExamples(examples: Example[] | null | undefined) {
   if (!examples || examples.length === 0) {
@@ -38,7 +49,8 @@ function normalizeAndCleanExamples(examples: Example[] | null | undefined) {
 }
 
 /**
- * Insert a meaning into the database
+ * Inserts a meaning into the database.
+ * @internal
  */
 async function insertMeaning(wordId: number, def: Word['values'][number]) {
   const cleanedExamples = normalizeAndCleanExamples(def.examples);
@@ -77,7 +89,13 @@ async function insertMeaning(wordId: number, def: Word['values'][number]) {
 }
 
 /**
- * Update a word and all its meanings
+ * Updates a word and replaces all its meanings.
+ *
+ * @param prevLemma - The current lemma to find the word
+ * @param updatedWord - The new word data
+ * @param options - Optional status and assignedTo updates
+ * @returns Success indicator
+ * @throws Error if word not found
  */
 export async function updateWordByLemma(
   prevLemma: string,
@@ -122,15 +140,27 @@ export async function updateWordByLemma(
 }
 
 /**
- * Create a new word with its meanings
+ * Options for creating a new word.
  */
-interface CreateWordOptions {
+export interface CreateWordOptions {
+  /** User ID who created the word */
   createdBy?: number | null;
+  /** User ID assigned to work on the word */
   assignedTo?: number | null;
+  /** First letter for indexing (auto-detected if not provided) */
   letter?: string | null;
+  /** Initial status (default: 'included') */
   status?: string;
 }
 
+/**
+ * Creates a new word with its meanings.
+ *
+ * @param newWord - The word data to create
+ * @param options - Creation options
+ * @returns Object with success, wordId, lemma, and letter
+ * @throws Error if lemma already exists or is empty
+ */
 export async function createWord(newWord: Word, options: CreateWordOptions = {}) {
   // Normalize core fields
   const normalizedLemma = newWord.lemma.trim();
@@ -176,7 +206,12 @@ export async function createWord(newWord: Word, options: CreateWordOptions = {})
 }
 
 /**
- * Delete a word by lemma (cascade delete will remove meanings)
+ * Deletes a word by its lemma.
+ * Cascade delete removes associated meanings and notes.
+ *
+ * @param lemma - The lemma of the word to delete
+ * @returns Success indicator
+ * @throws Error if word not found
  */
 export async function deleteWordByLemma(lemma: string) {
   const existingWord = await db.query.words.findFirst({
@@ -192,7 +227,13 @@ export async function deleteWordByLemma(lemma: string) {
 }
 
 /**
- * Add a note (comment) to a word identified by lemma
+ * Adds an editorial note/comment to a word.
+ *
+ * @param lemma - The lemma of the word to add the note to
+ * @param noteValue - The note text
+ * @param userId - The ID of the user adding the note
+ * @returns The created note with user info
+ * @throws Error if word not found
  */
 export async function addNoteToWord(lemma: string, noteValue: string, userId: number | null) {
   const existingWord = await db.query.words.findFirst({

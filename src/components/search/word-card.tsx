@@ -1,3 +1,34 @@
+/**
+ * Word card component for search results.
+ *
+ * This component displays a word entry as a card in search results.
+ * It adapts its layout and features based on whether it's in public
+ * or editor mode, showing different information and actions.
+ *
+ * ## Public Mode
+ * - Simple card design with lemma and arrow icon
+ * - Entire card is clickable, links to word page
+ * - Dictionary color-coded background (amber, white, etc.)
+ * - Hover effects for visual feedback
+ *
+ * ## Editor Mode
+ * - Expanded card with additional metadata
+ * - Shows: lemma, letter badge, dictionary badge, root word
+ * - Displays definition count and status badge
+ * - Action buttons: Edit/Comment (based on permissions), View (if published)
+ *
+ * ## Permission Logic
+ * - Superadmin: always can edit
+ * - Admin: always can edit
+ * - Creator: can edit if they created the word
+ * - Assigned: can edit if assigned to them
+ * - Others: can only comment
+ *
+ * @module components/search/word-card
+ * @see {@link WordCard} - The main exported component
+ * @see {@link WordCardProps} - Props interface
+ */
+
 'use client';
 
 import Link from 'next/link';
@@ -6,26 +37,140 @@ import { ArrowRightCircleIcon, EyeIcon, PencilIcon } from '@/components/icons';
 import { STATUS_OPTIONS, DICTIONARY_COLORS } from '@/lib/definitions';
 import { Button } from '@/components/common/button';
 
-interface WordCardProps {
+/**
+ * Props for the WordCard component.
+ *
+ * @interface WordCardProps
+ */
+export interface WordCardProps {
+  /**
+   * The word's lemma (headword).
+   * @type {string}
+   */
   lemma: string;
+
+  /**
+   * The letter this word is filed under (a-z, ñ).
+   * @type {string}
+   */
   letter: string;
-  /** Editor mode: shows additional metadata like status, definitions count, etc */
+
+  /**
+   * Whether to show editor mode layout with extra metadata.
+   * @type {boolean}
+   * @default false
+   */
   editorMode?: boolean;
-  /** Only in editor mode */
+
+  /**
+   * The word's root form (only shown in editor mode).
+   * @type {string}
+   */
   root?: string;
-  /** Only in editor mode */
+
+  /**
+   * Word status (draft, preredacted, published, etc.).
+   * Only used in editor mode for status badge.
+   * @type {string}
+   */
   status?: string;
-  /** Only in editor mode */
+
+  /**
+   * User ID of the person who created this word.
+   * Used for permission checks.
+   * @type {number | null}
+   */
   createdBy?: number | null;
+
+  /**
+   * Number of definitions/meanings for this word.
+   * @type {number}
+   */
   definitionsCount?: number;
-  /** Optional class name for styling */
+
+  /**
+   * Additional CSS classes for the card container.
+   * @type {string}
+   */
   className?: string;
+
+  /**
+   * User ID of person assigned to edit this word.
+   * @type {number | null}
+   */
   assignedTo?: number | null;
+
+  /**
+   * Current logged-in user's ID for permission checks.
+   * @type {number | null}
+   */
   currentUserId?: number | null;
+
+  /**
+   * Current logged-in user's role for permission checks.
+   * @type {string | null}
+   */
   currentUserRole?: string | null;
+
+  /**
+   * Dictionary source for color-coding the card.
+   * @type {string | null}
+   */
   dictionary?: string | null;
 }
 
+/**
+ * Card displaying a word in search results.
+ *
+ * Renders different layouts for public and editor modes.
+ * In editor mode, shows additional metadata and action buttons
+ * based on the user's permissions.
+ *
+ * @function WordCard
+ * @param {WordCardProps} props - Component props
+ * @param {string} props.lemma - The word's headword
+ * @param {string} props.letter - Filing letter
+ * @param {boolean} [props.editorMode=false] - Enable editor layout
+ * @param {string} [props.root] - Root word form
+ * @param {string} [props.status] - Word status
+ * @param {number | null} [props.createdBy] - Creator's user ID
+ * @param {number} [props.definitionsCount] - Number of definitions
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {number | null} [props.assignedTo] - Assigned user ID
+ * @param {number | null} [props.currentUserId] - Current user's ID
+ * @param {string | null} [props.currentUserRole] - Current user's role
+ * @param {string | null} [props.dictionary] - Dictionary source
+ * @returns {JSX.Element} Word card element
+ *
+ * @example
+ * // Public mode - simple clickable card
+ * <WordCard lemma="chilenismo" letter="c" />
+ *
+ * @example
+ * // Editor mode with full permissions
+ * <WordCard
+ *   lemma="chilenismo"
+ *   letter="c"
+ *   editorMode={true}
+ *   status="preredacted"
+ *   definitionsCount={3}
+ *   dictionary="DUECh"
+ *   currentUserId={1}
+ *   currentUserRole="admin"
+ * />
+ *
+ * @example
+ * // Editor mode - read-only (not assigned)
+ * <WordCard
+ *   lemma="chilenismo"
+ *   letter="c"
+ *   editorMode={true}
+ *   status="draft"
+ *   assignedTo={5}
+ *   currentUserId={3}
+ *   currentUserRole="lexicographer"
+ * />
+ */
 export function WordCard({
   lemma,
   letter,

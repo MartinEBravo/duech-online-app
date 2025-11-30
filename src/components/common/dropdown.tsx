@@ -1,14 +1,31 @@
+/**
+ * Dropdown components for single and multi-select inputs.
+ *
+ * Provides SelectDropdown for single selection and MultiSelectDropdown
+ * for multiple selection with search filtering.
+ *
+ * @module components/common/dropdown
+ */
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon } from '@/components/icons';
 
-interface Option {
+/**
+ * Option item for dropdown menus.
+ */
+export interface Option {
+  /** Option value (stored/submitted) */
   value: string;
+  /** Option label (displayed to user) */
   label: string;
 }
 
-// Common dropdown button component
+/**
+ * @internal
+ * Shared button component for dropdown triggers.
+ */
 function DropdownButton({
   onClick,
   isOpen,
@@ -52,6 +69,10 @@ function DropdownButton({
   );
 }
 
+/**
+ * @internal
+ * Hook to close dropdown when clicking outside.
+ */
 function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,6 +90,21 @@ function useDropdownClose(setIsOpen: (open: boolean) => void, reset?: () => void
   return ref;
 }
 
+/**
+ * Single-select dropdown component.
+ *
+ * Displays a list of options and allows selecting one value.
+ *
+ * @example
+ * ```tsx
+ * <Dropdown
+ *   label="Estado"
+ *   options={[{ value: 'draft', label: 'Borrador' }]}
+ *   selectedValue={status}
+ *   onChange={setStatus}
+ * />
+ * ```
+ */
 export function Dropdown({
   label,
   options,
@@ -85,6 +121,7 @@ export function Dropdown({
   value: string | string[];
   onChange: ((value: string) => void) | ((value: string[]) => void);
   placeholder?: string;
+  /** Disables the dropdown */
   disabled?: boolean;
   searchable?: boolean;
   multiple?: boolean;

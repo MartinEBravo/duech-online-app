@@ -1,9 +1,61 @@
+/**
+ * Comment bubble (globe) component.
+ *
+ * This component renders a single editorial comment in a styled bubble/card
+ * format. Each comment displays the user's avatar (with initials), username,
+ * timestamp, and the comment content with markdown support.
+ *
+ * ## Visual Design
+ *
+ * ### User-Based Colors
+ * The component uses a consistent color scheme for each user based on a
+ * hash of their user ID or username. This makes it easy to visually
+ * identify comments from the same person.
+ *
+ * ### Color Palette
+ * - Blue, Emerald, Amber, Purple, Rose, Slate
+ * - Each color has matching avatar, accent, bubble, and card styles
+ *
+ * ### Layout
+ * - Left accent bar with gradient
+ * - Avatar with user initials
+ * - Username and timestamp header
+ * - Comment content with markdown rendering
+ *
+ * @module components/word/comment/globe
+ * @see {@link Globe} - The main exported component (default export)
+ * @see {@link WordComment} - Comment data type
+ * @see {@link MarkdownRenderer} - Used for comment content
+ */
+
 import React from 'react';
 import MarkdownRenderer from '@/components/word/markdown-renderer';
 import type { WordNote } from '@/lib/definitions';
 
+/**
+ * Word comment type alias for WordNote.
+ *
+ * This type represents a single editorial comment on a word.
+ * It's re-exported from the definitions for convenience.
+ *
+ * @typedef WordComment
+ */
 export type WordComment = WordNote;
 
+/**
+ * Color palette for user-based styling.
+ *
+ * Each color scheme includes classes for:
+ * - Avatar background and text
+ * - Accent gradient (from, via, to)
+ * - Bubble border and background
+ * - Label text color
+ * - Card border and background
+ *
+ * @internal
+ * @constant
+ * @type {ReadonlyArray<Object>}
+ */
 const COLOR_PALETTE = [
   {
     avatarBg: 'bg-blue-500/15',
@@ -79,7 +131,17 @@ const COLOR_PALETTE = [
   },
 ] as const;
 
-const hashString = (value: string) => {
+/**
+ * Generates a consistent hash from a string.
+ *
+ * Uses a simple hash algorithm to convert any string into
+ * a number that can be used for color palette selection.
+ *
+ * @internal
+ * @param {string} value - String to hash
+ * @returns {number} Positive hash value
+ */
+const hashString = (value: string): number => {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
     hash = (hash << 5) - hash + value.charCodeAt(i);
@@ -88,17 +150,46 @@ const hashString = (value: string) => {
   return Math.abs(hash);
 };
 
+/**
+ * Gets a color palette based on user identifier.
+ *
+ * Returns a consistent color scheme for each user by hashing
+ * their identifier and selecting from the palette.
+ *
+ * @internal
+ * @param {string} userKey - User ID or username
+ * @returns {Object} Color palette object with CSS classes
+ */
 const getPaletteForUser = (userKey: string) =>
   COLOR_PALETTE[hashString(userKey) % COLOR_PALETTE.length];
 
-const getInitials = (name: string) => {
+/**
+ * Extracts initials from a user's name.
+ *
+ * For single names: returns first letter
+ * For multiple names: returns first and last initials
+ *
+ * @internal
+ * @param {string} name - User's display name
+ * @returns {string} 1-2 character initials (uppercase)
+ */
+const getInitials = (name: string): string => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return 'A';
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? 'A';
   return `${parts[0]?.[0] ?? ''}${parts[parts.length - 1]?.[0] ?? ''}`.toUpperCase();
 };
 
-const formatDateTime = (date: Date) => {
+/**
+ * Formats a Date object to Spanish-style datetime string.
+ *
+ * Output format: "DD-MM-YYYY, HH:MM a.m./p.m."
+ *
+ * @internal
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted datetime string
+ */
+const formatDateTime = (date: Date): string => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
@@ -111,6 +202,46 @@ const formatDateTime = (date: Date) => {
   return `${day}-${month}-${year}, ${hours}:${minutes} ${period}`;
 };
 
+/**
+ * Comment bubble displaying a single editorial comment.
+ *
+ * Renders a styled card with user information and comment content.
+ * The color scheme is automatically selected based on the user's
+ * identity to provide visual consistency.
+ *
+ * ## Visual Elements
+ * - Left accent bar with gradient
+ * - User avatar with initials
+ * - Username and formatted timestamp
+ * - Comment content with markdown rendering
+ *
+ * @function Globe
+ * @param {Object} props - Component props
+ * @param {WordComment} props.comment - Comment data to display
+ * @returns {JSX.Element} Styled comment bubble
+ *
+ * @example
+ * // Basic usage
+ * <Globe
+ *   comment={{
+ *     id: 1,
+ *     note: "This definition needs review",
+ *     user: { username: "María García" },
+ *     createdAt: "2024-01-15T10:30:00Z"
+ *   }}
+ * />
+ *
+ * @example
+ * // With markdown content
+ * <Globe
+ *   comment={{
+ *     id: 2,
+ *     note: "Check the **bold** reference in *cursiva*",
+ *     user: { id: 5, username: "Editor" },
+ *     createdAt: new Date().toISOString()
+ *   }}
+ * />
+ */
 export default function Globe({ comment }: { comment: WordComment }) {
   const createdAt = new Date(comment.createdAt);
   const formattedDate = formatDateTime(createdAt);

@@ -1,5 +1,51 @@
 /**
- * Database query functions using Drizzle ORM
+ * Database query functions using Drizzle ORM.
+ *
+ * This module provides all database access functions for the dictionary
+ * application. It uses Drizzle ORM for type-safe database queries against
+ * the PostgreSQL backend.
+ *
+ * ## Function Categories
+ *
+ * ### Word Queries
+ * - {@link getWordByLemma} - Retrieve a single word with all its data
+ * - {@link searchWords} - Search words with flexible filtering and pagination
+ * - {@link getRedactedWords} - Get words pending review
+ * - {@link getWordsBySource} - Get words by publication source
+ *
+ * ### User Management
+ * - {@link getUserByUsername} - Find user by username
+ * - {@link getUserByEmail} - Find user by email
+ * - {@link getUserById} - Find user by ID
+ * - {@link getUsers} - Get all users
+ * - {@link createUser} - Create new user
+ * - {@link updateUser} - Update user data
+ * - {@link deleteUser} - Delete user
+ *
+ * ### Authentication
+ * - {@link verifyUserPassword} - Verify password against hash
+ * - {@link hashPassword} - Create bcrypt hash
+ * - {@link updateUserSessionId} - Track user sessions
+ *
+ * ### Password Reset
+ * - {@link createPasswordResetToken} - Generate reset token
+ * - {@link getPasswordResetToken} - Retrieve token with user
+ * - {@link deletePasswordResetToken} - Clean up used tokens
+ *
+ * ### Utilities
+ * - {@link getUniqueSources} - Get bibliography dropdown options
+ *
+ * ## Query Patterns
+ *
+ * Most functions follow these patterns:
+ * - Return null/undefined for not found (single item)
+ * - Return empty array for no results (collections)
+ * - Use Drizzle query builder for complex queries
+ * - Use raw SQL for advanced text search (unaccent, LIKE)
+ *
+ * @module lib/queries
+ * @see {@link db} - Database connection
+ * @see {@link SearchWordsParams} - Search parameters type
  */
 
 import { eq, ilike, or, and, sql, SQL, isNotNull, asc } from 'drizzle-orm';
@@ -39,6 +85,23 @@ interface GetWordByLemmaOptions {
   includeDrafts?: boolean;
 }
 
+/**
+ * Retrieves a word by its lemma with all associated meanings and notes.
+ *
+ * @param lemma - The dictionary headword to look up
+ * @param options - Query options
+ * @param options.includeDrafts - If true, includes non-published words
+ * @returns Word data with metadata, or null if not found
+ *
+ * @example
+ * ```typescript
+ * // Public lookup (published only)
+ * const result = await getWordByLemma('chilenismo');
+ *
+ * // Editor lookup (all statuses)
+ * const result = await getWordByLemma('chilenismo', { includeDrafts: true });
+ * ```
+ */
 export async function getWordByLemma(
   lemma: string,
   options: GetWordByLemmaOptions = {}
@@ -100,6 +163,10 @@ export async function getWordByLemma(
   };
 }
 
+/**
+ * Maps marker keys to their corresponding database columns.
+ * @internal
+ */
 const MARKER_COLUMN_MAP = {
   socialValuations: meanings.socialValuations,
   socialStratumMarkers: meanings.socialStratumMarkers,
@@ -110,20 +177,58 @@ const MARKER_COLUMN_MAP = {
   frequencyMarkers: meanings.frequencyMarkers,
 } as const;
 
-type SearchWordsParams = {
+/**
+ * Parameters for the searchWords function.
+ */
+export type SearchWordsParams = {
+  /** Text query to search in lemmas */
   query?: string;
+  /** Filter by grammatical categories */
   categories?: string[];
+  /** Filter by etymology/origins */
   origins?: string[];
+  /** Filter by first letter */
   letters?: string[];
+  /** Filter by source dictionary */
   dictionaries?: string[];
+  /** Filter by editorial status */
   status?: string;
+  /** Filter by assigned user IDs */
   assignedTo?: string[];
+  /** If true, includes all statuses; otherwise only published */
   editorMode?: boolean;
+  /** Maximum results (deprecated, use pageSize) */
   limit?: number;
+  /** Page number (1-indexed) */
   page?: number;
+  /** Results per page */
   pageSize?: number;
 } & MarkerFilterState;
 
+/**
+ * Searches words with flexible filtering and pagination.
+ *
+ * Supports text search (prefix, inline, and contains matching),
+ * multiple filter criteria, and pagination. Results are sorted
+ * by match quality and then alphabetically.
+ *
+ * @param params - Search parameters and filters
+ * @returns Search results with total count
+ *
+ * @example
+ * ```typescript
+ * // Simple text search
+ * const { results, total } = await searchWords({ query: 'chile' });
+ *
+ * // Filtered search
+ * const { results, total } = await searchWords({
+ *   letters: ['a'],
+ *   categories: ['m', 'f'],
+ *   page: 1,
+ *   pageSize: 25
+ * });
+ * ```
+ */
 export async function searchWords(params: SearchWordsParams): Promise<{
   results: SearchResult[];
   total: number;
@@ -351,12 +456,15 @@ export async function searchWords(params: SearchWordsParams): Promise<{
   };
 }
 
-/**
- * USER AUTHENTICATION QUERIES
- */
+// ============================================================================
+// USER AUTHENTICATION QUERIES
+// ============================================================================
 
 /**
- * Find user by username (case-insensitive)
+ * Finds a user by username (case-insensitive).
+ *
+ * @param username - The username to search for
+ * @returns The user record or null if not found
  */
 export async function getUserByUsername(username: string) {
   const result = await db
@@ -369,7 +477,10 @@ export async function getUserByUsername(username: string) {
 }
 
 /**
- * Find user by email (case-insensitive)
+ * Finds a user by email address (case-insensitive).
+ *
+ * @param email - The email address to search for
+ * @returns The user record or null if not found
  */
 export async function getUserByEmail(email: string) {
   const result = await db
@@ -382,7 +493,11 @@ export async function getUserByEmail(email: string) {
 }
 
 /**
- * Verify password against bcrypt hash
+ * Verifies a plain-text password against a bcrypt hash.
+ *
+ * @param dbPasswordHash - The stored bcrypt hash
+ * @param password - The plain-text password to verify
+ * @returns True if the password matches, false otherwise
  */
 export async function verifyUserPassword(
   dbPasswordHash: string,
@@ -392,7 +507,9 @@ export async function verifyUserPassword(
 }
 
 /**
- * Get all users (without sensitive data)
+ * Retrieves all users with selected fields (excludes password hash).
+ *
+ * @returns Array of user records with id, username, email, role, and createdAt
  */
 export async function getUsers() {
   return await db
@@ -407,14 +524,20 @@ export async function getUsers() {
 }
 
 /**
- * Hash a password using bcrypt
+ * Hashes a password using bcrypt with cost factor 10.
+ *
+ * @param password - The plain-text password to hash
+ * @returns The bcrypt hash
  */
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 10);
 }
 
 /**
- * Create a new user
+ * Creates a new user in the database.
+ *
+ * @param data - User data including username, email, passwordHash, and role
+ * @returns The created user record
  */
 export async function createUser(data: {
   username: string;
@@ -442,7 +565,11 @@ export async function createUser(data: {
 }
 
 /**
- * Update an existing user
+ * Updates an existing user's data.
+ *
+ * @param userId - The user's database ID
+ * @param data - Fields to update (username, email, role, passwordHash, currentSessionId)
+ * @returns The updated user record
  */
 export async function updateUser(
   userId: number,
@@ -473,7 +600,11 @@ export async function updateUser(
 }
 
 /**
- * Update user's current session ID
+ * Updates a user's current session ID.
+ * Used to track active sessions and invalidate concurrent logins.
+ *
+ * @param userId - The user's database ID
+ * @param sessionId - The new session ID to set
  */
 export async function updateUserSessionId(userId: number, sessionId: string) {
   await db
@@ -486,7 +617,10 @@ export async function updateUserSessionId(userId: number, sessionId: string) {
 }
 
 /**
- * Delete a user
+ * Deletes a user from the database.
+ *
+ * @param userId - The user's database ID
+ * @returns The deleted user's id and username
  */
 export async function deleteUser(userId: number) {
   const result = await db.delete(users).where(eq(users.id, userId)).returning({
@@ -498,7 +632,10 @@ export async function deleteUser(userId: number) {
 }
 
 /**
- * Get user by ID
+ * Retrieves a user by their database ID.
+ *
+ * @param userId - The user's database ID
+ * @returns User record with selected fields, or null if not found
  */
 export async function getUserById(userId: number) {
   const result = await db
@@ -518,7 +655,11 @@ export async function getUserById(userId: number) {
 }
 
 /**
- * Create a password reset token for a user
+ * Creates a password reset token for a user.
+ *
+ * @param userId - The user's database ID
+ * @param token - The generated reset token
+ * @returns The created token record
  */
 export async function createPasswordResetToken(userId: number, token: string) {
   const result = await db
@@ -538,7 +679,10 @@ export async function createPasswordResetToken(userId: number, token: string) {
 }
 
 /**
- * Get password reset token and associated user
+ * Retrieves a password reset token with its associated user.
+ *
+ * @param token - The reset token string
+ * @returns Token record with user, or undefined if not found
  */
 export async function getPasswordResetToken(token: string) {
   const result = await db.query.passwordResetTokens.findFirst({
@@ -552,14 +696,19 @@ export async function getPasswordResetToken(token: string) {
 }
 
 /**
- * Delete a password reset token
+ * Deletes a password reset token after use.
+ *
+ * @param token - The reset token string to delete
  */
 export async function deletePasswordResetToken(token: string) {
   await db.delete(passwordResetTokens).where(eq(passwordResetTokens.token, token));
 }
 
 /**
- * Get all words with "redacted" status, including their meanings and notes
+ * Retrieves all words with "redacted" status for review.
+ * Includes meanings and notes with user information.
+ *
+ * @returns Array of words with status "redacted", ordered by lemma
  */
 export async function getRedactedWords() {
   return db.query.words.findMany({

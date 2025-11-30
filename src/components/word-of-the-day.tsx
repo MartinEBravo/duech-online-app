@@ -1,3 +1,11 @@
+/**
+ * Word of the day display component.
+ *
+ * Shows a featured word with its first definition on the homepage.
+ *
+ * @module components/word-of-the-day
+ */
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -7,16 +15,37 @@ import { ArrowRightIcon, BookOpenIcon } from '@/components/icons';
 import { Button } from '@/components/common/button';
 import { ChipList } from '@/components/common/chip';
 
+/**
+ * Data structure for word of the day.
+ */
 export interface WordOfTheDayData {
+  /** The featured word */
   word: Word;
+  /** Word's letter classification */
   letter: string;
 }
 
-interface WordOfTheDayProps {
+/**
+ * Props for the WordOfTheDay component.
+ */
+export interface WordOfTheDayProps {
+  /** Word data to display (null if none available) */
   data: WordOfTheDayData | null;
+  /** Whether in editor mode */
   editorMode?: boolean;
 }
 
+/**
+ * Displays the featured word of the day.
+ *
+ * Shows word lemma, grammar category, truncated definition,
+ * and a link to view the full entry.
+ *
+ * @example
+ * ```tsx
+ * <WordOfTheDay data={wordOfTheDay} editorMode={false} />
+ * ```
+ */
 export default function WordOfTheDay({ data, editorMode = false }: WordOfTheDayProps) {
   const pathname = usePathname();
   const editorBasePath = editorMode && pathname.startsWith('/editor') ? '/editor' : '';

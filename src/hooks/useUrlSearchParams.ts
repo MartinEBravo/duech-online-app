@@ -1,5 +1,10 @@
 /**
- * Custom hook to parse and memoize URL search parameters
+ * Custom hook to parse and memoize URL search parameters.
+ *
+ * Extracts all search-related parameters from the URL and provides
+ * them in a structured, memoized format for use in search components.
+ *
+ * @module hooks/useUrlSearchParams
  */
 
 import { useMemo } from 'react';
@@ -7,20 +12,42 @@ import { ReadonlyURLSearchParams } from 'next/navigation';
 import { parseListParam } from '@/lib/search-utils';
 import { MEANING_MARKER_KEYS, MeaningMarkerKey } from '@/lib/definitions';
 
+/**
+ * Parsed URL search parameters structure.
+ */
 export type UrlSearchParams = {
+  /** Raw query string from URL */
   query: string;
+  /** Trimmed query string */
   trimmedQuery: string;
+  /** Category filters from URL */
   categories: string[];
+  /** Origin filters from URL */
   origins: string[];
+  /** Letter filters from URL */
   letters: string[];
+  /** Dictionary filters from URL */
   dictionaries: string[];
+  /** Status filter from URL */
   status: string;
+  /** Assigned user filters from URL */
   assignedTo: string[];
+  /** Whether any search criteria is present in URL */
   hasUrlCriteria: boolean;
 } & Record<MeaningMarkerKey, string[]>;
 
 /**
- * Parse all search parameters from URL and return memoized values
+ * Parses all search parameters from URL and returns memoized values.
+ *
+ * @param searchParams - The URL search params from Next.js navigation
+ * @returns Parsed and memoized search parameters
+ *
+ * @example
+ * ```tsx
+ * const searchParams = useSearchParams();
+ * const urlParams = useUrlSearchParams(searchParams);
+ * console.log(urlParams.categories); // ['m', 'f']
+ * ```
  */
 export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null): UrlSearchParams {
   return useMemo(() => {
@@ -60,6 +87,10 @@ export function useUrlSearchParams(searchParams?: ReadonlyURLSearchParams | null
   }, [searchParams]);
 }
 
+/**
+ * Parses marker filter parameters from URL search params.
+ * @internal
+ */
 function parseMarkerParams(params: ReadonlyURLSearchParams | URLSearchParams) {
   return MEANING_MARKER_KEYS.reduce(
     (acc, key) => {

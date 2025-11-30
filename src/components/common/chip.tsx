@@ -1,10 +1,54 @@
+/**
+ * Chip components for displaying tags and markers.
+ *
+ * This module provides reusable chip/tag components for displaying
+ * categorized information throughout the dictionary application.
+ * Chips are used for grammar categories, meaning markers, status
+ * indicators, and various other labeled elements.
+ *
+ * ## Components
+ *
+ * ### Chip
+ * Single chip with label and optional remove button.
+ * Color-coded by variant for visual categorization.
+ *
+ * ### ChipList
+ * Collection of chips with add button support.
+ * Manages empty state and provides consistent layout.
+ *
+ * ## Color Variants
+ * Each variant has carefully chosen colors for visual distinction:
+ * - **category**: Blue (primary action color)
+ * - **socialValuations**: Rose (social/emotional)
+ * - **socialStratumMarkers**: Violet (social class)
+ * - **styleMarkers**: Amber (style/register)
+ * - **intentionalityMarkers**: Emerald (intent/purpose)
+ * - **geographicalMarkers**: Sky (location)
+ * - **chronologicalMarkers**: Orange (time)
+ * - **frequencyMarkers**: Slate (frequency)
+ * - **warning**: Red with border (alerts)
+ *
+ * @module components/common/chip
+ * @see {@link Chip} - Single chip component
+ * @see {@link ChipList} - List of chips with add support
+ * @see {@link MarkerColorVariant} - Available color variants
+ */
+
 'use client';
 
 import React from 'react';
 import { Button } from '@/components/common/button';
 import { PlusIcon, CloseIcon } from '@/components/icons';
 
-// Color variants for different marker types
+/**
+ * Color variants for different marker types.
+ *
+ * Each variant maps to a specific Tailwind color scheme
+ * designed to provide visual distinction between different
+ * types of dictionary markers.
+ *
+ * @typedef MarkerColorVariant
+ */
 export type MarkerColorVariant =
   | 'category'
   | 'socialValuations'
@@ -16,12 +60,52 @@ export type MarkerColorVariant =
   | 'frequencyMarkers'
   | 'warning';
 
-interface ChipProps {
+/**
+ * Props for the Chip component.
+ *
+ * @interface ChipProps
+ */
+export interface ChipProps {
+  /**
+   * Unique code/value for the chip.
+   * Used for identification in callbacks.
+   * @type {string}
+   */
   code: string;
+
+  /**
+   * Human-readable display label.
+   * @type {string}
+   */
   label: string;
+
+  /**
+   * Callback when remove button is clicked.
+   * Only shown when editorMode is true.
+   * @param {string} code - The chip's code
+   * @returns {void}
+   */
   onRemove?: (code: string) => void;
+
+  /**
+   * Additional CSS classes for the chip.
+   * @type {string}
+   */
   className?: string;
+
+  /**
+   * Color variant based on marker type.
+   * @type {MarkerColorVariant}
+   * @default 'category'
+   */
   variant?: MarkerColorVariant;
+
+  /**
+   * Enable interactive/editing mode.
+   * When true, shows remove button on hover.
+   * @type {boolean}
+   * @default false
+   */
   editorMode?: boolean;
 }
 
@@ -121,13 +205,23 @@ export function Chip({
   );
 }
 
-interface ChipListProps {
+/**
+ * Props for the ChipList component.
+ */
+export interface ChipListProps {
+  /** Array of item codes to display */
   items: string[];
+  /** Map of codes to display labels */
   labels: Record<string, string>;
+  /** Color variant for all chips */
   variant: MarkerColorVariant;
+  /** Enable editing mode */
   editorMode: boolean;
+  /** Label for add button */
   addLabel?: string;
+  /** Callback when add button clicked */
   onAdd?: () => void;
+  /** Callback when chip removed */
   onRemove?: (index: number) => void;
 }
 

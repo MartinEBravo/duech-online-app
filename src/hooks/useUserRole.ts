@@ -1,5 +1,29 @@
+/**
+ * Custom hook for fetching and managing user role information.
+ *
+ * Fetches the current user's role from the API and provides
+ * role-based flags for conditional rendering and access control.
+ *
+ * @module hooks/useUserRole
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 
+/**
+ * Fetches and manages user role information.
+ *
+ * @param editorMode - Whether the application is in editor mode
+ * @returns Object with role flags and user info
+ *
+ * @example
+ * ```tsx
+ * const { isAdmin, isLexicographer, username } = useUserRole(true);
+ *
+ * if (isAdmin) {
+ *   // Show admin-only features
+ * }
+ * ```
+ */
 export function useUserRole(editorMode: boolean) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLexicographer, setIsLexicographer] = useState(false);

@@ -1,3 +1,30 @@
+/**
+ * Word header component with metadata and editor controls.
+ *
+ * This component renders the top section of a word page, including:
+ * - Breadcrumb navigation back to search
+ * - Main lemma title with inline editing
+ * - Root word display/editor
+ * - Dictionary source indicator
+ * - Editor control panel with dropdowns and action buttons
+ * - Markdown formatting help box
+ * - Field warnings for incomplete definitions
+ *
+ * The header adapts significantly between public view and editor modes,
+ * showing only essential information to readers while providing full
+ * control to editors.
+ *
+ * ## Permission Levels
+ * - `canActuallyEdit`: Controls inline editing of lemma/root/dictionary
+ * - `canAsigned`: Controls assignment dropdown access
+ * - `canChangeStatus`: Controls status dropdown access
+ *
+ * @module components/word/word-header
+ * @see {@link WordHeader} - The main exported component
+ * @see {@link WordHeaderProps} - Props interface
+ * @see {@link WordDisplay} - Parent component that uses this header
+ */
+
 'use client';
 
 import React from 'react';
@@ -12,47 +39,337 @@ import { DICCIONARIES, type Meaning } from '@/lib/definitions';
 import { useUserRole } from '@/hooks/useUserRole';
 import { getLexicographerByRole } from '@/lib/search-utils';
 import { getStatusByRole } from '@/lib/search-utils';
-interface WordHeaderProps {
+
+/**
+ * Props for the WordHeader component.
+ *
+ * @interface WordHeaderProps
+ */
+export interface WordHeaderProps {
+  /**
+   * The word's lemma (headword/entry word).
+   * @type {string}
+   */
   lemma: string;
+
+  /**
+   * Callback when lemma is changed via inline editing.
+   * @param {string | null} value - New lemma value or null to clear
+   * @returns {void}
+   */
   onLemmaChange: (value: string | null) => void;
+
+  /**
+   * Whether the component is in editor mode.
+   * @type {boolean}
+   */
   editorMode: boolean;
+
+  /**
+   * Whether the current user can actually edit this word.
+   * Combines role checks with word status and assignment.
+   * @type {boolean}
+   */
   canActuallyEdit: boolean;
+
+  /**
+   * Whether the current user can assign this word to someone.
+   * @type {boolean}
+   */
   canAsigned: boolean;
+
+  /**
+   * Whether the current user can change the word's status.
+   * @type {boolean}
+   */
   canChangeStatus?: boolean;
-  // Lemma field
+
+  /**
+   * Whether the lemma field is currently being edited.
+   * @type {boolean}
+   */
   editingLemma: boolean;
+
+  /**
+   * Callback to start editing the lemma.
+   * @returns {void}
+   */
   onStartEditLemma: () => void;
+
+  /**
+   * Callback to cancel lemma editing.
+   * @returns {void}
+   */
   onCancelEditLemma: () => void;
-  // Root field
+
+  /**
+   * The word's root/base form.
+   * @type {string}
+   */
   root: string;
+
+  /**
+   * Callback when root word is changed.
+   * @param {string | null} value - New root value or null to clear
+   * @returns {void}
+   */
   onRootChange: (value: string | null) => void;
+
+  /**
+   * Whether the root field is currently being edited.
+   * @type {boolean}
+   */
   editingRoot: boolean;
+
+  /**
+   * Callback to start editing the root.
+   * @returns {void}
+   */
   onStartEditRoot: () => void;
+
+  /**
+   * Callback to cancel root editing.
+   * @returns {void}
+   */
   onCancelEditRoot: () => void;
-  // Dictionary field
+
+  /**
+   * The dictionary source for this word.
+   * @type {string | null}
+   */
   dictionary: string | null;
+
+  /**
+   * Callback when dictionary source is changed.
+   * @param {string | null} value - New dictionary value or null
+   * @returns {void}
+   */
   onDictionaryChange: (value: string | null) => void;
-  // Editor controls
+
+  /**
+   * The letter this word is filed under (a-z).
+   * @type {string}
+   */
   letter: string;
+
+  /**
+   * Callback when letter is changed via dropdown.
+   * @param {string} value - New letter value
+   * @returns {void}
+   */
   onLetterChange: (value: string) => void;
+
+  /**
+   * Available letter options for the dropdown.
+   * @type {Array<{ value: string; label: string }>}
+   */
   letterOptions: Array<{ value: string; label: string }>;
+
+  /**
+   * User ID of person assigned to this word, or null.
+   * @type {number | null}
+   */
   assignedTo: number | null;
+
+  /**
+   * Callback when assignment is changed.
+   * @param {number | null} value - User ID or null for unassigned
+   * @returns {void}
+   */
   onAssignedToChange: (value: number | null) => void;
+
+  /**
+   * List of users available for assignment.
+   * @type {Array<{ id: number; username: string; role: string }>}
+   */
   users: Array<{ id: number; username: string; role: string }>;
+
+  /**
+   * Current word status (draft, preredacted, included, imported, redacted).
+   * @type {string}
+   */
   status: string;
+
+  /**
+   * Callback when status is changed via dropdown.
+   * @param {string} value - New status value
+   * @returns {void}
+   */
   onStatusChange: (value: string) => void;
+
+  /**
+   * Available status options for the dropdown.
+   * @type {Array<{ value: string; label: string }>}
+   */
   statusOptions: Array<{ value: string; label: string }>;
+
+  /**
+   * Path for the search link in breadcrumb.
+   * @type {string}
+   */
   searchPath: string;
+
+  /**
+   * Label for the search link in breadcrumb.
+   * @type {string}
+   */
   searchLabel: string;
+
+  /**
+   * Array of definitions to check for warnings.
+   * @type {Meaning[]}
+   */
   definitions?: Meaning[];
+
+  /**
+   * Callback to trigger word deletion modal.
+   * @returns {void}
+   */
   onDeleteWord?: () => void;
+
+  /**
+   * Current user's role for permission checks.
+   * @type {string}
+   */
   userRole?: string;
+
+  /**
+   * Callback for manual save button.
+   * @returns {void}
+   */
   onManualSave?: () => void;
+
+  /**
+   * Whether current state is saved (no pending changes).
+   * @type {boolean}
+   */
   isSaved?: boolean;
+
+  /**
+   * Whether a save operation is in progress.
+   * @type {boolean}
+   */
   isSaving?: boolean;
+
+  /**
+   * Callback for preview button.
+   * @returns {void}
+   */
   onPreview?: () => void;
 }
 
+/**
+ * Header section for word pages.
+ *
+ * Renders breadcrumb navigation, word title (lemma), root word,
+ * and editor controls for managing word metadata. The component
+ * significantly adapts its display based on the mode and permissions.
+ *
+ * ## Public View Mode
+ * - Breadcrumb navigation to search
+ * - Large lemma title
+ * - Root word (only if different from lemma)
+ * - Dictionary source label
+ *
+ * ## Editor Mode (with canActuallyEdit)
+ * - InlineEditable lemma and root fields
+ * - Dictionary dropdown selector
+ * - Letter dropdown (a-z)
+ * - User assignment dropdown (filtered by role)
+ * - Status dropdown (filtered by user permissions)
+ * - Preview button to open public view
+ * - Save button with status indicator
+ * - Delete button (admin only)
+ * - Markdown formatting help box
+ * - Field warnings for incomplete definitions
+ *
+ * @function WordHeader
+ * @param {WordHeaderProps} props - Component props
+ * @param {string} props.lemma - The word's headword
+ * @param {Function} props.onLemmaChange - Lemma change callback
+ * @param {boolean} props.editorMode - Whether in editor mode
+ * @param {boolean} props.canActuallyEdit - Whether user can edit
+ * @param {boolean} props.canAsigned - Whether user can assign
+ * @param {boolean} [props.canChangeStatus] - Whether user can change status
+ * @param {boolean} props.editingLemma - Whether lemma is being edited
+ * @param {Function} props.onStartEditLemma - Start lemma editing
+ * @param {Function} props.onCancelEditLemma - Cancel lemma editing
+ * @param {string} props.root - The word's root form
+ * @param {Function} props.onRootChange - Root change callback
+ * @param {boolean} props.editingRoot - Whether root is being edited
+ * @param {Function} props.onStartEditRoot - Start root editing
+ * @param {Function} props.onCancelEditRoot - Cancel root editing
+ * @param {string | null} props.dictionary - Dictionary source
+ * @param {Function} props.onDictionaryChange - Dictionary change callback
+ * @param {string} props.letter - Filing letter
+ * @param {Function} props.onLetterChange - Letter change callback
+ * @param {Array} props.letterOptions - Letter dropdown options
+ * @param {number | null} props.assignedTo - Assigned user ID
+ * @param {Function} props.onAssignedToChange - Assignment change callback
+ * @param {Array} props.users - Users for assignment dropdown
+ * @param {string} props.status - Word status
+ * @param {Function} props.onStatusChange - Status change callback
+ * @param {Array} props.statusOptions - Status dropdown options
+ * @param {string} props.searchPath - Breadcrumb search link path
+ * @param {string} props.searchLabel - Breadcrumb search link label
+ * @param {Meaning[]} [props.definitions] - Definitions for warnings
+ * @param {Function} [props.onDeleteWord] - Delete word callback
+ * @param {string} [props.userRole] - Current user's role
+ * @param {Function} [props.onManualSave] - Manual save callback
+ * @param {boolean} [props.isSaved] - Whether state is saved
+ * @param {boolean} [props.isSaving] - Whether save is in progress
+ * @param {Function} [props.onPreview] - Preview callback
+ * @returns {JSX.Element} The word header component
+ *
+ * @example
+ * // Public view mode
+ * <WordHeader
+ *   lemma="chilenismo"
+ *   editorMode={false}
+ *   canActuallyEdit={false}
+ *   canAsigned={false}
+ *   // ... minimal props
+ * />
+ *
+ * @example
+ * // Full editor mode
+ * <WordHeader
+ *   lemma="chilenismo"
+ *   onLemmaChange={setLemma}
+ *   editorMode={true}
+ *   canActuallyEdit={true}
+ *   canAsigned={true}
+ *   canChangeStatus={true}
+ *   editingLemma={isEditingLemma}
+ *   onStartEditLemma={() => setEditKey('lemma')}
+ *   onCancelEditLemma={() => setEditKey(null)}
+ *   root="chile"
+ *   onRootChange={setRoot}
+ *   editingRoot={isEditingRoot}
+ *   onStartEditRoot={() => setEditKey('root')}
+ *   onCancelEditRoot={() => setEditKey(null)}
+ *   dictionary="DUECh"
+ *   onDictionaryChange={setDictionary}
+ *   letter="c"
+ *   onLetterChange={setLetter}
+ *   letterOptions={LETTER_OPTIONS}
+ *   assignedTo={userId}
+ *   onAssignedToChange={setAssignedTo}
+ *   users={users}
+ *   status="preredacted"
+ *   onStatusChange={setStatus}
+ *   statusOptions={STATUS_OPTIONS}
+ *   searchPath="/editor/buscar"
+ *   searchLabel="Buscar"
+ *   definitions={word.values}
+ *   onDeleteWord={handleDelete}
+ *   userRole="admin"
+ *   onManualSave={handleSave}
+ *   isSaved={!isDirty}
+ *   isSaving={saveStatus === 'saving'}
+ *   onPreview={handlePreview}
+ * />
+ */
 export function WordHeader({
   lemma,
   onLemmaChange,

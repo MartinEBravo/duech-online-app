@@ -1,6 +1,22 @@
+/**
+ * Email footer component.
+ *
+ * Standard footer with contact information and team signature.
+ *
+ * @module components/emails/email-footer
+ */
+
 import { Text, Tailwind } from '@react-email/components';
 import * as React from 'react';
 
+/**
+ * Standard email footer with contact info and signature.
+ *
+ * @example
+ * ```tsx
+ * <EmailFooter />
+ * ```
+ */
 export function EmailFooter() {
   return (
     <Tailwind>

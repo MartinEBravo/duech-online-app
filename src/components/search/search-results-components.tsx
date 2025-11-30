@@ -1,13 +1,23 @@
 /**
- * UI Components for search results display
+ * UI Components for search results display.
+ *
+ * Provides skeleton loaders, empty states, and result count display
+ * for the search page.
+ *
+ * @module components/search/search-results-components
  */
 
 import { SadFaceIcon, SearchIcon } from '@/components/icons';
 import { WordCard } from '@/components/search/word-card';
 import { type SearchResult } from '@/lib/definitions';
 
-interface SearchLoadingSkeletonProps {
+/**
+ * Props for the SearchLoadingSkeleton component.
+ */
+export interface SearchLoadingSkeletonProps {
+  /** Whether in editor mode (affects skeleton count) */
   editorMode: boolean;
+  /** Number of skeleton items to show */
   count?: number;
 }
 
@@ -33,7 +43,11 @@ export function SearchLoadingSkeleton({ editorMode, count = 5 }: SearchLoadingSk
   );
 }
 
-interface EmptySearchStateProps {
+/**
+ * Props for the EmptySearchState component.
+ */
+export interface EmptySearchStateProps {
+  /** Whether in editor mode (affects message) */
   editorMode: boolean;
 }
 
@@ -55,7 +69,11 @@ export function EmptySearchState({ editorMode }: EmptySearchStateProps) {
   );
 }
 
-interface NoResultsStateProps {
+/**
+ * Props for the NoResultsState component.
+ */
+export interface NoResultsStateProps {
+  /** Whether in editor mode (affects styling) */
   editorMode: boolean;
 }
 
@@ -74,11 +92,19 @@ export function NoResultsState({ editorMode }: NoResultsStateProps) {
   );
 }
 
-interface SearchResultsCountProps {
+/**
+ * Props for the SearchResultsCount component.
+ */
+export interface SearchResultsCountProps {
+  /** Whether in editor mode (affects message format) */
   editorMode: boolean;
+  /** Total number of results */
   totalResults: number;
+  /** Search query string */
   query: string;
+  /** Current page number */
   currentPage?: number;
+  /** Results per page */
   pageSize?: number;
 }
 

@@ -1,3 +1,29 @@
+/**
+ * Word definition section component.
+ *
+ * Renders a single word meaning with all its metadata, markers,
+ * examples, and inline editing capabilities. This is one of the core
+ * components of the dictionary application, responsible for displaying
+ * and editing individual word definitions.
+ *
+ * In view mode, it displays:
+ * - Definition number in a circular badge
+ * - Origin of the word (if available)
+ * - Grammar category and meaning markers as chips
+ * - The main meaning text with markdown support
+ * - Observations, examples, and variants
+ *
+ * In editor mode, it additionally provides:
+ * - Inline editing with pencil icons for all text fields
+ * - Dropdown selectors for origin, categories, and markers
+ * - Add/remove buttons for chips
+ * - Floating action buttons for adding/deleting definitions
+ *
+ * @module components/word/word-definition
+ * @see {@link DefinitionSection} - The main exported component
+ * @see {@link DefinitionSectionProps} - Props interface
+ */
+
 'use client';
 
 import React, { useMemo } from 'react';
@@ -20,25 +46,123 @@ import {
   type MeaningMarkerKey,
 } from '@/lib/definitions';
 
-// Type for unified chip item
+/**
+ * Internal representation of a chip item for category or marker display.
+ *
+ * Used to normalize grammar categories and meaning markers into a unified
+ * format for rendering as chips in the definition UI.
+ *
+ * @internal
+ * @interface ChipItem
+ */
 interface ChipItem {
+  /**
+   * The type of chip - either 'category' for grammar category or a specific marker key.
+   * @type {'category' | MeaningMarkerKey}
+   */
   type: 'category' | MeaningMarkerKey;
+
+  /**
+   * The code/value stored in the database for this chip.
+   * @type {string}
+   */
   code: string;
+
+  /**
+   * Human-readable label to display on the chip.
+   * @type {string}
+   */
   label: string;
+
+  /**
+   * Color variant for styling the chip based on its type.
+   * @type {MarkerColorVariant}
+   */
   variant: MarkerColorVariant;
 }
 
-interface DefinitionSectionProps {
+/**
+ * Props for the DefinitionSection component.
+ *
+ * @interface DefinitionSectionProps
+ */
+export interface DefinitionSectionProps {
+  /**
+   * The meaning/definition data object to render.
+   * Contains all fields: number, origin, grammarCategory, meaning, examples, etc.
+   * @type {Meaning}
+   */
   definition: Meaning;
+
+  /**
+   * Zero-based index of this definition within the word's values array.
+   * Used to generate unique editing keys and for callbacks.
+   * @type {number}
+   */
   defIndex: number;
+
+  /**
+   * Whether the component is in editor mode.
+   * When true, shows inline edit buttons and allows modifications.
+   * @type {boolean}
+   */
   editorMode: boolean;
+
+  /**
+   * The currently active editing key, or null if nothing is being edited.
+   * Format: "def:{defIndex}:{fieldName}" (e.g., "def:0:meaning").
+   * @type {string | null}
+   */
   editingKey: string | null;
+
+  /**
+   * Callback to toggle editing state for a specific field.
+   * @param {string} key - The unique key identifying the field to toggle
+   * @returns {void}
+   */
   onToggleEdit: (key: string) => void;
+
+  /**
+   * Callback to apply partial updates to the definition.
+   * Merges the patch with existing definition data.
+   * @param {Partial<Meaning>} patch - Object containing fields to update
+   * @returns {void}
+   */
   onPatchDefinition: (patch: Partial<Meaning>) => void;
+
+  /**
+   * Callback to open the grammar category selector modal.
+   * @returns {void}
+   */
   onSetEditingCategories: () => void;
+
+  /**
+   * Callback to open a marker selector modal for a specific marker type.
+   * @param {MeaningMarkerKey} markerKey - The type of marker to edit (e.g., 'diatopic', 'diaphasic')
+   * @returns {void}
+   */
   onSetEditingMarker: (markerKey: MeaningMarkerKey) => void;
+
+  /**
+   * Callback to add a new definition after this one.
+   * @returns {void}
+   */
   onAddDefinition: () => void;
+
+  /**
+   * Callback to delete this definition.
+   * @returns {void}
+   */
   onDeleteDefinition: () => void;
+
+  /**
+   * Render function for displaying examples.
+   * Allows parent component to control example rendering and editing.
+   * @param {Example[] | null} examples - Array of examples or null
+   * @param {number} [defIndex] - Definition index for editing callbacks
+   * @param {boolean} [isEditable] - Whether examples should be editable
+   * @returns {React.ReactNode} Rendered example content
+   */
   renderExample: (
     examples: Example[] | null,
     defIndex?: number,
@@ -46,6 +170,72 @@ interface DefinitionSectionProps {
   ) => React.ReactNode;
 }
 
+/**
+ * Renders a single word definition with all its fields.
+ *
+ * This component is the main building block for displaying dictionary entries.
+ * It handles both the public-facing read-only view and the editor's interactive
+ * editing interface. The component uses a card-based layout with a numbered
+ * badge and organized sections for each field type.
+ *
+ * ## Layout Structure
+ * - Left side: Circular badge showing definition number
+ * - Right side: Stacked content areas for origin, chips, meaning, etc.
+ *
+ * ## Editor Mode Features
+ * - Dropdown for origin selection with search
+ * - Chips with remove buttons for categories/markers
+ * - Add buttons for missing categories/markers
+ * - InlineEditable components for text fields
+ * - Floating add/delete buttons at bottom
+ *
+ * @function DefinitionSection
+ * @param {DefinitionSectionProps} props - Component props
+ * @param {Meaning} props.definition - The meaning/definition data to render
+ * @param {number} props.defIndex - Index of this definition (0-based)
+ * @param {boolean} props.editorMode - Whether to enable editing features
+ * @param {string | null} props.editingKey - Currently active editing field key
+ * @param {Function} props.onToggleEdit - Callback to toggle field editing
+ * @param {Function} props.onPatchDefinition - Callback to update definition fields
+ * @param {Function} props.onSetEditingCategories - Callback to open category modal
+ * @param {Function} props.onSetEditingMarker - Callback to open marker modal
+ * @param {Function} props.onAddDefinition - Callback to add new definition
+ * @param {Function} props.onDeleteDefinition - Callback to delete this definition
+ * @param {Function} props.renderExample - Render function for examples section
+ * @returns {JSX.Element} The rendered definition section
+ *
+ * @example
+ * // Basic usage in view mode
+ * <DefinitionSection
+ *   definition={meaning}
+ *   defIndex={0}
+ *   editorMode={false}
+ *   editingKey={null}
+ *   onToggleEdit={() => {}}
+ *   onPatchDefinition={() => {}}
+ *   onSetEditingCategories={() => {}}
+ *   onSetEditingMarker={() => {}}
+ *   onAddDefinition={() => {}}
+ *   onDeleteDefinition={() => {}}
+ *   renderExample={(examples) => <ExampleDisplay example={examples} />}
+ * />
+ *
+ * @example
+ * // Full editor mode with all callbacks
+ * <DefinitionSection
+ *   definition={meaning}
+ *   defIndex={0}
+ *   editorMode={true}
+ *   editingKey={editingKey}
+ *   onToggleEdit={toggle}
+ *   onPatchDefinition={(patch) => updateDefinition(defIndex, patch)}
+ *   onSetEditingCategories={() => setCategoryModalOpen(true)}
+ *   onSetEditingMarker={(key) => setMarkerModal({ defIndex, markerKey: key })}
+ *   onAddDefinition={() => addDefinitionAfter(defIndex)}
+ *   onDeleteDefinition={() => removeDefinition(defIndex)}
+ *   renderExample={renderExampleWithEditor}
+ * />
+ */
 export function DefinitionSection({
   definition: def,
   defIndex,
@@ -60,14 +250,33 @@ export function DefinitionSection({
   renderExample,
 }: DefinitionSectionProps) {
   const pathname = usePathname();
+  /** @internal Base path for editor routes, empty string for public routes */
   const editorBasePath = pathname.startsWith('/editor') ? '/editor' : '';
-  const isEditing = (k: string) => editingKey === k;
 
+  /**
+   * Checks if a specific field is currently being edited.
+   * @internal
+   * @param {string} k - The editing key to check
+   * @returns {boolean} True if the field is being edited
+   */
+  const isEditing = (k: string): boolean => editingKey === k;
+
+  /** @internal Dictionary identifier from the definition */
   const dictionary = def.dictionary;
+  /** @internal Background color class based on dictionary source */
   const cardBgColor = dictionary ? DICTIONARY_COLORS[dictionary] || 'bg-amber-50' : 'bg-white';
 
-  // Gather all chips (category + markers) into a single list
-  const allChips = useMemo(() => {
+  /**
+   * Memoized array of all chips to display (grammar category + all markers).
+   *
+   * Combines the grammar category (if present) with all meaning markers
+   * into a single unified list for rendering. Each chip includes its type,
+   * database code, display label, and color variant.
+   *
+   * @internal
+   * @type {ChipItem[]}
+   */
+  const allChips = useMemo((): ChipItem[] => {
     const chips: ChipItem[] = [];
 
     // Add grammar category
@@ -97,7 +306,18 @@ export function DefinitionSection({
     return chips;
   }, [def]);
 
-  const handleRemoveChip = (chip: ChipItem) => {
+  /**
+   * Handles removal of a chip (category or marker) from the definition.
+   *
+   * When a chip's remove button is clicked, this function determines
+   * whether it's a grammar category or a meaning marker and calls
+   * onPatchDefinition with the appropriate null value.
+   *
+   * @internal
+   * @param {ChipItem} chip - The chip being removed
+   * @returns {void}
+   */
+  const handleRemoveChip = (chip: ChipItem): void => {
     if (chip.type === 'category') {
       onPatchDefinition({ grammarCategory: null });
     } else {

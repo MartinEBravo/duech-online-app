@@ -1,3 +1,12 @@
+/**
+ * Login API endpoint for user authentication.
+ *
+ * Handles user login by verifying credentials against the database
+ * and creating a session with JWT cookie.
+ *
+ * @module app/api/auth/login
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { setSessionCookie } from '@/lib/auth';
 import {
@@ -8,6 +17,16 @@ import {
 } from '@/lib/queries';
 import { randomBytes } from 'crypto';
 
+/**
+ * POST /api/auth/login - Authenticate user
+ *
+ * Request body:
+ * - email: Username or email address
+ * - password: User's password
+ * - redirectTo: Optional redirect URL after login (default: '/')
+ *
+ * @returns Success with redirectTo URL, or error message
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

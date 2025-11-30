@@ -1,3 +1,16 @@
+/**
+ * Search API endpoint for dictionary queries.
+ *
+ * Provides advanced search functionality with support for:
+ * - Text search (prefix and contains matching)
+ * - Multiple filter types (categories, origins, letters, etc.)
+ * - Marker filters (sociolinguistic classifications)
+ * - Pagination
+ * - Metadata-only requests
+ *
+ * @module app/api/search
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { searchWords } from '@/lib/queries';
 import {
@@ -13,9 +26,16 @@ import { meanings } from '@/lib/schema';
 import { sql } from 'drizzle-orm';
 import { isEditorModeFromHeaders } from '@/lib/editor-mode-server';
 
+/** Maximum allowed query length */
 const MAX_QUERY_LENGTH = 100;
+
+/** Maximum results per request */
 const MAX_LIMIT = 1000;
 
+/**
+ * Internal search filter structure.
+ * @internal
+ */
 type SearchFilters = {
   query: string;
   categories: string[];
@@ -26,6 +46,7 @@ type SearchFilters = {
   assignedTo: string[];
 } & MarkerFilterState;
 
+/** @internal */
 interface ParseSuccess {
   filters: SearchFilters;
   page: number;
@@ -33,12 +54,33 @@ interface ParseSuccess {
   metaOnly: boolean;
 }
 
+/** @internal */
 interface ParseError {
   errorResponse: NextResponse;
 }
 
+/** @internal */
 type ParseResult = ParseSuccess | ParseError;
 
+/**
+ * GET /api/search - Search the dictionary
+ *
+ * Query parameters:
+ * - q: Search query string
+ * - categories: Comma-separated grammatical categories
+ * - origins: Comma-separated origins
+ * - letters: Comma-separated first letters
+ * - dictionaries: Comma-separated dictionary sources
+ * - status: Word status filter (editor mode)
+ * - assignedTo: Comma-separated user IDs (editor mode)
+ * - page: Page number (default: 1)
+ * - limit: Results per page (default: 20, max: 1000)
+ * - meta: If "true", returns only metadata without results
+ * - editorMode: If "true", includes non-published words
+ * - [markerKey]: Marker filters (e.g., socialValuations=vulgar)
+ *
+ * @returns Search results, metadata, and pagination info
+ */
 export async function GET(request: NextRequest) {
   const rateLimitResult = await applyRateLimit(request);
   if (!rateLimitResult.success) {
@@ -134,6 +176,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Parses and validates search parameters from URL.
+ * @internal
+ */
 function parseSearchParams(searchParams: URLSearchParams): ParseResult {
   const rawQuery = searchParams.get('q') ?? '';
   const query = rawQuery.trim();
@@ -173,6 +219,10 @@ function parseSearchParams(searchParams: URLSearchParams): ParseResult {
   };
 }
 
+/**
+ * Maps marker keys to their database column names.
+ * @internal
+ */
 const MARKER_COLUMN_NAMES: Record<MeaningMarkerKey, string> = {
   socialValuations: 'social_valuation',
   socialStratumMarkers: 'social_mark',
@@ -183,6 +233,10 @@ const MARKER_COLUMN_NAMES: Record<MeaningMarkerKey, string> = {
   frequencyMarkers: 'freq_mark',
 };
 
+/**
+ * Fetches all unique marker values from the database.
+ * @internal
+ */
 async function fetchMarkerMetadata(): Promise<MarkerMetadata> {
   const entries = await Promise.all(
     MEANING_MARKER_KEYS.map(async (key) => {
@@ -202,6 +256,7 @@ async function fetchMarkerMetadata(): Promise<MarkerMetadata> {
   return Object.fromEntries(entries) as MarkerMetadata;
 }
 
+/** @internal */
 function parseMarkerFilters(searchParams: URLSearchParams): MarkerFilterState {
   return MEANING_MARKER_KEYS.reduce((acc, key) => {
     acc[key] = parseList(searchParams.get(key)) ?? [];
@@ -209,6 +264,7 @@ function parseMarkerFilters(searchParams: URLSearchParams): MarkerFilterState {
   }, {} as MarkerFilterState);
 }
 
+/** @internal */
 function extractMarkerFilters(filters: MarkerFilterState): MarkerFilterState {
   return MEANING_MARKER_KEYS.reduce((acc, key) => {
     const values = filters[key];
@@ -219,6 +275,10 @@ function extractMarkerFilters(filters: MarkerFilterState): MarkerFilterState {
   }, {} as MarkerFilterState);
 }
 
+/**
+ * Parses a comma-separated string into an array.
+ * @internal
+ */
 function parseList(value: string | null): string[] {
   if (!value) {
     return [];

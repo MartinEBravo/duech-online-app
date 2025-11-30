@@ -1,3 +1,12 @@
+/**
+ * Main search page component.
+ *
+ * Provides full dictionary search functionality with pagination,
+ * filtering, and different modes for public and editor views.
+ *
+ * @module components/search/search-page
+ */
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -88,15 +97,45 @@ function updateStateIfChanged(
   };
 }
 
-interface SearchPageProps {
+/**
+ * Props for the SearchPage component.
+ */
+export interface SearchPageProps {
+  /** Page title (defaults based on mode) */
   title?: string;
+  /** Search input placeholder text */
   placeholder: string;
+  /** Users for assignment dropdown (editor mode) */
   initialUsers?: User[];
+  /** Enable editor features and filters */
   editorMode?: boolean;
+  /** Current user's ID for permission checks */
   currentUserId?: number | null;
+  /** Current user's role for permission checks */
   currentUserRole?: string | null;
 }
 
+/**
+ * Full-featured dictionary search page.
+ *
+ * Handles URL parameter parsing, search state management, API calls,
+ * and result display with pagination. Supports both public and editor modes.
+ *
+ * @example
+ * ```tsx
+ * // Public search page
+ * <SearchPage placeholder="Buscar palabra..." />
+ *
+ * // Editor search page
+ * <SearchPage
+ *   placeholder="Buscar para editar..."
+ *   editorMode={true}
+ *   initialUsers={users}
+ *   currentUserId={session.user.id}
+ *   currentUserRole={session.user.role}
+ * />
+ * ```
+ */
 export function SearchPage({
   title,
   placeholder,

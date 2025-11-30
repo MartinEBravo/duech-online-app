@@ -1,3 +1,11 @@
+/**
+ * User form modal for creating and editing users.
+ *
+ * Modal with form fields for user management.
+ *
+ * @module components/users/user-form-modal
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -7,22 +15,64 @@ import { Button } from '@/components/common/button';
 import { Modal } from '@/components/common/modal';
 import { Alert } from '@/components/common/alert';
 
-interface User {
+/**
+ * User data for form editing.
+ */
+export interface UserFormModalUser {
+  /** User ID */
   id: number;
+  /** Username */
   username: string;
+  /** User email */
   email: string | null;
+  /** User role */
   role: string;
+  /** Account creation date */
   createdAt: Date;
 }
 
-interface UserFormModalProps {
+/**
+ * Props for the UserFormModal component.
+ */
+export interface UserFormModalProps {
+  /** Create new user or edit existing */
   mode: 'create' | 'edit';
-  user?: User;
+  /** User to edit (required for edit mode) */
+  user?: UserFormModalUser;
+  /** Current user's role (determines available roles) */
   currentUserRole?: string;
+  /** Callback to close modal */
   onClose: () => void;
-  onSuccess: (user: User) => void;
+  /** Callback on successful create/update */
+  onSuccess: (user: UserFormModalUser) => void;
 }
 
+/**
+ * Modal form for creating or editing users.
+ *
+ * Handles username, email, and role fields. Role options are
+ * filtered based on current user's permissions.
+ *
+ * @example
+ * ```tsx
+ * // Create mode
+ * <UserFormModal
+ *   mode="create"
+ *   currentUserRole="admin"
+ *   onClose={() => setShowModal(false)}
+ *   onSuccess={(user) => addUser(user)}
+ * />
+ *
+ * // Edit mode
+ * <UserFormModal
+ *   mode="edit"
+ *   user={selectedUser}
+ *   currentUserRole="admin"
+ *   onClose={() => setShowModal(false)}
+ *   onSuccess={(user) => updateUser(user)}
+ * />
+ * ```
+ */
 export default function UserFormModal({
   mode,
   user,

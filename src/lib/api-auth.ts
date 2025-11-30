@@ -1,10 +1,22 @@
+/**
+ * API authentication helpers for protected API routes.
+ *
+ * Provides functions to verify authentication and authorization
+ * in Next.js API route handlers.
+ *
+ * @module lib/api-auth
+ */
+
 import { NextResponse } from 'next/server';
 import { getSessionUser, type SessionUser } from '@/lib/auth';
 export { validateRoleAssignment } from '@/lib/role-utils';
 
 /**
- * Verify user is authenticated and has admin/superadmin role for API routes
- * Returns the authenticated user or throws an HTTP response error
+ * Verifies the user is authenticated and has admin/superadmin role.
+ * Throws a NextResponse error if not authorized.
+ *
+ * @returns The authenticated session user
+ * @throws NextResponse with 401 if not authenticated, 403 if not admin
  */
 export async function requireAdminForApi(): Promise<SessionUser> {
   const currentUser = await getSessionUser();
@@ -21,7 +33,11 @@ export async function requireAdminForApi(): Promise<SessionUser> {
 }
 
 /**
- * Parse and validate user ID from params
+ * Parses and validates a user ID from route parameters.
+ *
+ * @param params - Route params promise containing the id
+ * @returns Object with userId or error response
+ * @internal
  */
 async function parseUserIdFromParams(params: Promise<{ id: string }>): Promise<{
   userId?: number;
@@ -40,7 +56,11 @@ async function parseUserIdFromParams(params: Promise<{ id: string }>): Promise<{
 }
 
 /**
- * Common setup for user API routes: verify admin and parse user ID
+ * Common setup for user management API routes.
+ * Verifies admin authorization and parses the user ID from params.
+ *
+ * @param params - Route params promise containing the id
+ * @returns Object with currentUser and userId, or error response
  */
 export async function setupUserApiRoute(params: Promise<{ id: string }>): Promise<{
   currentUser?: SessionUser;

@@ -1,10 +1,10 @@
-# DUECh en línea - Dictionary of Chilean Spanish
+# DUECh en linea - Dictionary of Chilean Spanish
 
 Web application for the Dictionary of Chilean Spanish Usage (DUECh).
 
 ## Documentation
 
-This web application has an automatic documentation system using TypeDoc. To generate and view the documentation, run:
+This project includes comprehensive TypeDoc documentation. To generate and view the documentation:
 
 ```bash
 npm run docs
@@ -14,30 +14,36 @@ The documentation will be generated in the `docs` folder and opened in your defa
 
 ## Description
 
-This web application allows exploring and searching words from Chilean Spanish, including chileanisms, idioms, and expressions typical of the country. The project is designed with a modular architecture to facilitate future integration with Neo4j.
-
-The platform now ships with two experiences:
-
-- **Public dictionary** under `/buscar` and `/ver/[id]`
-- **Editor workspace** under `/editor/buscar` and `/editor/editar/[id]` (rewritten automatically when visiting `http://editor.localhost:3000`)
+This web application allows exploring and searching words from Chilean Spanish, including chileanisms, idioms, and expressions typical of the country. The project provides both a public dictionary interface and an authenticated editor workspace for lexicographers.
 
 ## Features
 
+### Public Interface
+
 - **Quick search**: Search words by lemma or content in definitions (`/buscar`)
-- **Word lottery**: Discover a random word every time you visit the main page
-- **Advanced search**: Filter by grammatical categories, usage styles, origin, and initial letter
-- **Editor tools**: Manage dictionary entries through the `/editor/buscar` dashboard with additional filters (status, assigned lexicographer) and `/editor/editar/[id]` detail pages
+- **Word of the day**: Discover a random word every time you visit the main page
+- **Advanced search**: Filter by grammatical categories, usage styles, origin, dictionaries, and initial letter
 - **Detailed visualization**: Explore complete definitions with examples, variants, and related expressions
-- **Responsive design**: Interface optimized for mobile and desktop devices
+
+### Editor Workspace
+
+- **Editor dashboard**: Manage dictionary entries through `/editor/buscar` with additional filters (status, assigned lexicographer)
+- **Inline editing**: Edit word entries directly in the detail page (`/palabra/[lemma]`) with auto-save
+- **User management**: Admin interface for managing lexicographer accounts (`/usuarios`)
+- **Redacted words**: Track and export redacted word reports (`/redactadas`)
+- **Editorial comments**: Collaborative commenting system on word entries
 
 ## Technologies
 
-- **Next.js 15** with App Router and Turbopack
+- **Next.js 15.5** with App Router
 - **React 19** for UI components
-- **TypeScript** for static typing
+- **TypeScript 5** for static typing
 - **TailwindCSS v4** for styling
+- **Drizzle ORM** with PostgreSQL
+- **React Email** for transactional emails
 - **ESLint and Prettier** for code quality
-- **React Markdown** for content rendering
+- **Vitest** for testing
+- **TypeDoc** for documentation generation
 
 ## Installation
 
@@ -48,6 +54,10 @@ The platform now ships with two experiences:
 ```bash
 npm install
 ```
+
+3. Set up environment variables (copy `.env.example` to `.env` and configure)
+
+4. Run database migrations if needed
 
 ## Running the Application
 
@@ -70,70 +80,123 @@ npm run start
 
 ```
 duech-online-app/
-├── app/                     # Pages and routes (App Router)
-│   ├── (public)/           # Public dictionary experience
-│   │   ├── page.tsx        # Home page
-│   │   ├── buscar/page.tsx # Public search results
-│   │   └── ver/[id]/page.tsx # Public word detail
-│   ├── editor/             # Authenticated editor workspace
-│   │   ├── page.tsx        # Redirect to /editor/buscar
-│   │   ├── buscar/page.tsx # Editor search with extra filters
-│   │   └── editar/[id]/    # Editor detail editing UI
-│   ├── api/                # API routes
-│   │   ├── metadata/       # Metadata API endpoint
-│   │   ├── search/         # Search API endpoints
-│   │   └── words/          # Words API endpoints
-│   ├── recursos/           # Resources page
-│   └── acerca/             # About page
-├── app/ui/                 # Reusable UI components
-│   ├── search-bar.tsx      # Search bar component
-│   ├── word-of-the-day.tsx # Random word component
-│   └── markdown-renderer.tsx # Markdown rendering component
-├── lib/                    # Utilities and business logic
-│   ├── db.ts              # Database connection (Drizzle ORM)
-│   ├── schema.ts          # Database schema definitions
-│   ├── queries.ts         # Database query functions
-│   ├── transformers.ts    # DB to frontend format transformers
-│   └── definitions.ts     # TypeScript type definitions
-└── public/                 # Static assets
-    └── [various SVG icons and images]
+├── src/
+│   ├── app/                    # Next.js App Router pages
+│   │   ├── page.tsx            # Home page with word of the day
+│   │   ├── buscar/             # Public search page
+│   │   ├── palabra/[lemma]/    # Word detail page (public & editor)
+│   │   ├── login/              # Authentication
+│   │   ├── cambiar-contrasena/ # Password change
+│   │   ├── usuarios/           # User management (admin)
+│   │   ├── redactadas/         # Redacted words report
+│   │   ├── recursos/           # Resources page
+│   │   ├── acerca/             # About page
+│   │   └── api/                # API routes
+│   │       ├── auth/           # Authentication endpoints
+│   │       ├── search/         # Search API
+│   │       ├── users/          # User management API
+│   │       └── words/          # Words CRUD API
+│   │
+│   ├── components/             # React components
+│   │   ├── common/             # Shared UI components
+│   │   │   ├── alert.tsx       # Alert notifications
+│   │   │   ├── button.tsx      # Button component
+│   │   │   ├── chip.tsx        # Tag/chip components
+│   │   │   ├── dropdown.tsx    # Select dropdowns
+│   │   │   ├── modal.tsx       # Modal dialog
+│   │   │   └── ...
+│   │   ├── search/             # Search-related components
+│   │   │   ├── search-bar.tsx  # Search input with filters
+│   │   │   ├── search-page.tsx # Main search page
+│   │   │   ├── word-card.tsx   # Search result card
+│   │   │   └── pagination.tsx  # Pagination controls
+│   │   ├── word/               # Word display/editing
+│   │   │   ├── word-page.tsx   # Main word display
+│   │   │   ├── word-header.tsx # Word header with metadata
+│   │   │   ├── word-definition.tsx # Definition section
+│   │   │   ├── inline-editable.tsx # Inline edit component
+│   │   │   └── comment/        # Editorial comments
+│   │   ├── users/              # User management components
+│   │   ├── emails/             # Email templates
+│   │   ├── auth/               # Authentication components
+│   │   └── redacted-words/     # Redacted words components
+│   │
+│   ├── hooks/                  # Custom React hooks
+│   │   ├── useDebounce.ts      # Debounce hook
+│   │   ├── useSearchState.ts   # Search state management
+│   │   ├── useUrlSearchParams.ts # URL params parsing
+│   │   └── useUserRole.ts      # User role utilities
+│   │
+│   ├── lib/                    # Core utilities
+│   │   ├── db.ts               # Database connection
+│   │   ├── schema.ts           # Drizzle schema definitions
+│   │   ├── queries.ts          # Database queries
+│   │   ├── definitions.ts      # TypeScript type definitions
+│   │   ├── auth.ts             # Authentication logic
+│   │   ├── actions.ts          # Server actions
+│   │   ├── cookies.ts          # Cookie management
+│   │   ├── email.ts            # Email sending utilities
+│   │   └── ...
+│   │
+│   ├── middleware.ts           # Next.js middleware (auth, routing)
+│   └── __tests__/              # Test files
+│
+├── docs/                       # Generated TypeDoc documentation
+└── public/                     # Static assets
 ```
-
-## Data
-
-The application currently uses the `example.json` file from the `duech-online-parsing` repository as its data source. This file contains a sample of dictionary entries with their complete structure.
 
 ## API Endpoints
 
-The application includes several API endpoints:
+### Authentication
 
-- `/api/search` - Basic text search
-- `/api/search/advanced` - Advanced search with filters
-- `/api/words/[lemma]` - Get specific word by lemma
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/session` - Get current session
 
-> **Tip:** To access the editor interface via subdomain, add `127.0.0.1 editor.localhost` to your hosts file and visit `http://editor.localhost:3000`. Middleware rewrites the request to `/editor/buscar`.
+### Search
 
-## Future Development
+- `GET /api/search` - Search dictionary entries
 
-- Integration with Neo4j database for semantic relationships
-- REST API for programmatic access
-- User contribution system
-- Word relationship visualizations
-- Data export in different formats
+### Words
+
+- `GET /api/words/[lemma]` - Get word by lemma
+- `PUT /api/words/[lemma]` - Update word (editor)
+- `DELETE /api/words/[lemma]` - Delete word (admin)
+- `POST /api/words` - Create new word (editor)
+- `GET /api/words/redacted` - Get redacted words report
+- `POST /api/words/redacted/send-email` - Send redacted words report
+
+### Users
+
+- `GET /api/users` - List all users (admin)
+- `POST /api/users` - Create user (admin)
+- `PUT /api/users/[id]` - Update user (admin)
+- `DELETE /api/users/[id]` - Delete user (admin)
 
 ## Available Scripts
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build application for production with Turbopack
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
 - `npm run start` - Start production server
+- `npm run docs` - Generate and open TypeDoc documentation
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+- `npm run test` - Run tests with Vitest
+- `npm run deps:check` - Check for unused dependencies (knip)
+- `npm run duplication` - Check for code duplication (jscpd)
+- `npm run full` - Run all checks (format, lint, deps, duplication, build)
 
-## Authentication
+## Authentication & Authorization
 
-All dictionary features are available without authentication. The previous cookie-based login flow has been removed so the application can be explored freely.
+The application uses session-based authentication with role-based access control:
 
-The editor search persists filter state in the `duech_editor_filters` cookie for convenience.
+- **Public users**: Can search and view published words
+- **Lexicographers**: Can edit assigned words, add comments
+- **Admins**: Can manage users, assign words, change word status
+- **Superadmins**: Full access to all features
+
+Editor mode is determined by the user's session. Filter state for editor searches is persisted in the `duech_editor_filters` cookie.
 
 ## Contributing
 
