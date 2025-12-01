@@ -8,10 +8,11 @@ import {
   MEANING_MARKER_KEYS,
 } from '@/lib/definitions';
 
-export interface RedactedWord {
+export interface PDFWord {
   lemma: string;
   root?: string | null;
   letter: string;
+  status?: string,
   meanings?: Meaning[];
   notes?: Array<{
     note: string | null;
@@ -19,6 +20,7 @@ export interface RedactedWord {
     user?: string | null;
   }> | null;
 }
+
 
 /**
  * Parse simple markdown and return segments with their styles
@@ -64,9 +66,9 @@ function parseMarkdown(text: string): Array<{ text: string; bold: boolean; itali
 }
 
 /**
- * Generate a PDF report of redacted words with their editorial comments
+ * Generate a PDF report of redacted and reviewed by lexicographers words with their editorial comments
  */
-export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): Promise<Uint8Array> {
+export async function generatePDFreport(words: PDFWord[], reportType: 'redacted' | 'reviewedLex' | 'both' ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage();
   const { width, height } = page.getSize();
@@ -237,7 +239,13 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
 
   // Header
   const drawHeader = () => {
-    const title = 'Reporte de palabras redactadas';
+    const titleMap = {
+      redacted: 'Reporte de palabras redactadas',
+      reviewedLex: 'Reporte de palabras revisadas por lexicógrafo',
+      both: 'Reporte de palabras pendientes de revisión por comisión',
+    }
+
+    const title = titleMap[reportType];
     const titleSize = 16;
     const titleWidth = fontTitle.widthOfTextAtSize(title, titleSize);
     const titleX = marginLeft + (contentWidth - titleWidth) / 2;
@@ -283,7 +291,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   drawHeader();
 
   // Draw editorial notes for a word
-  const drawEditorialNotesForWord = (notes: RedactedWord['notes']) => {
+  const drawEditorialNotesForWord = (notes: PDFWord['notes']) => {
     drawLine('Comentarios editoriales:', marginLeft + 15, {
       size: 10,
       font: fontTitle,
@@ -443,7 +451,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   };
 
   // If no redacted words
-  if (redactedWords.length === 0) {
+  if (words.length === 0) {
     ensureSpace(3);
     drawLine('No se encontraron palabras en estado redactada.', marginLeft, {
       size: 12,
@@ -457,7 +465,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   y -= 2;
 
   // Total redacted words
-  drawLine(`Total de palabras: ${redactedWords.length}`, marginLeft, {
+  drawLine(`Total de palabras: ${words.length}`, marginLeft, {
     size: 10,
     font: fontText,
     color: rgb(0.3, 0.3, 0.3),
@@ -467,7 +475,7 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
   let index = 1;
 
   // Draw each redacted word
-  for (const word of redactedWords) {
+  for (const word of words) {
     ensureSpace(5);
 
     const heading = `${index}. ${word.lemma.toUpperCase()}`;
@@ -477,6 +485,17 @@ export async function generateRedactedWordsPDF(redactedWords: RedactedWord[]): P
       color: rgb(0, 0, 0),
       lineStep: lineHeight + 4,
     });
+
+    // Show status if both type of word
+    if (reportType === 'both' && word.status) {
+      const statusLabel = word.status === 'redacted' ? 'Redactada' : 'Revisada por lexicógrafo';
+      drawLine(`Estado: ${statusLabel}`, marginLeft + 15, {
+        size: 9,
+        font: fontItalic,
+        color: rgb(0.4, 0.4, 0.4),
+        lineStep: lineHeight,
+      });
+    }
 
     // Root
     if (word.root && word.root !== word.lemma) {
