@@ -217,6 +217,7 @@ export async function POST(request: NextRequest) {
               dictionary: 'duech',
               remission: null,
               observation: null,
+              variant: null,
               ...createEmptyMarkerValues(),
             },
           ];
