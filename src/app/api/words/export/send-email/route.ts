@@ -6,8 +6,12 @@ import {
   WordStatusFilter,
 } from '@/lib/report-words-utils';
 import { generatePDFreport } from '@/lib/pdf-utils';
+import { requireAdminForApi } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
+  // Only admins and superadmins may send the report by email
+  await requireAdminForApi();
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const type = (searchParams.get('type') || 'redacted') as WordStatusFilter;
