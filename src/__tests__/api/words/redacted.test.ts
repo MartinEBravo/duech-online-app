@@ -14,7 +14,7 @@ vi.mock('@/lib/redacted-words-utils', () => ({
   authenticateAndFetchRedactedWords: vi.fn(),
 }));
 
-import * as redactedUtils from '@/lib/redacted-words-utils';
+import * as redactedUtils from '@/lib/report-words-utils';
 
 describe('GET /api/words/redacted', () => {
   beforeEach(() => {

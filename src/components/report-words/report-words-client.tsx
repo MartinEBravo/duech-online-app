@@ -60,10 +60,10 @@ type ReportType = 'redacted' | 'reviewedLex' | 'both';
  * />
  * ```
  */
-export function ExportedWordsClient({ 
-  redactedWords, 
-  reviewedLexWords, 
-  userEmail 
+export function ExportedWordsClient({
+  redactedWords,
+  reviewedLexWords,
+  userEmail,
 }: ExportedWordsClientProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'redacted' | 'reviewed'>('all');
   const [isSending, setIsSending] = useState(false);
@@ -73,10 +73,12 @@ export function ExportedWordsClient({
   const allWords = [...redactedWords, ...reviewedLexWords];
 
   // Filtrar palabras según la pestaña activa
-  const displayWords = 
-    activeTab === 'redacted' ? redactedWords :
-    activeTab === 'reviewed' ? reviewedLexWords :
-    allWords;
+  const displayWords =
+    activeTab === 'redacted'
+      ? redactedWords
+      : activeTab === 'reviewed'
+        ? reviewedLexWords
+        : allWords;
 
   const getReportType = (): ReportType => {
     if (activeTab === 'redacted') return 'redacted';
@@ -116,9 +118,7 @@ export function ExportedWordsClient({
   };
 
   const getStatusBadgeColor = (status: string) => {
-    return status === 'redacted' 
-      ? 'bg-yellow-100 text-yellow-800' 
-      : 'bg-green-100 text-green-800';
+    return status === 'redacted' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
   };
 
   return (
@@ -126,9 +126,15 @@ export function ExportedWordsClient({
       <div className="mb-6">
         <h1 className="mb-2 text-3xl font-bold text-gray-900">Palabras pendientes de revisión</h1>
         <div className="text-gray-600">
-          <p>Redactadas: <strong>{redactedWords.length}</strong></p>
-          <p>Revisadas por lexicógrafo: <strong>{reviewedLexWords.length}</strong></p>
-          <p>Total: <strong>{allWords.length}</strong></p>
+          <p>
+            Redactadas: <strong>{redactedWords.length}</strong>
+          </p>
+          <p>
+            Revisadas por lexicógrafo: <strong>{reviewedLexWords.length}</strong>
+          </p>
+          <p>
+            Total: <strong>{allWords.length}</strong>
+          </p>
         </div>
       </div>
 
@@ -137,7 +143,7 @@ export function ExportedWordsClient({
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('all')}
-            className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
+            className={`border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'all'
                 ? 'border-duech-blue text-duech-blue'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
@@ -147,7 +153,7 @@ export function ExportedWordsClient({
           </button>
           <button
             onClick={() => setActiveTab('redacted')}
-            className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
+            className={`border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'redacted'
                 ? 'border-yellow-600 text-yellow-600'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
@@ -157,7 +163,7 @@ export function ExportedWordsClient({
           </button>
           <button
             onClick={() => setActiveTab('reviewed')}
-            className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
+            className={`border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === 'reviewed'
                 ? 'border-green-600 text-green-600'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
@@ -183,8 +189,8 @@ export function ExportedWordsClient({
 
       {/* Action Buttons */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Button 
-          href={`/api/words/report?type=${getReportType()}`} 
+        <Button
+          href={`/api/words/report?type=${getReportType()}`}
           className="bg-duech-blue text-white hover:bg-blue-700"
           disabled={displayWords.length === 0}
         >
@@ -200,16 +206,12 @@ export function ExportedWordsClient({
           {isSending ? 'Enviando...' : 'Enviar por correo'}
         </Button>
 
-        <div className="text-sm text-gray-500">
-          Correo destino: {userEmail}
-        </div>
+        <div className="text-sm text-gray-500">Correo destino: {userEmail}</div>
       </div>
 
       {/* Words List */}
       {displayWords.length === 0 ? (
-        <Alert variant="info">
-          No se encontraron palabras en esta categoría.
-        </Alert>
+        <Alert variant="info">No se encontraron palabras en esta categoría.</Alert>
       ) : (
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
@@ -237,14 +239,16 @@ export function ExportedWordsClient({
                     <td className="px-4 py-3">
                       <Link
                         href={`/palabra/${encodeURIComponent(word.lemma)}`}
-                        className="font-semibold text-duech-blue hover:text-blue-700 hover:underline"
+                        className="text-duech-blue font-semibold hover:text-blue-700 hover:underline"
                       >
                         {word.lemma}
                       </Link>
                     </td>
                     {activeTab === 'all' && (
                       <td className="px-4 py-3">
-                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeColor(word.status)}`}>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeColor(word.status)}`}
+                        >
                           {getStatusLabel(word.status)}
                         </span>
                       </td>
@@ -260,7 +264,7 @@ export function ExportedWordsClient({
                           ))}
                         </ul>
                       ) : (
-                        <span className="italic text-sm text-gray-400">Sin comentarios</span>
+                        <span className="text-sm text-gray-400 italic">Sin comentarios</span>
                       )}
                     </td>
                   </tr>

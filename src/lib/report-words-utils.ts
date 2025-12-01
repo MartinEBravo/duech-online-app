@@ -41,8 +41,7 @@ export async function authenticateAndFetchWordsByStatus(filter: WordStatusFilter
     };
   }
   // Determine which statuses to fetch
-  const statuses =
-    filter === 'both' ? ['redacted', 'reviewedLex'] : [filter];
+  const statuses = filter === 'both' ? ['redacted', 'reviewedLex'] : [filter];
 
   const words = await getWordsByStatus(statuses);
 
@@ -88,6 +87,6 @@ export function mapWordsByStatusToPdf(
     letter: word.letter,
     meanings: word.meanings as unknown as Meaning[],
     notes: mapNotes(word.notes),
-    status: word.status, 
+    status: word.status,
   }));
 }

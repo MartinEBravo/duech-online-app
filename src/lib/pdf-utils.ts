@@ -12,7 +12,7 @@ export interface PDFWord {
   lemma: string;
   root?: string | null;
   letter: string;
-  status?: string,
+  status?: string;
   meanings?: Meaning[];
   notes?: Array<{
     note: string | null;
@@ -20,7 +20,6 @@ export interface PDFWord {
     user?: string | null;
   }> | null;
 }
-
 
 /**
  * Parse simple markdown and return segments with their styles
@@ -68,7 +67,10 @@ function parseMarkdown(text: string): Array<{ text: string; bold: boolean; itali
 /**
  * Generate a PDF report of redacted and reviewed by lexicographers words with their editorial comments
  */
-export async function generatePDFreport(words: PDFWord[], reportType: 'redacted' | 'reviewedLex' | 'both' ): Promise<Uint8Array> {
+export async function generatePDFreport(
+  words: PDFWord[],
+  reportType: 'redacted' | 'reviewedLex' | 'both'
+): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage();
   const { width, height } = page.getSize();
@@ -243,7 +245,7 @@ export async function generatePDFreport(words: PDFWord[], reportType: 'redacted'
       redacted: 'Reporte de palabras redactadas',
       reviewedLex: 'Reporte de palabras revisadas por lexicógrafo',
       both: 'Reporte de palabras pendientes de revisión por comisión',
-    }
+    };
 
     const title = titleMap[reportType];
     const titleSize = 16;
