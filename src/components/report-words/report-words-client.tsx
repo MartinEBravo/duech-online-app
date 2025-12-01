@@ -124,7 +124,10 @@ export function ExportedWordsClient({
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">Palabras pendientes de revisión</h1>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+          {' '}
+          Reporte de palabras pendientes de revisión
+        </h1>
         <div className="text-gray-600">
           <p>
             Redactadas: <strong>{redactedWords.length}</strong>

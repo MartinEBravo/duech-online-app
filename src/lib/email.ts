@@ -7,7 +7,7 @@ import {
   type PasswordEmailParagraph,
   type PasswordEmailProps,
 } from '@/components/emails/password-email';
-import RedactedWordsReportEmail from '@/components/emails/redacted-words-report-email';
+import RedactedWordsReportEmail from '@/components/emails/report-email';
 import { formatSpanishDate } from '@/lib/date-utils';
 
 const FROM_EMAIL = 'soporte@duech.cl';
@@ -239,11 +239,7 @@ export async function sendRedactedWordsReport(
     })
   );
 
-  return sendEmail(
-    email,
-    'Reporte de palabras redactadas - DUECh en línea',
-    emailHtml,
-    'redacted words report',
-    [{ filename: `reporte_redactadas_${now.toISOString().split('T')[0]}.pdf`, content: pdfBuffer }]
-  );
+  return sendEmail(email, 'Reporte de palabras - DUECh en línea', emailHtml, 'words report', [
+    { filename: `reporte_palabras_${now.toISOString().split('T')[0]}.pdf`, content: pdfBuffer },
+  ]);
 }
