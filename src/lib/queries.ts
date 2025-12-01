@@ -744,7 +744,6 @@ export async function getReviewedLexWords() {
   return getWordsByStatus(['reviewedLex']);
 }
 
-
 /**
  * Get unique sources from examples for the bibliography dropdown
  */
