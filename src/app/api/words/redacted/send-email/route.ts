@@ -1,23 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { sendRedactedWordsReport } from '@/lib/email';
 import {
-  authenticateAndFetchRedactedWords,
-  mapRedactedWordsToPdf,
-} from '@/lib/redacted-words-utils';
-import { generateRedactedWordsPDF } from '@/lib/pdf-utils';
+  authenticateAndFetchWordsByStatus,
+  mapWordsByStatusToPdf,
+  WordStatusFilter,
+} from '@/lib/report-words-utils';
+import { generatePDFreport } from '@/lib/pdf-utils';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Authenticate and fetch redacted words
-    const result = await authenticateAndFetchRedactedWords();
+    const searchParams = request.nextUrl.searchParams;
+    const type = (searchParams.get('type') || 'redacted') as WordStatusFilter;
+
+    const result = await authenticateAndFetchWordsByStatus(type);
     if (!result.success) return result.response;
 
-    // Generate PDF
-    const pdfReadyWords = mapRedactedWordsToPdf(result.words);
-    const pdfBytes = await generateRedactedWordsPDF(pdfReadyWords);
+    const pdfReadyWords = mapWordsByStatusToPdf(result.words);
+    const pdfBytes = await generatePDFreport(pdfReadyWords, type);
     const pdfBuffer = Buffer.from(pdfBytes);
 
-    // Send email with PDF attachment
     const emailResult = await sendRedactedWordsReport(
       result.user.email,
       result.user.name || result.user.email,
