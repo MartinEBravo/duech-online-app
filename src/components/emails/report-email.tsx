@@ -31,21 +31,19 @@ export interface RedactedWordsReportEmailProps {
  * ```
  */
 const RedactedWordsReportEmail = ({ username, dateStr }: RedactedWordsReportEmailProps) => (
-  <BaseEmail
-    preview="Reporte de palabras redactadas - DUECh en línea"
-    title="Reporte de palabras redactadas"
-  >
+  <BaseEmail preview="Reporte de palabras - DUECh en línea" title="Reporte de palabras">
     <Text className="mb-[3%] px-[5%] text-base leading-relaxed text-gray-800">
       Estimado/a {username},
     </Text>
 
     <Text className="mb-[3%] px-[5%] text-base leading-relaxed text-gray-800">
-      Adjunto encontrarás el reporte de palabras redactadas generado el <strong>{dateStr}</strong>.
+      Adjunto encontrarás el reporte de palabras generado el <strong>{dateStr}</strong>.
     </Text>
 
     <Text className="mb-[3%] px-[5%] text-base leading-relaxed text-gray-800">
       Este documento contiene el listado completo de todas las palabras en estado
-      &ldquo;redactada&rdquo; junto con sus comentarios editoriales correspondientes.
+      &ldquo;redactada&rdquo; y &ldquo;revisada por lexicógrafo&rdquo; junto con sus comentarios
+      editoriales correspondientes.
     </Text>
 
     <Section className="mx-[5%] my-5 border-l-4 border-yellow-400 bg-yellow-50 p-4">

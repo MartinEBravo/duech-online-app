@@ -256,8 +256,8 @@ export default function Header({ editorMode, initialUser = null }: HeaderProps) 
                   </NavLink>
                 )}
                 {editorMode && (
-                  <NavLink href={buildHref('/redactadas')} icon={BookOpenIcon} onClick={closeMenu}>
-                    Palabras redactadas
+                  <NavLink href={buildHref('/reporte')} icon={BookOpenIcon} onClick={closeMenu}>
+                    Reporte de palabras
                   </NavLink>
                 )}
                 {editorMode && (
