@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authenticateAndFetchRedactedWords } from '@/lib/redacted-words-utils';
+import { authenticateAndFetchRedactedWords } from '@/lib/report-words-utils';
 
 export async function GET() {
   try {

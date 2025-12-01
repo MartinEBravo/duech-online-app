@@ -1,60 +1,66 @@
 /**
- * Unit tests for the redacted words API route.
+ * Unit tests for the export words API route (redacted and reviewedLex).
  *
- * @module __tests__/api/words/redacted.test
+ * @module __tests__/api/words/export.test
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GET } from '@/app/api/words/redacted/route';
+import { GET } from '@/app/api/words/export/route';
 import { expectResponse } from '@/__tests__/utils/test-helpers';
 import { NextResponse } from 'next/server';
 
 // Mock dependencies
-vi.mock('@/lib/redacted-words-utils', () => ({
+vi.mock('@/lib/report-words-utils', () => ({
   authenticateAndFetchRedactedWords: vi.fn(),
 }));
 
-import * as redactedUtils from '@/lib/redacted-words-utils';
+import * as reportUtils from '@/lib/report-words-utils';
 
-describe('GET /api/words/redacted', () => {
+describe('GET /api/words/export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should return 401 if authentication fails', async () => {
-    vi.mocked(redactedUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
+    vi.mocked(reportUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
       success: false,
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-      words: [],
+      response: NextResponse.json({ error: 'Authentication required' }, { status: 401 }),
     });
 
     const response = await GET();
     const data = await expectResponse<{ error: string }>(response, 401);
 
-    expect(data.error).toBe('Unauthorized');
-  });
-
-  it('should return 403 if user is not admin', async () => {
-    vi.mocked(redactedUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
-      success: false,
-      response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-      words: [],
-    });
-
-    const response = await GET();
-    const data = await expectResponse<{ error: string }>(response, 403);
-
-    expect(data.error).toBe('Forbidden');
+    expect(data.error).toBe('Authentication required');
   });
 
   it('should return redacted words successfully', async () => {
     const mockWords = [
-      { lemma: 'word1', status: 'redacted', createdAt: new Date() },
-      { lemma: 'word2', status: 'redacted', createdAt: new Date() },
+      {
+        id: 1,
+        lemma: 'chilenismo',
+        root: 'chile',
+        letter: 'c',
+        status: 'redacted',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        notes: [],
+        meanings: [],
+      },
+      {
+        id: 2,
+        lemma: 'cachai',
+        root: 'cachar',
+        letter: 'c',
+        status: 'redacted',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        notes: [],
+        meanings: [],
+      },
     ];
-    vi.mocked(redactedUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
+    vi.mocked(reportUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
       success: true,
-      response: NextResponse.json({}),
+      user: { email: 'admin@duech.cl', name: 'Admin' },
       words: mockWords as never,
     });
 
@@ -68,12 +74,59 @@ describe('GET /api/words/redacted', () => {
     expect(data.success).toBe(true);
     expect(data.words).toHaveLength(2);
     expect(data.count).toBe(2);
+    expect(data.words[0].status).toBe('redacted');
+    expect(data.words[1].status).toBe('redacted');
   });
 
-  it('should return empty array when no redacted words exist', async () => {
-    vi.mocked(redactedUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
+  it('should return reviewedLex words successfully', async () => {
+    const mockWords = [
+      {
+        id: 3,
+        lemma: 'fome',
+        root: 'fome',
+        letter: 'f',
+        status: 'reviewedLex',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        notes: [],
+        meanings: [],
+      },
+      {
+        id: 4,
+        lemma: 'pololo',
+        root: 'pololo',
+        letter: 'p',
+        status: 'reviewedLex',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        notes: [],
+        meanings: [],
+      },
+    ];
+    vi.mocked(reportUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
       success: true,
-      response: NextResponse.json({}),
+      user: { email: 'admin@duech.cl', name: 'Admin' },
+      words: mockWords as never,
+    });
+
+    const response = await GET();
+    const data = await expectResponse<{
+      success: boolean;
+      words: typeof mockWords;
+      count: number;
+    }>(response, 200);
+
+    expect(data.success).toBe(true);
+    expect(data.words).toHaveLength(2);
+    expect(data.count).toBe(2);
+    expect(data.words[0].status).toBe('reviewedLex');
+    expect(data.words[1].status).toBe('reviewedLex');
+  });
+
+  it('should return empty array when no words exist', async () => {
+    vi.mocked(reportUtils.authenticateAndFetchRedactedWords).mockResolvedValue({
+      success: true,
+      user: { email: 'admin@duech.cl', name: 'Admin' },
       words: [],
     });
 
@@ -90,7 +143,7 @@ describe('GET /api/words/redacted', () => {
   });
 
   it('should return 500 on unexpected error', async () => {
-    vi.mocked(redactedUtils.authenticateAndFetchRedactedWords).mockRejectedValue(
+    vi.mocked(reportUtils.authenticateAndFetchRedactedWords).mockRejectedValue(
       new Error('Database error')
     );
 

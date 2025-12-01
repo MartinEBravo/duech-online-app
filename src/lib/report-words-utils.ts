@@ -1,32 +1,33 @@
 /**
- * Utilities for handling redacted words in API routes.
+ * Utilities for handling redacted and reviewed words in API routes.
  *
  * Provides authentication and data transformation helpers for
- * the redacted words report feature.
+ * the redacted and reviewed words report feature.
  *
  * @module lib/redacted-words-utils
  */
-
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
-import { getRedactedWords } from '@/lib/queries';
-import type { RedactedWord } from '@/lib/pdf-utils';
+import { getWordsByStatus } from '@/lib/queries';
+import type { PDFWord } from '@/lib/pdf-utils';
 import type { Meaning } from '@/lib/definitions';
 
 /** Type alias for raw redacted word from database */
-type RawRedactedWord = Awaited<ReturnType<typeof getRedactedWords>>[number];
+type RawRedactedWord = Awaited<ReturnType<typeof getWordsByStatus>>[number];
+
+export type WordStatusFilter = 'redacted' | 'reviewedLex' | 'both';
 
 /**
- * Authenticates the user and fetches all redacted words.
- * Used by redacted words API routes.
+ * Authenticates the user and fetches words by status.
  *
  * @returns Success with user and words data, or error response
+>>>>>>> Stashed changes:src/lib/exported-words-utils.ts
  */
-export async function authenticateAndFetchRedactedWords(): Promise<
+export async function authenticateAndFetchWordsByStatus(filter: WordStatusFilter): Promise<
   | {
       success: true;
       user: { email: string; name?: string };
-      words: Awaited<ReturnType<typeof getRedactedWords>>;
+      words: Awaited<ReturnType<typeof getWordsByStatus>>;
     }
   | { success: false; response: NextResponse }
 > {
@@ -39,8 +40,10 @@ export async function authenticateAndFetchRedactedWords(): Promise<
       response: NextResponse.json({ error: 'Authentication required' }, { status: 401 }),
     };
   }
-  // Get words with "redacted" status
-  const words = await getRedactedWords();
+  // Determine which statuses to fetch
+  const statuses = filter === 'both' ? ['redacted', 'reviewedLex'] : [filter];
+
+  const words = await getWordsByStatus(statuses);
 
   return {
     success: true,
@@ -49,11 +52,15 @@ export async function authenticateAndFetchRedactedWords(): Promise<
   };
 }
 
+export async function authenticateAndFetchRedactedWords() {
+  return authenticateAndFetchWordsByStatus('redacted');
+}
+
 /**
  * Maps raw database notes to the PDF report format.
  * @internal
  */
-function mapNotes(notes: RawRedactedWord['notes']): RedactedWord['notes'] {
+function mapNotes(notes: RawRedactedWord['notes']): PDFWord['notes'] {
   if (!notes || notes.length === 0) {
     return null;
   }
@@ -71,14 +78,15 @@ function mapNotes(notes: RawRedactedWord['notes']): RedactedWord['notes'] {
  * @param words - Raw words from the database
  * @returns Array of words formatted for PDF generation
  */
-export function mapRedactedWordsToPdf(
-  words: Awaited<ReturnType<typeof getRedactedWords>>
-): RedactedWord[] {
+export function mapWordsByStatusToPdf(
+  words: Awaited<ReturnType<typeof getWordsByStatus>>
+): PDFWord[] {
   return words.map((word) => ({
     lemma: word.lemma,
     root: word.root,
     letter: word.letter,
     meanings: word.meanings as unknown as Meaning[],
     notes: mapNotes(word.notes),
+    status: word.status,
   }));
 }
