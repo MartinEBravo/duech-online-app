@@ -744,12 +744,6 @@ export async function getReviewedLexWords() {
   return getWordsByStatus(['reviewedLex']);
 }
 
-/**
- * Retrieves words with both "redacted" and "reviewedLex" status.
- */
-export async function getRedactedAndReviewedWords() {
-  return getWordsByStatus(['redacted', 'reviewedLex']);
-}
 
 /**
  * Get unique sources from examples for the bibliography dropdown
