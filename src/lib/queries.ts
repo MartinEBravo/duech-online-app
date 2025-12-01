@@ -10,7 +10,9 @@
  * ### Word Queries
  * - {@link getWordByLemma} - Retrieve a single word with all its data
  * - {@link searchWords} - Search words with flexible filtering and pagination
- * - {@link getRedactedWords} - Get words pending review
+ * - {@link getWordsByStatus} - Get words pending review
+ * - {@link getRedactedWords} - Get redacted words for reports
+ * - {@link getReviewedLexWords} - Get lexicographically reviewed words for reports
  * - {@link getWordsBySource} - Get words by publication source
  *
  * ### User Management
@@ -705,14 +707,15 @@ export async function deletePasswordResetToken(token: string) {
 }
 
 /**
- * Retrieves all words with "redacted" status for review.
+ * Retrieves words by their editorial status.
  * Includes meanings and notes with user information.
  *
- * @returns Array of words with status "redacted", ordered by lemma
+ * @param statuses - Array of statuses to filter by
+ * @returns Array of words matching the statuses, ordered by lemma
  */
-export async function getRedactedWords() {
+export async function getWordsByStatus(statuses: string[]) {
   return db.query.words.findMany({
-    where: (table, { eq }) => eq(table.status, 'redacted'),
+    where: (table, { inArray }) => inArray(table.status, statuses),
     with: {
       notes: {
         with: {
@@ -725,6 +728,27 @@ export async function getRedactedWords() {
     },
     orderBy: (table, { asc }) => [asc(table.lemma)],
   });
+}
+
+/**
+ * Retrieves all words with "redacted" status for review.
+ */
+export async function getRedactedWords() {
+  return getWordsByStatus(['redacted']);
+}
+
+/**
+ * Retrieves all words with "reviewedLex" status.
+ */
+export async function getReviewedLexWords() {
+  return getWordsByStatus(['reviewedLex']);
+}
+
+/**
+ * Retrieves words with both "redacted" and "reviewedLex" status.
+ */
+export async function getRedactedAndReviewedWords() {
+  return getWordsByStatus(['redacted', 'reviewedLex']);
 }
 
 /**
